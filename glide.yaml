@@ -1,0 +1,16 @@
+package: github.com/gojektech/proctor
+import:
+- package: github.com/gorilla/websocket
+  version: ~1.2.0
+- package: github.com/spf13/cobra
+  version: ccaecb155a2177302cb56cae929251a256d0f646
+- package: github.com/spf13/viper
+  version: ~1.0.0
+- package: github.com/spf13/pflag
+  version: ~1.0.0
+- package: github.com/stretchr/testify
+  version: ~1.2.1
+- package: github.com/fatih/color
+  version: v1.6.0
+- package: github.com/briandowns/spinner
+  version: "1.0"

@@ -1,0 +1,20 @@
+dist: trusty
+sudo: required
+language: go
+go:
+- "1.8"
+
+before_script:
+# Install glide
+- curl https://glide.sh/get | sh
+
+stages:
+  - test
+
+jobs:
+  include:
+    - stage: test
+      script:
+        - glide install
+        - go test -race -cover $(glide novendor)
+
