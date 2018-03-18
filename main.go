@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/gojekfarm/proctor/cmd"
-	"github.com/gojekfarm/proctor/engine"
-	"github.com/gojekfarm/proctor/io"
+	"github.com/gojektech/proctor/cmd"
+	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/io"
 )
 
 func main() {

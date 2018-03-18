@@ -3,8 +3,8 @@ package cmd
 import (
 	"testing"
 
-	"github.com/gojekfarm/proctor/engine"
-	"github.com/gojekfarm/proctor/io"
+	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/io"
 	"github.com/stretchr/testify/assert"
 )
 

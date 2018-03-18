@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gojekfarm/proctor/config"
+	"github.com/gojektech/proctor/config"
 	"github.com/stretchr/testify/assert"
 )
 

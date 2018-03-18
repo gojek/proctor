@@ -11,11 +11,11 @@ It helps you execute various jobs available with proctor.
 
 * Install and setup golang
 * Install glide
-* Make a directory `src/github.com/gojekfarm` inside your GOPATH
+* Make a directory `src/github.com/gojektech` inside your GOPATH
 * Clone this repo inside above directory
 * Install dependencies using glide
 * [Configure proctor CLI](#proctor-cli-configuration)
-* Running `go install github.com/gojekfarm/proctor` will place the CLI binary in your `$GOPATH/bin` directory
+* Running `go install github.com/gojektech/proctor` will place the CLI binary in your `$GOPATH/bin` directory
 * Run `proctor version` to check installation
 
 ### Running tests instructions

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gojekfarm/proctor/cmd/jobs"
-	"github.com/gojekfarm/proctor/cmd/version"
-	"github.com/gojekfarm/proctor/config"
-	"github.com/gojekfarm/proctor/engine"
-	"github.com/gojekfarm/proctor/io"
+	"github.com/gojektech/proctor/cmd/jobs"
+	"github.com/gojektech/proctor/cmd/version"
+	"github.com/gojektech/proctor/config"
+	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/io"
 
 	"github.com/spf13/cobra"
 )

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/gojekfarm/proctor/jobs"
+	"github.com/gojektech/proctor/jobs"
 	"github.com/stretchr/testify/mock"
 )
 

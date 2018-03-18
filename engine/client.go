@@ -12,8 +12,8 @@ import (
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
-	"github.com/gojekfarm/proctor/config"
-	"github.com/gojekfarm/proctor/jobs"
+	"github.com/gojektech/proctor/config"
+	"github.com/gojektech/proctor/jobs"
 	"github.com/gorilla/websocket"
 )
 

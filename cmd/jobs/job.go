@@ -1,11 +1,11 @@
 package jobs
 
 import (
-	"github.com/gojekfarm/proctor/cmd/jobs/description"
-	"github.com/gojekfarm/proctor/cmd/jobs/execution"
-	"github.com/gojekfarm/proctor/cmd/jobs/list"
-	"github.com/gojekfarm/proctor/engine"
-	"github.com/gojekfarm/proctor/io"
+	"github.com/gojektech/proctor/cmd/jobs/description"
+	"github.com/gojektech/proctor/cmd/jobs/execution"
+	"github.com/gojektech/proctor/cmd/jobs/list"
+	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
 )
 

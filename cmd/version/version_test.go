@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gojekfarm/proctor/io"
+	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
