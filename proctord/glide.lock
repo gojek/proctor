@@ -1,5 +1,5 @@
-hash: c7fcde13c2b75d0d66dd477281d5f6825bebf5cc9d88407c6d4f3f7ae490f64d
-updated: 2018-03-16T20:56:46.802284+05:30
+hash: 3b9817f67f48cc115816769de3b02d8892a1b8a4342af83c43c1a6a0d3e91417
+updated: 2018-03-20T12:34:34.37531+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -68,6 +68,7 @@ imports:
   subpackages:
   - hcl/ast
   - hcl/parser
+  - hcl/printer
   - hcl/scanner
   - hcl/strconv
   - hcl/token
@@ -132,9 +133,9 @@ imports:
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/spf13/viper
-  version: 25b30aa063fc18e48662b86996252eabdcf2f0c7
+  version: b5e8006cbee93ec955a89ab31e0e3ce3204f3736
 - name: github.com/stretchr/objx
-  version: cbeaeb16a013161a98496fad62933b1d21786672
+  version: 8a3f7159479fbc75b30357fbc48f380b7320f08e
 - name: github.com/stretchr/testify
   version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
   subpackages:
