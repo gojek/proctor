@@ -1,3 +1,11 @@
-*.swp
 proctor
-vendor
+proctord/proctord
+
+proctord/.env
+.env
+
+vendor/
+proctord/vendor/
+
+*.swp
+*.swo

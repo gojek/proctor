@@ -1,13 +1,13 @@
-hash: 472b8f5a435fd3308215a66e7ab236e1cb5282b4a0b0b333d3081bfea42f0d50
-updated: 2018-03-20T10:17:15.296648+05:30
+hash: c7fcde13c2b75d0d66dd477281d5f6825bebf5cc9d88407c6d4f3f7ae490f64d
+updated: 2018-03-16T20:56:46.802284+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
   subpackages:
   - compute/metadata
   - internal
-- name: github.com/briandowns/spinner
-  version: 48dbb65d7bd5c74ab50d53d04c949f20e3d14944
+- name: github.com/danverbraganza/varcaser
+  version: ce61ec497fbffd4887976757109cb585f6bb29e1
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
@@ -23,8 +23,6 @@ imports:
   - log
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
-- name: github.com/fatih/color
-  version: 507f6050b8568533fb3f5504de8e5205fa62a114
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/garyburd/redigo
@@ -70,7 +68,6 @@ imports:
   subpackages:
   - hcl/ast
   - hcl/parser
-  - hcl/printer
   - hcl/scanner
   - hcl/strconv
   - hcl/token
@@ -81,8 +78,8 @@ imports:
   version: bf9dde6d0d2c004a008c27aaee91170c786f6db8
 - name: github.com/imdario/mergo
   version: 6633656539c1639d9d78127b7d47c622b5d7b6dc
-- name: github.com/inconshreveable/mousetrap
-  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/jarcoal/httpmock
+  version: 4442edb3db31196622da56482fd8d0fa375fba4d
 - name: github.com/jmoiron/sqlx
   version: cf35089a197953c69420c8d0cecda90809764b1d
   subpackages:
@@ -108,10 +105,6 @@ imports:
   - database/postgres
   - source
   - source/file
-- name: github.com/mattn/go-colorable
-  version: 7dc3415be66d7cc68bf0182f35c8d31f8d2ad8a7
-- name: github.com/mattn/go-isatty
-  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/mitchellh/mapstructure
   version: 06020f85339e21b2478f756a78e295255ffa4d6a
 - name: github.com/pelletier/go-toml
@@ -134,16 +127,14 @@ imports:
   - mem
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
-- name: github.com/spf13/cobra
-  version: ccaecb155a2177302cb56cae929251a256d0f646
 - name: github.com/spf13/jwalterweatherman
   version: 12bd96e66386c1960ab0f74ced1362f66f552f7b
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/spf13/viper
-  version: b5e8006cbee93ec955a89ab31e0e3ce3204f3736
+  version: 25b30aa063fc18e48662b86996252eabdcf2f0c7
 - name: github.com/stretchr/objx
-  version: 8a3f7159479fbc75b30357fbc48f380b7320f08e
+  version: cbeaeb16a013161a98496fad62933b1d21786672
 - name: github.com/stretchr/testify
   version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
   subpackages:
@@ -161,6 +152,10 @@ imports:
   version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
 - name: github.com/urfave/negroni
   version: 5dbbc83f748fc3ad38585842b0aedab546d0ea1e
+- name: golang.org/x/build
+  version: 7a0c634c6c43f64fbc060ade820c07eb39bd7b92
+  subpackages:
+  - kubernetes
 - name: golang.org/x/crypto
   version: d172538b2cfce0c13cee31e647d0367aa8cd2486
   subpackages:
@@ -364,7 +359,5 @@ imports:
   - util/integer
   - util/jsonpath
 testImports:
-- name: github.com/jarcoal/httpmock
-  version: 4442edb3db31196622da56482fd8d0fa375fba4d
 - name: github.com/pkg/errors
   version: 30136e27e2ac8d167177e8a583aa4c3fea5be833

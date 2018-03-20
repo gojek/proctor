@@ -1,11 +1,11 @@
 ## Proctor
 
-Proctor is an automation framework. It helps everyone contribute to automation, mange it and use it.
+Proctor is a developer friendly automation orchestrator. It helps everyone use automation and contribute to it
 
-### Introduction
+### proctor CLI
 
-Proctor CLI is a command line tool to interact with proctor-engine.
-It helps you execute various jobs available with proctor.
+Proctor CLI is a command line tool to interact with [proctord](#)
+Users can use it to run procs
 
 ### Dev environment setup
 

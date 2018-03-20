@@ -1,0 +1,52 @@
+dist: trusty
+sudo: required
+language: go
+go:
+- "1.8"
+
+env:
+  global:
+    - PROCTOR_KUBE_CONFIG="out-of-cluster"
+    - PROCTOR_LOG_LEVEL="debug"
+    - PROCTOR_APP_PORT="5000"
+    - PROCTOR_DEFAULT_NAMESPACE="default"
+    - PROCTOR_REDIS_ADDRESS="localhost:6379"
+    - PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS="10"
+    - PROCTOR_KUBE_JOB_ACTIVE_DEADLINE_SECONDS="60"
+    - PROCTOR_LOGS_STREAM_READ_BUFFER_SIZE="140"
+    - PROCTOR_LOGS_STREAM_WRITE_BUFFER_SIZE="4096"
+    - PROCTOR_KUBE_CLUSTER_HOST_NAME="localhost:8001"
+    - PROCTOR_KUBE_POD_LIST_WAIT_TIME="5"
+    - PROCTOR_POSTGRES_USER="postgres"
+    - PROCTOR_POSTGRES_PASSWORD=""
+    - PROCTOR_POSTGRES_HOST="localhost"
+    - PROCTOR_POSTGRES_PORT="5432"
+    - PROCTOR_POSTGRES_DATABASE="proctord_ci"
+    - PROCTOR_POSTGRES_MAX_CONNECTIONS="50"
+    - PROCTOR_POSTGRES_CONNECTIONS_MAX_LIFETIME="30"
+
+services:
+  - redis-server
+  - postgresql
+
+before_script:
+# Install glide
+- curl https://glide.sh/get | sh
+# Start Redis sever
+- sudo service redis-server start
+- psql -c 'create database proctord_ci;' -U postgres
+
+stages:
+  - test
+
+jobs:
+  include:
+    - stage: test
+      script:
+        - glide install
+        - cd proctord/
+        - glide install
+        - go build
+        - ./proctord migrate
+        - cd ../.
+        - go test -race -cover $(glide novendor)

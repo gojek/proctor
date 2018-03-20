@@ -15,9 +15,8 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:     "proctor",
-		Long:    `A command-line tool to interact with proctor-engine, the heart of Proctor: An Automation Framework`,
-		Version: "Ipsum Lorem",
+		Use:  "proctor",
+		Long: `A command-line tool to interact with proctor-engine, the heart of Proctor: An Automation Framework`,
 	}
 )
 
@@ -26,7 +25,6 @@ func Execute(printer io.Printer, proctorEngineClient engine.Client) {
 
 	versionCmd := version.NewCmd(printer)
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.SetVersionTemplate("😊  Proctor: An Automation Framework v0.1.0\n")
 
 	jobCmd := jobs.NewCmd(printer, proctorEngineClient)
 	rootCmd.AddCommand(jobCmd)
