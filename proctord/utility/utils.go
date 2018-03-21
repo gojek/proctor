@@ -7,6 +7,10 @@ const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"
 const JobSubmissionServerError = "server_error"
 
+const JobSucceeded = "SUCCEEDED"
+const JobFailed = "FAILED"
+const JobWaiting = "WAITING"
+
 const JobNameContextKey = "job_name"
 const JobArgsContextKey = "job_args"
 const ImageNameContextKey = "image_name"

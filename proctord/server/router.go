@@ -32,7 +32,7 @@ func NewRouter() *mux.Router {
 	kubeConfig := kubernetes.KubeConfig()
 	kubeClient := kubernetes.NewClient(kubeConfig)
 
-	auditor := audit.New(store)
+	auditor := audit.New(store, kubeClient)
 	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore, auditor)
 	jobLogger := logs.NewLogger(kubeClient)
 	jobMetadataHandler := metadata.NewHandler(metadataStore)
