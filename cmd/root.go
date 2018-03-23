@@ -16,7 +16,7 @@ import (
 var (
 	rootCmd = &cobra.Command{
 		Use:  "proctor",
-		Long: `A command-line tool to interact with proctor-engine, the heart of Proctor: An Automation Framework`,
+		Long: `A command-line interface to interact with proctord, the heart of Proctor: An Automation Orchestrator`,
 	}
 )
 

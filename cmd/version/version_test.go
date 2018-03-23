@@ -20,7 +20,7 @@ func TestVersionCmd(t *testing.T) {
 	mockPrinter := &io.MockPrinter{}
 	versionCmd := NewCmd(mockPrinter)
 
-	mockPrinter.On("Println", "😊  Proctor: An Automation Framework v0.1.0", color.Reset).Once()
+	mockPrinter.On("Println", "😊  Proctor: An Automation Orchestrator v0.1.0", color.Reset).Once()
 
 	versionCmd.Run(&cobra.Command{}, []string{})
 

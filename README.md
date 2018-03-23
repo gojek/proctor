@@ -1,5 +1,7 @@
 ## Proctor
 
+![proctor](https://github.com/gojektech/proctor/blob/master/img/proctor.png)
+
 Proctor is a developer friendly automation orchestrator. It helps everyone use automation and contribute to it
 
 ### proctor CLI

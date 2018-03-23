@@ -1,7 +1,7 @@
 ### proctord
 
-* `proctord` is the heart of the automation framework. It is a long-running background process that answers requests for services
-* It takes care of executing jobs and maintaining their configuration
+* `proctord` is the heart of the automation orchestrator
+* It is a web service that handles management and execution of procs
 
 ### Dev environment setup
 
