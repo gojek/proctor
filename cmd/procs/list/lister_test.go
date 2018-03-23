@@ -8,7 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/engine"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/jobs"
+	"github.com/gojektech/proctor/proc"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -32,27 +32,27 @@ func (s *ListCmdTestSuite) TestListCmdUsage() {
 }
 
 func (s *ListCmdTestSuite) TestListCmdHelp() {
-	assert.Equal(s.T(), "List jobs available with proctor for execution", s.testListCmd.Short)
-	assert.Equal(s.T(), "Example: proctor job list", s.testListCmd.Long)
+	assert.Equal(s.T(), "List procs available with proctor for execution", s.testListCmd.Short)
+	assert.Equal(s.T(), "Example: proctor proc list", s.testListCmd.Long)
 }
 
 func (s *ListCmdTestSuite) TestListCmdRun() {
-	jobOne := jobs.Metadata{
+	procOne := proc.Metadata{
 		Name:        "one",
-		Description: "job one description",
+		Description: "proc one description",
 	}
-	jobTwo := jobs.Metadata{
+	procTwo := proc.Metadata{
 		Name:        "two",
-		Description: "job two description",
+		Description: "proc two description",
 	}
-	jobList := []jobs.Metadata{jobOne, jobTwo}
+	procList := []proc.Metadata{procOne, procTwo}
 
-	s.mockProctorEngineClient.On("ListJobs").Return(jobList, nil).Once()
+	s.mockProctorEngineClient.On("ListProcs").Return(procList, nil).Once()
 
-	s.mockPrinter.On("Println", "Proctor Jobs List:\n", color.FgGreen).Once()
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", jobOne.Name, jobOne.Description), color.Reset).Once()
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", jobTwo.Name, jobTwo.Description), color.Reset).Once()
-	s.mockPrinter.On("Println", "\nFor detailed information of jobs, run:\nproctor job describe <job_name>", color.FgGreen).Once()
+	s.mockPrinter.On("Println", "Proctor Procs List:\n", color.FgGreen).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procOne.Name, procOne.Description), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procTwo.Name, procTwo.Description), color.Reset).Once()
+	s.mockPrinter.On("Println", "\nFor detailed information of procs, run:\nproctor proc describe <proc_name>", color.FgGreen).Once()
 
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 
@@ -61,8 +61,8 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 }
 
 func (s *ListCmdTestSuite) TestListCmdRunProctorEngineClientFailure() {
-	s.mockProctorEngineClient.On("ListJobs").Return([]jobs.Metadata{}, errors.New("error")).Once()
-	s.mockPrinter.On("Println", "Error fetching list of jobs. Please check configuration and network connectivity", color.FgRed).Once()
+	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("error")).Once()
+	s.mockPrinter.On("Println", "Error fetching list of procs. Please check configuration and network connectivity", color.FgRed).Once()
 
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 

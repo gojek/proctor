@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gojektech/proctor/cmd/jobs"
+	"github.com/gojektech/proctor/cmd/procs"
 	"github.com/gojektech/proctor/cmd/version"
 	"github.com/gojektech/proctor/config"
 	"github.com/gojektech/proctor/engine"
@@ -26,8 +26,8 @@ func Execute(printer io.Printer, proctorEngineClient engine.Client) {
 	versionCmd := version.NewCmd(printer)
 	rootCmd.AddCommand(versionCmd)
 
-	jobCmd := jobs.NewCmd(printer, proctorEngineClient)
-	rootCmd.AddCommand(jobCmd)
+	procCmd := procs.NewCmd(printer, proctorEngineClient)
+	rootCmd.AddCommand(procCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

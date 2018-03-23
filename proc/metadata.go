@@ -1,6 +1,6 @@
-package jobs
+package proc
 
-import "github.com/gojektech/proctor/jobs/env"
+import "github.com/gojektech/proctor/proc/env"
 
 type Metadata struct {
 	Name        string   `json:"name"`

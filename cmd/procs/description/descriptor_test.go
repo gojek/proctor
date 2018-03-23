@@ -8,8 +8,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/engine"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/jobs"
-	"github.com/gojektech/proctor/jobs/env"
+	"github.com/gojektech/proctor/proc"
+	"github.com/gojektech/proctor/proc/env"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -33,8 +33,8 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdUsage() {
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdHelp() {
-	assert.Equal(s.T(), "Describe a job, list help for variables and constants", s.testDescribeCmd.Short)
-	assert.Equal(s.T(), "Example: proctor job describe say-hello-world", s.testDescribeCmd.Long)
+	assert.Equal(s.T(), "Describe a proc, list help for variables and constants", s.testDescribeCmd.Short)
+	assert.Equal(s.T(), "Example: proctor proc describe say-hello-world", s.testDescribeCmd.Long)
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
@@ -48,7 +48,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 		Description: "secret one description",
 	}
 
-	doSomething := jobs.Metadata{
+	doSomething := proc.Metadata{
 		Name:        "do-something",
 		Description: "does something",
 		EnvVars: env.Vars{
@@ -56,17 +56,17 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 			Secrets: []env.VarMetadata{secret},
 		},
 	}
-	jobList := []jobs.Metadata{doSomething}
+	procList := []proc.Metadata{doSomething}
 
-	s.mockProctorEngineClient.On("ListJobs").Return(jobList, nil).Once()
+	s.mockProctorEngineClient.On("ListProcs").Return(procList, nil).Once()
 
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Job Name", doSomething.Name), color.Reset).Once()
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Job Description", doSomething.Description), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Proc Name", doSomething.Name), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Proc Description", doSomething.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", "\nVariables", color.FgMagenta).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", arg.Name, arg.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", "\nConstants", color.FgMagenta).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", secret.Name, secret.Description), color.Reset).Once()
-	s.mockPrinter.On("Println", "\nFor executing a job, run:\nproctor job execute <job_name> <args_name>", color.FgGreen).Once()
+	s.mockPrinter.On("Println", "\nFor executing a proc, run:\nproctor proc execute <proc_name> <args_name>", color.FgGreen).Once()
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{"do-something"})
 
@@ -75,8 +75,8 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorEngineClientFailure() {
-	s.mockProctorEngineClient.On("ListJobs").Return([]jobs.Metadata{}, errors.New("error")).Once()
-	s.mockPrinter.On("Println", "Error fetching list of jobs. Please check configuration and network connectivity", color.FgRed).Once()
+	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("error")).Once()
+	s.mockPrinter.On("Println", "Error fetching list of procs. Please check configuration and network connectivity", color.FgRed).Once()
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{})
 
@@ -84,11 +84,11 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorEngineClientFailure() {
 	s.mockPrinter.AssertExpectations(s.T())
 }
 
-func (s *DescribeCmdTestSuite) TestDescribeCmdRunJobNotSupported() {
-	s.mockProctorEngineClient.On("ListJobs").Return([]jobs.Metadata{}, nil).Once()
-	s.mockPrinter.On("Println", fmt.Sprintf("Proctor doesn't support job: %s", "any-job"), color.FgRed).Once()
+func (s *DescribeCmdTestSuite) TestDescribeCmdRunProcNotSupported() {
+	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, nil).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("Proctor doesn't support proc: %s", "any-proc"), color.FgRed).Once()
 
-	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-job"})
+	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-proc"})
 
 	s.mockProctorEngineClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())

@@ -1,5 +1,5 @@
 {
-  "description":"This job says hello world",
+  "description":"This proc says hello world",
   "env_vars":{
     "secrets": [
       {
@@ -7,7 +7,7 @@
         "description":"description of first secret"
       },
       {
-        "name":"SAMPLE_SECRET_TWo",
+        "name":"SAMPLE_SECRET_TWO",
         "description":"description of second secret"
       }
     ],

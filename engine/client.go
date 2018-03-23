@@ -13,21 +13,21 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/config"
-	"github.com/gojektech/proctor/jobs"
+	"github.com/gojektech/proctor/proc"
 	"github.com/gorilla/websocket"
 )
 
 type Client interface {
-	ListJobs() ([]jobs.Metadata, error)
-	ExecuteJob(string, map[string]string) (string, error)
-	StreamJobLogs(string) error
+	ListProcs() ([]proc.Metadata, error)
+	ExecuteProc(string, map[string]string) (string, error)
+	StreamProcLogs(string) error
 }
 
 type client struct {
 	proctorEngineURL string
 }
 
-type job struct {
+type ProcToExecute struct {
 	Name string            `json:"name"`
 	Args map[string]string `json:"args"`
 }
@@ -38,25 +38,25 @@ func NewClient() Client {
 	}
 }
 
-func (c *client) ListJobs() ([]jobs.Metadata, error) {
+func (c *client) ListProcs() ([]proc.Metadata, error) {
 	resp, err := http.Get("http://" + c.proctorEngineURL + "/jobs/metadata")
 	if err != nil || resp.StatusCode != http.StatusOK {
-		return []jobs.Metadata{}, err
+		return []proc.Metadata{}, err
 	}
 	defer resp.Body.Close()
 
-	var jobList []jobs.Metadata
-	err = json.NewDecoder(resp.Body).Decode(&jobList)
-	return jobList, err
+	var procList []proc.Metadata
+	err = json.NewDecoder(resp.Body).Decode(&procList)
+	return procList, err
 }
 
-func (c *client) ExecuteJob(name string, args map[string]string) (string, error) {
-	jobToExecute := job{
+func (c *client) ExecuteProc(name string, args map[string]string) (string, error) {
+	procToExecute := ProcToExecute{
 		Name: name,
 		Args: args,
 	}
 
-	requestBody, err := json.Marshal(jobToExecute)
+	requestBody, err := json.Marshal(procToExecute)
 	if err != nil {
 		return "", err
 	}
@@ -67,13 +67,13 @@ func (c *client) ExecuteJob(name string, args map[string]string) (string, error)
 	}
 
 	defer resp.Body.Close()
-	var executedJob job
-	err = json.NewDecoder(resp.Body).Decode(&executedJob)
+	var executedProc ProcToExecute
+	err = json.NewDecoder(resp.Body).Decode(&executedProc)
 
-	return executedJob.Name, err
+	return executedProc.Name, err
 }
 
-func (c *client) StreamJobLogs(name string) error {
+func (c *client) StreamProcLogs(name string) error {
 	animation := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 	animation.Color("green")
 	animation.Start()
@@ -82,9 +82,9 @@ func (c *client) StreamJobLogs(name string) error {
 	signal.Notify(interrupt, os.Interrupt)
 
 	proctorEngineWebsocketURL := url.URL{Scheme: "ws", Host: c.proctorEngineURL, Path: "/jobs/logs"}
-	proctorEngineWebsocketURLWithJobName := proctorEngineWebsocketURL.String() + "?" + "job_name=" + name
+	proctorEngineWebsocketURLWithProcName := proctorEngineWebsocketURL.String() + "?" + "proc_name=" + name
 
-	wsConn, _, err := websocket.DefaultDialer.Dial(proctorEngineWebsocketURLWithJobName, nil)
+	wsConn, _, err := websocket.DefaultDialer.Dial(proctorEngineWebsocketURLWithProcName, nil)
 	if err != nil {
 		animation.Stop()
 		return err
@@ -107,7 +107,7 @@ func (c *client) StreamJobLogs(name string) error {
 	for {
 		select {
 		case <-interrupt:
-			color.New(color.FgRed).Println("User interrupt while streaming job logs")
+			color.New(color.FgRed).Println("User interrupt while streaming proc logs")
 			err := wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			return err
 		case <-logStreaming:

@@ -1,9 +1,9 @@
-package jobs
+package procs
 
 import (
-	"github.com/gojektech/proctor/cmd/jobs/description"
-	"github.com/gojektech/proctor/cmd/jobs/execution"
-	"github.com/gojektech/proctor/cmd/jobs/list"
+	"github.com/gojektech/proctor/cmd/procs/description"
+	"github.com/gojektech/proctor/cmd/procs/execution"
+	"github.com/gojektech/proctor/cmd/procs/list"
 	"github.com/gojektech/proctor/engine"
 	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
@@ -11,9 +11,9 @@ import (
 
 func NewCmd(printer io.Printer, proctorEngineClient engine.Client) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "job",
-		Short: "Interact with proctor jobs",
-		Long:  `Example: proctor job <command>`,
+		Use:   "proc",
+		Short: "Interact with proctor procs",
+		Long:  `Example: proctor proc <command>`,
 	}
 
 	descriptionCmd := description.NewCmd(printer, proctorEngineClient)

@@ -20,8 +20,8 @@ func TestRootCmdSubCommands(t *testing.T) {
 	subCommands := rootCmd.Commands()
 
 	assert.Equal(t, "help", subCommands[0].Name())
-	assert.Equal(t, "job", subCommands[1].Name())
-	assert.Equal(t, "job", subCommands[2].Name())
+	assert.Equal(t, "proc", subCommands[1].Name())
+	assert.Equal(t, "proc", subCommands[2].Name())
 	assert.Equal(t, "version", subCommands[3].Name())
 	assert.Equal(t, "version", subCommands[4].Name())
 }
