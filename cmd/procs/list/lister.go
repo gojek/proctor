@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(printer io.Printer, proctorEngineClient engine.Client) *cobra.Command {
+func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List procs available with proctor for execution",

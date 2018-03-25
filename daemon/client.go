@@ -1,4 +1,4 @@
-package engine
+package daemon
 
 import (
 	"bytes"
@@ -82,7 +82,7 @@ func (c *client) StreamProcLogs(name string) error {
 	signal.Notify(interrupt, os.Interrupt)
 
 	proctorEngineWebsocketURL := url.URL{Scheme: "ws", Host: c.proctorEngineURL, Path: "/jobs/logs"}
-	proctorEngineWebsocketURLWithProcName := proctorEngineWebsocketURL.String() + "?" + "proc_name=" + name
+	proctorEngineWebsocketURLWithProcName := proctorEngineWebsocketURL.String() + "?" + "job_name=" + name
 
 	wsConn, _, err := websocket.DefaultDialer.Dial(proctorEngineWebsocketURLWithProcName, nil)
 	if err != nil {

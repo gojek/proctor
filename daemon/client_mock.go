@@ -1,4 +1,4 @@
-package engine
+package daemon
 
 import (
 	"github.com/gojektech/proctor/proc"

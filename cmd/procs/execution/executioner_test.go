@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -16,13 +16,13 @@ import (
 type ExecutionCmdTestSuite struct {
 	suite.Suite
 	mockPrinter             *io.MockPrinter
-	mockProctorEngineClient *engine.MockClient
+	mockProctorEngineClient *daemon.MockClient
 	testExecutionCmd        *cobra.Command
 }
 
 func (s *ExecutionCmdTestSuite) SetupTest() {
 	s.mockPrinter = &io.MockPrinter{}
-	s.mockProctorEngineClient = &engine.MockClient{}
+	s.mockProctorEngineClient = &daemon.MockClient{}
 	s.testExecutionCmd = NewCmd(s.mockPrinter, s.mockProctorEngineClient)
 }
 

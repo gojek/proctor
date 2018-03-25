@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 	"github.com/gojektech/proctor/proc"
 	"github.com/spf13/cobra"
@@ -17,13 +17,13 @@ import (
 type ListCmdTestSuite struct {
 	suite.Suite
 	mockPrinter             *io.MockPrinter
-	mockProctorEngineClient *engine.MockClient
+	mockProctorEngineClient *daemon.MockClient
 	testListCmd             *cobra.Command
 }
 
 func (s *ListCmdTestSuite) SetupTest() {
 	s.mockPrinter = &io.MockPrinter{}
-	s.mockProctorEngineClient = &engine.MockClient{}
+	s.mockProctorEngineClient = &daemon.MockClient{}
 	s.testListCmd = NewCmd(s.mockPrinter, s.mockProctorEngineClient)
 }
 

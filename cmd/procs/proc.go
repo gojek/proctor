@@ -4,12 +4,12 @@ import (
 	"github.com/gojektech/proctor/cmd/procs/description"
 	"github.com/gojektech/proctor/cmd/procs/execution"
 	"github.com/gojektech/proctor/cmd/procs/list"
-	"github.com/gojektech/proctor/engine"
+	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(printer io.Printer, proctorEngineClient engine.Client) *cobra.Command {
+func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "proc",
 		Short: "Interact with proctor procs",
