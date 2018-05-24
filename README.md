@@ -1,6 +1,10 @@
-## Proctor
+# Proctor
 
-![proctor](https://github.com/gojektech/proctor/blob/master/img/proctor.png)
+<p align="center">
+  <img src="doc/proctor-logo.png" width="360">
+</p>
+
+## Description
 
 Proctor is a developer friendly automation orchestrator. It helps everyone use automation and contribute to it
 
