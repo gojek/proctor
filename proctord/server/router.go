@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gojektech/proctor/proctord/audit"
+	http_client "github.com/gojektech/proctor/proctord/http"
 	"github.com/gojektech/proctor/proctord/jobs/execution"
 	"github.com/gojektech/proctor/proctord/jobs/logs"
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
@@ -19,7 +20,7 @@ import (
 
 var postgresClient postgres.Client
 
-func NewRouter() *mux.Router {
+func NewRouter() (*mux.Router, error) {
 	router := mux.NewRouter()
 
 	redisClient := redis.NewClient()
@@ -29,8 +30,12 @@ func NewRouter() *mux.Router {
 	metadataStore := metadata.NewStore(redisClient)
 	secretsStore := secrets.NewStore(redisClient)
 
+	httpClient, err := http_client.NewClient()
+	if err != nil {
+		return router, err
+	}
 	kubeConfig := kubernetes.KubeConfig()
-	kubeClient := kubernetes.NewClient(kubeConfig)
+	kubeClient := kubernetes.NewClient(kubeConfig, httpClient)
 
 	auditor := audit.New(store, kubeClient)
 	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore, auditor)
@@ -48,5 +53,5 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/jobs/metadata", jobMetadataHandler.HandleBulkDisplay()).Methods("GET")
 	router.HandleFunc("/jobs/secrets", jobSecretsHandler.HandleSubmission()).Methods("POST")
 
-	return router
+	return router, nil
 }

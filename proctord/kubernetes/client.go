@@ -32,7 +32,8 @@ func init() {
 }
 
 type client struct {
-	clientSet kubernetes.Interface
+	clientSet  kubernetes.Interface
+	httpClient *http.Client
 }
 
 type Client interface {
@@ -41,8 +42,10 @@ type Client interface {
 	JobExecutionStatus(string) (string, error)
 }
 
-func NewClient(kubeconfig string) Client {
-	var newClient client
+func NewClient(kubeconfig string, httpClient *http.Client) Client {
+	newClient := &client{
+		httpClient: httpClient,
+	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
@@ -54,7 +57,7 @@ func NewClient(kubeconfig string) Client {
 		panic(err.Error())
 	}
 
-	return &newClient
+	return newClient
 }
 
 func getEnvVars(envMap map[string]string) []v1.EnvVar {
@@ -149,7 +152,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 		if len(listOfPods.Items) > 0 {
 			podJob := listOfPods.Items[0]
 			if podJob.Status.Phase == v1.PodRunning || podJob.Status.Phase == v1.PodSucceeded || podJob.Status.Phase == v1.PodFailed {
-				return getLogsStreamReaderFor(podJob.ObjectMeta.Name)
+				return client.getLogsStreamReaderFor(podJob.ObjectMeta.Name)
 			}
 			watchPod, err := kubernetesPods.Watch(listOptions)
 			if err != nil {
@@ -232,8 +235,17 @@ func (client *client) JobExecutionStatus(jobSubmittedForExecution string) (strin
 	return utility.JobFailed, nil
 }
 
-func getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {
+func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {
 	logger.Debug("reading pod logs for: ", podName)
-	resp, err := http.Get("http://" + config.KubeClusterHostName() + "/api/v1/namespaces/" + namespace + "/pods/" + podName + "/log?follow=true")
+
+	req, err := http.NewRequest("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+podName+"/log?follow=true", nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Basic "+config.KubeBasicAuthEncoded())
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
 	return resp.Body, err
 }

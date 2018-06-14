@@ -56,6 +56,22 @@ func TestKubeClusterHostName(t *testing.T) {
 	assert.Equal(t, "somekube.io", KubeClusterHostName())
 }
 
+func TestKubeCACertEncoded(t *testing.T) {
+	os.Setenv("PROCTOR_KUBE_CA_CERT_ENCODED", "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCmNlcnRpZmljYXRlCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCmNlcnRpZmljYXRlCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K", KubeCACertEncoded())
+}
+
+func TestKubeBasicAuthEncoded(t *testing.T) {
+	os.Setenv("PROCTOR_KUBE_BASIC_AUTH_ENCODED", "YWRtaW46cGFzc3dvcmQK")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "YWRtaW46cGFzc3dvcmQK", KubeBasicAuthEncoded())
+}
+
 func TestRedisMaxActiveConnections(t *testing.T) {
 	os.Setenv("PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS", "50")
 

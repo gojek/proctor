@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"bufio"
+	"net/http"
 	"testing"
 	"time"
 
@@ -27,6 +28,7 @@ type ClientTestSuite struct {
 	jobName                string
 	podName                string
 	fakeClientSetStreaming *fakeclientset.Clientset
+	fakeHttpClient         *http.Client
 	testClientStreaming    Client
 }
 
@@ -56,8 +58,10 @@ func (suite *ClientTestSuite) SetupTest() {
 		},
 	})
 
+	suite.fakeHttpClient = &http.Client{}
 	suite.testClientStreaming = &client{
-		clientSet: suite.fakeClientSetStreaming,
+		clientSet:  suite.fakeClientSetStreaming,
+		httpClient: suite.fakeHttpClient,
 	}
 }
 
@@ -109,11 +113,11 @@ func (suite *ClientTestSuite) TestJobExecution() {
 func (suite *ClientTestSuite) TestStreamLogsSuccess() {
 	t := suite.T()
 
-	httpmock.Activate()
+	httpmock.ActivateNonDefault(suite.fakeHttpClient)
 	defer httpmock.DeactivateAndReset()
 
 	namespace := config.DefaultNamespace()
-	httpmock.RegisterResponder("GET", "http://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+suite.podName+"/log?follow=true",
+	httpmock.RegisterResponder("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+suite.podName+"/log?follow=true",
 		httpmock.NewStringResponder(200, "logs are streaming"))
 
 	logStream, err := suite.testClientStreaming.StreamJobLogs(suite.jobName)

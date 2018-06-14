@@ -31,6 +31,14 @@ func KubeClusterHostName() string {
 	return viper.GetString("KUBE_CLUSTER_HOST_NAME")
 }
 
+func KubeCACertEncoded() string {
+	return viper.GetString("KUBE_CA_CERT_ENCODED")
+}
+
+func KubeBasicAuthEncoded() string {
+	return viper.GetString("KUBE_BASIC_AUTH_ENCODED")
+}
+
 func RedisMaxActiveConnections() int {
 	return viper.GetInt("REDIS_MAX_ACTIVE_CONNECTIONS")
 }

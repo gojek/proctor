@@ -14,7 +14,11 @@ func Start() error {
 	appPort := ":" + config.AppPort()
 
 	server := negroni.New(negroni.NewRecovery())
-	server.UseHandler(NewRouter())
+	router, err := NewRouter()
+	if err != nil {
+		return err
+	}
+	server.UseHandler(router)
 
 	logger.Info("Starting server on port", appPort)
 
