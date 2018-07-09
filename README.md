@@ -10,8 +10,8 @@ Proctor is a developer friendly automation orchestrator. It helps everyone use a
 
 ### proctor CLI
 
-Proctor CLI is a command line tool to interact with [proctord](#)
-Users can use it to run procs
+Proctor CLI is a command line tool to interact with [proctord](https://github.com/gojektech/proctor/blob/master/proctord).
+Users can use it to run procs.
 
 ### Dev environment setup
 
@@ -36,5 +36,5 @@ Users can use it to run procs
 * Put the following content in the above file
 
 ```
-PROCTOR_URL: [URL to proctor Engine]
+PROCTOR_URL: [hostname where proctord is running]
 ```
