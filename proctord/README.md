@@ -15,7 +15,7 @@
 * Run a kubectl proxy server on your local machine
 * [Configure proctord](#proctord-configuration)
 * Running `go build -o proctord` will build binary to run `proctord`
-* Run database migrations by running this command `./proctord migrate` from the repo directory
+* Setup & Run database migrations by running this command `make db.setup` from the repo directory
 * Start service by `./proctord start`
 * Run `curl {host-address:port}/ping` for health-check of service
 
@@ -29,10 +29,11 @@
 
 #### proctord configuration
 
-* Copy `.env.sample` into `.env` file
+* Copy `.env.sample` into `.env` file by running `make copy-config`
 * Please refer meaning of `proctord` configuration [here](#proctord-configuration-explanation)
 * Modify configuration for dev setup in `.env` file
-* Export environment variables configured in `.env` file. `proctord`  gets configuration from environment variables
+* Export environment variables configured in `.env` file by running `source .env`
+* `proctord` gets configuration from environment variables.
 
 #### proctord configuration explanation
 
