@@ -14,11 +14,14 @@ import (
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/gojektech/proctor/proctord/jobs/secrets"
 	"github.com/gojektech/proctor/proctord/kubernetes"
+	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/utility"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/gorilla/mux"
+	"github.com/urfave/negroni"
 )
 
 type ExecutionerTestSuite struct {
@@ -27,7 +30,11 @@ type ExecutionerTestSuite struct {
 	mockMetadataStore *metadata.MockStore
 	mockSecretsStore  *secrets.MockStore
 	mockAuditor       *audit.MockAuditor
+	mockStore         *storage.MockStore
 	testExecutioner   Executioner
+
+	Client     *http.Client
+	TestServer *httptest.Server
 }
 
 func (suite *ExecutionerTestSuite) SetupTest() {
@@ -35,7 +42,16 @@ func (suite *ExecutionerTestSuite) SetupTest() {
 	suite.mockMetadataStore = &metadata.MockStore{}
 	suite.mockSecretsStore = &secrets.MockStore{}
 	suite.mockAuditor = &audit.MockAuditor{}
-	suite.testExecutioner = NewExecutioner(&suite.mockKubeClient, suite.mockMetadataStore, suite.mockSecretsStore, suite.mockAuditor)
+	suite.mockStore = &storage.MockStore{}
+	suite.testExecutioner = NewExecutioner(&suite.mockKubeClient, suite.mockMetadataStore, suite.mockSecretsStore, suite.mockAuditor, suite.mockStore)
+
+	suite.Client = &http.Client{}
+	router := mux.NewRouter()
+	router.HandleFunc("/jobs/{job_name}/status", suite.testExecutioner.Status()).Methods("GET")
+	n := negroni.Classic()
+	n.UseHandler(router)
+	suite.TestServer = httptest.NewServer(n)
+
 }
 
 func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
@@ -223,6 +239,59 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnExecutionFailure() {
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	assert.Equal(t, utility.ServerError, responseRecorder.Body.String())
+}
+
+func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn200OnSuccess() {
+	t := suite.T()
+
+	jobName := "sample-job-name"
+
+	url := fmt.Sprintf("%s/jobs/%s/status", suite.TestServer.URL, jobName)
+
+	suite.mockStore.On("GetJobStatus", jobName).Return(utility.JobSucceeded, nil).Once()
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	response, _ := suite.Client.Do(req)
+	suite.mockStore.AssertExpectations(t)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	jobStatus := buf.String()
+	assert.Equal(suite.T(), utility.JobSucceeded, jobStatus)
+}
+
+func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn404IfJobStatusIsNotFound() {
+	t := suite.T()
+
+	jobName := "sample-job-name"
+
+	url := fmt.Sprintf("%s/jobs/%s/status", suite.TestServer.URL, jobName)
+
+	suite.mockStore.On("GetJobStatus", jobName).Return("", nil).Once()
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	response, _ := suite.Client.Do(req)
+	suite.mockStore.AssertExpectations(t)
+	assert.Equal(suite.T(), http.StatusNotFound, response.StatusCode)
+}
+
+func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn500OnError() {
+	t := suite.T()
+
+	jobName := "sample-job-name"
+
+	url := fmt.Sprintf("%s/jobs/%s/status", suite.TestServer.URL, jobName)
+
+	suite.mockStore.On("GetJobStatus", jobName).Return("", errors.New("error")).Once()
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	response, _ := suite.Client.Do(req)
+	suite.mockStore.AssertExpectations(t)
+	assert.Equal(suite.T(), http.StatusInternalServerError, response.StatusCode)
 }
 
 func TestExecutionerTestSuite(t *testing.T) {

@@ -13,6 +13,7 @@ import (
 
 type Client interface {
 	NamedExec(string, interface{}) error
+	Select(interface{}, string, ...interface{}) error
 	Close() error
 }
 
@@ -40,6 +41,10 @@ func NewClient() Client {
 func (client *client) NamedExec(query string, data interface{}) error {
 	_, err := client.db.NamedExec(query, data)
 	return err
+}
+
+func (client *client) Select(destination interface{}, query string, args ...interface{}) error {
+	return client.db.Select(destination, query, args...)
 }
 
 func (client *client) Close() error {

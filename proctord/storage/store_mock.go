@@ -15,3 +15,8 @@ func (m *MockStore) UpdateJobsExecutionAuditLog(jobSubmittedForExecution, status
 	args := m.Called(jobSubmittedForExecution, status)
 	return args.Error(0)
 }
+
+func (m *MockStore) GetJobStatus(jobName string) (string, error) {
+	args := m.Called(jobName)
+	return args.String(0), args.Error(1)
+}
