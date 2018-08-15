@@ -17,9 +17,8 @@ Users can use it to run procs.
 
 * Install and setup golang
 * Install glide
-* Make a directory `src/github.com/gojektech` inside your GOPATH
-* Clone this repo inside above directory
-* Install dependencies using glide
+* Clone the repository: `go get github.com/gojektech/proctor`
+* Install dependencies using glide: `glide install`
 * [Configure proctor CLI](#proctor-cli-configuration)
 * Running `go install github.com/gojektech/proctor` will place the CLI binary in your `$GOPATH/bin` directory
 * Run `proctor version` to check installation
@@ -35,6 +34,6 @@ Users can use it to run procs.
 * Create a file proctor.yaml inside above directory
 * Put the following content in the above file
 
-```
+``` sh
 PROCTOR_URL: [hostname where proctord is running]
 ```
