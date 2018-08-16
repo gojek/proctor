@@ -11,7 +11,10 @@ import (
 	"github.com/gojektech/proctor/proctord/jobs/secrets"
 	"github.com/gojektech/proctor/proctord/kubernetes"
 	"github.com/gojektech/proctor/proctord/logger"
+	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/utility"
+
+	"github.com/gorilla/mux"
 )
 
 type executioner struct {
@@ -19,21 +22,43 @@ type executioner struct {
 	metadataStore metadata.Store
 	secretsStore  secrets.Store
 	auditor       audit.Auditor
+	store         storage.Store
 }
 
 type Executioner interface {
 	Handle() http.HandlerFunc
+	Status() http.HandlerFunc
 }
 
-func NewExecutioner(kubeClient kubernetes.Client, metadataStore metadata.Store, secretsStore secrets.Store, auditor audit.Auditor) Executioner {
+func NewExecutioner(kubeClient kubernetes.Client, metadataStore metadata.Store, secretsStore secrets.Store, auditor audit.Auditor, store storage.Store) Executioner {
 	return &executioner{
 		kubeClient:    kubeClient,
 		metadataStore: metadataStore,
 		secretsStore:  secretsStore,
 		auditor:       auditor,
+		store:         store,
 	}
 }
 
+func (executioner *executioner) Status() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		jobName := mux.Vars(req)["job_name"]
+		jobStatus, err := executioner.store.GetJobStatus(jobName)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			logger.Error("Error getting job status", err.Error())
+			return
+		}
+
+		if jobStatus == "" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		fmt.Fprintf(w, jobStatus)
+	}
+}
 func (executioner *executioner) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()

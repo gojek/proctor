@@ -38,7 +38,7 @@ func NewRouter() (*mux.Router, error) {
 	kubeClient := kubernetes.NewClient(kubeConfig, httpClient)
 
 	auditor := audit.New(store, kubeClient)
-	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore, auditor)
+	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore, auditor, store)
 	jobLogger := logs.NewLogger(kubeClient)
 	jobMetadataHandler := metadata.NewHandler(metadataStore)
 	jobSecretsHandler := secrets.NewHandler(secretsStore)
@@ -49,6 +49,7 @@ func NewRouter() (*mux.Router, error) {
 
 	router.HandleFunc("/jobs/execute", jobExecutioner.Handle()).Methods("POST")
 	router.HandleFunc("/jobs/logs", jobLogger.Stream()).Methods("GET")
+	router.HandleFunc("/jobs/{job_name}/status", jobExecutioner.Status()).Methods("GET")
 	router.HandleFunc("/jobs/metadata", jobMetadataHandler.HandleSubmission()).Methods("POST")
 	router.HandleFunc("/jobs/metadata", jobMetadataHandler.HandleBulkDisplay()).Methods("GET")
 	router.HandleFunc("/jobs/secrets", jobSecretsHandler.HandleSubmission()).Methods("POST")

@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/gojektech/proctor/proctord/storage/postgres"
+	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestJobsExecutionAuditLog(t *testing.T) {
@@ -71,4 +73,72 @@ func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
 
 	assert.Error(t, err)
 	mockPostgresClient.AssertExpectations(t)
+}
+
+func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
+	mockPostgresClient := &postgres.ClientMock{}
+	testStore := New(mockPostgresClient)
+	jobName := "any-job"
+
+	dest := []postgres.JobsExecutionAuditLog{}
+
+	mockPostgresClient.On("Select",
+		&dest,
+		"SELECT job_execution_status from jobs_execution_audit_log where job_name = $1",
+		jobName).
+		Return(nil).
+		Run(func(args mock.Arguments) {
+			jobsExecutionAuditLogResult := args.Get(0).(*[]postgres.JobsExecutionAuditLog)
+			*jobsExecutionAuditLogResult = append(*jobsExecutionAuditLogResult, postgres.JobsExecutionAuditLog{
+				JobExecutionStatus: utility.JobSucceeded,
+			})
+		}).
+		Once()
+
+	status, err := testStore.GetJobStatus(jobName)
+	assert.NoError(t, err)
+
+	assert.Equal(t, utility.JobSucceeded, status)
+
+	mockPostgresClient.AssertExpectations(t)
+}
+
+func TestGetJobsStatusWhenJobIsNotPresent(t *testing.T) {
+	mockPostgresClient := &postgres.ClientMock{}
+	testStore := New(mockPostgresClient)
+	jobName := "any-job"
+
+	dest := []postgres.JobsExecutionAuditLog{}
+
+	mockPostgresClient.On("Select",
+		&dest,
+		"SELECT job_execution_status from jobs_execution_audit_log where job_name = $1",
+		jobName).
+		Return(nil).
+		Once()
+
+	status, err := testStore.GetJobStatus(jobName)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "", status)
+
+	mockPostgresClient.AssertExpectations(t)
+}
+
+func TestGetJobsStatusWhenError(t *testing.T) {
+	mockPostgresClient := &postgres.ClientMock{}
+	testStore := New(mockPostgresClient)
+	jobName := "any-job"
+
+	dest := []postgres.JobsExecutionAuditLog{}
+
+	mockPostgresClient.On("Select",
+		&dest,
+		"SELECT job_execution_status from jobs_execution_audit_log where job_name = $1",
+		jobName).
+		Return(errors.New("error")).
+		Once()
+
+	_, err := testStore.GetJobStatus(jobName)
+	assert.Error(t, err, "error")
 }
