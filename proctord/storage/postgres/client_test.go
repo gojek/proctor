@@ -76,3 +76,22 @@ func TestSelect(t *testing.T) {
 	_, err = postgresClient.db.Exec("DELETE FROM jobs_execution_audit_log WHERE job_name='test-job-name'")
 	assert.NoError(t, err)
 }
+
+func TestSelectForNoRows(t *testing.T) {
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
+
+	db, err := sqlx.Connect("postgres", dataSourceName)
+	assert.NoError(t, err)
+
+	postgresClient := &client{db: db}
+	defer postgresClient.db.Close()
+	jobName := "test-job-name"
+
+	jobsExecutionAuditLogResult := []JobsExecutionAuditLog{}
+	err = postgresClient.db.Select(&jobsExecutionAuditLogResult, "SELECT job_execution_status from jobs_execution_audit_log where job_name = $1", jobName)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 0, len(jobsExecutionAuditLogResult))
+
+	assert.NoError(t, err)
+}
