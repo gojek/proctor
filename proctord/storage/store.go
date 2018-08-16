@@ -35,7 +35,7 @@ func (store *store) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatu
 	jobsExecutionAuditLog := postgres.JobsExecutionAuditLog{
 		JobName:                      jobName,
 		ImageName:                    imageName,
-		JobNameSubmittedForExecution: JobNameSubmittedForExecution,
+		JobNameSubmittedForExecution: postgres.StringToSQLString(JobNameSubmittedForExecution),
 		JobArgs:             base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
 		JobSubmissionStatus: jobSubmissionStatus,
 		JobExecutionStatus:  jobExecutionStatus,
@@ -46,7 +46,7 @@ func (store *store) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatu
 func (store *store) UpdateJobsExecutionAuditLog(JobNameSubmittedForExecution, status string) error {
 	jobsExecutionAuditLog := postgres.JobsExecutionAuditLog{
 		JobExecutionStatus:           status,
-		JobNameSubmittedForExecution: JobNameSubmittedForExecution,
+		JobNameSubmittedForExecution: postgres.StringToSQLString(JobNameSubmittedForExecution),
 	}
 
 	return store.postgresClient.NamedExec("UPDATE jobs_execution_audit_log SET job_execution_status = :job_execution_status where job_name_submitted_for_execution = :job_name_submitted_for_execution", &jobsExecutionAuditLog)

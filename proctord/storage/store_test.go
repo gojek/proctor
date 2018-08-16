@@ -32,7 +32,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 	data := postgres.JobsExecutionAuditLog{
 		JobName:                      jobName,
 		ImageName:                    imageName,
-		JobNameSubmittedForExecution: JobNameSubmittedForExecution,
+		JobNameSubmittedForExecution: postgres.StringToSQLString(JobNameSubmittedForExecution),
 		JobArgs:             base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
 		JobSubmissionStatus: jobSubmissionStatus,
 		JobExecutionStatus:  jobExecutionStatus,

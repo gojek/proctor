@@ -21,7 +21,7 @@ func TestNamedExec(t *testing.T) {
 	jobsExecutionAuditLog := &JobsExecutionAuditLog{
 		JobName:                      "test-job-name",
 		ImageName:                    "test-image-name",
-		JobNameSubmittedForExecution: "test-submission-name",
+		JobNameSubmittedForExecution: StringToSQLString("test-submission-name"),
 		JobArgs:             "test-job-args",
 		JobSubmissionStatus: "test-job-status",
 		JobExecutionStatus:  "test-job-execution-status",
@@ -36,7 +36,7 @@ func TestNamedExec(t *testing.T) {
 
 	assert.Equal(t, jobsExecutionAuditLog.JobName, persistedJobsExecutionAuditLog.JobName)
 	assert.Equal(t, jobsExecutionAuditLog.ImageName, persistedJobsExecutionAuditLog.ImageName)
-	assert.Equal(t, jobsExecutionAuditLog.JobNameSubmittedForExecution, persistedJobsExecutionAuditLog.JobNameSubmittedForExecution)
+	assert.Equal(t, jobsExecutionAuditLog.JobNameSubmittedForExecution.String, persistedJobsExecutionAuditLog.JobNameSubmittedForExecution.String)
 	assert.Equal(t, jobsExecutionAuditLog.JobArgs, persistedJobsExecutionAuditLog.JobArgs)
 	assert.Equal(t, jobsExecutionAuditLog.JobSubmissionStatus, persistedJobsExecutionAuditLog.JobSubmissionStatus)
 	assert.Equal(t, jobsExecutionAuditLog.JobExecutionStatus, persistedJobsExecutionAuditLog.JobExecutionStatus)
@@ -58,7 +58,7 @@ func TestSelect(t *testing.T) {
 	jobsExecutionAuditLog := &JobsExecutionAuditLog{
 		JobName:                      jobName,
 		ImageName:                    "test-image-name",
-		JobNameSubmittedForExecution: "test-submission-name",
+		JobNameSubmittedForExecution: StringToSQLString("test-submission-name"),
 		JobArgs:             "test-job-args",
 		JobSubmissionStatus: "test-job-status",
 		JobExecutionStatus:  "test-job-execution-status",
