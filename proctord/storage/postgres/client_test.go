@@ -19,24 +19,24 @@ func TestNamedExec(t *testing.T) {
 	defer postgresClient.db.Close()
 
 	jobsExecutionAuditLog := &JobsExecutionAuditLog{
-		JobName:                  "test-job-name",
-		ImageName:                "test-image-name",
-		JobSubmittedForExecution: "test-submission-name",
-		JobArgs:                  "test-job-args",
-		JobSubmissionStatus:      "test-job-status",
-		JobExecutionStatus:       "test-job-execution-status",
+		JobName:                      "test-job-name",
+		ImageName:                    "test-image-name",
+		JobNameSubmittedForExecution: "test-submission-name",
+		JobArgs:             "test-job-args",
+		JobSubmissionStatus: "test-job-status",
+		JobExecutionStatus:  "test-job-execution-status",
 	}
 
-	err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
+	err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
 	assert.NoError(t, err)
 
 	var persistedJobsExecutionAuditLog JobsExecutionAuditLog
-	err = postgresClient.db.Get(&persistedJobsExecutionAuditLog, `SELECT job_name, image_name, job_submitted_for_execution, job_args, job_submission_status, job_execution_status FROM jobs_execution_audit_log WHERE job_name='test-job-name'`)
+	err = postgresClient.db.Get(&persistedJobsExecutionAuditLog, `SELECT job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status FROM jobs_execution_audit_log WHERE job_name='test-job-name'`)
 	assert.NoError(t, err)
 
 	assert.Equal(t, jobsExecutionAuditLog.JobName, persistedJobsExecutionAuditLog.JobName)
 	assert.Equal(t, jobsExecutionAuditLog.ImageName, persistedJobsExecutionAuditLog.ImageName)
-	assert.Equal(t, jobsExecutionAuditLog.JobSubmittedForExecution, persistedJobsExecutionAuditLog.JobSubmittedForExecution)
+	assert.Equal(t, jobsExecutionAuditLog.JobNameSubmittedForExecution, persistedJobsExecutionAuditLog.JobNameSubmittedForExecution)
 	assert.Equal(t, jobsExecutionAuditLog.JobArgs, persistedJobsExecutionAuditLog.JobArgs)
 	assert.Equal(t, jobsExecutionAuditLog.JobSubmissionStatus, persistedJobsExecutionAuditLog.JobSubmissionStatus)
 	assert.Equal(t, jobsExecutionAuditLog.JobExecutionStatus, persistedJobsExecutionAuditLog.JobExecutionStatus)
@@ -56,15 +56,15 @@ func TestSelect(t *testing.T) {
 	jobName := "test-job-name"
 
 	jobsExecutionAuditLog := &JobsExecutionAuditLog{
-		JobName:                  jobName,
-		ImageName:                "test-image-name",
-		JobSubmittedForExecution: "test-submission-name",
-		JobArgs:                  "test-job-args",
-		JobSubmissionStatus:      "test-job-status",
-		JobExecutionStatus:       "test-job-execution-status",
+		JobName:                      jobName,
+		ImageName:                    "test-image-name",
+		JobNameSubmittedForExecution: "test-submission-name",
+		JobArgs:             "test-job-args",
+		JobSubmissionStatus: "test-job-status",
+		JobExecutionStatus:  "test-job-execution-status",
 	}
 
-	err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
+	err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
 	assert.NoError(t, err)
 
 	jobsExecutionAuditLogResult := []JobsExecutionAuditLog{}

@@ -11,12 +11,12 @@ func (m *MockStore) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatu
 	return args.Error(0)
 }
 
-func (m *MockStore) UpdateJobsExecutionAuditLog(jobSubmittedForExecution, status string) error {
-	args := m.Called(jobSubmittedForExecution, status)
+func (m *MockStore) UpdateJobsExecutionAuditLog(JobNameSubmittedForExecution, status string) error {
+	args := m.Called(JobNameSubmittedForExecution, status)
 	return args.Error(0)
 }
 
-func (m *MockStore) GetJobStatus(jobName string) (string, error) {
+func (m *MockStore) GetJobExecutionStatus(jobName string) (string, error) {
 	args := m.Called(jobName)
 	return args.String(0), args.Error(1)
 }

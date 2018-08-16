@@ -42,8 +42,8 @@ func NewExecutioner(kubeClient kubernetes.Client, metadataStore metadata.Store, 
 
 func (executioner *executioner) Status() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		jobName := mux.Vars(req)["job_name"]
-		jobStatus, err := executioner.store.GetJobStatus(jobName)
+		JobNameSubmittedForExecution := mux.Vars(req)["name"]
+		jobExecutionStatus, err := executioner.store.GetJobExecutionStatus(JobNameSubmittedForExecution)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -51,12 +51,12 @@ func (executioner *executioner) Status() http.HandlerFunc {
 			return
 		}
 
-		if jobStatus == "" {
+		if jobExecutionStatus == "" {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		fmt.Fprintf(w, jobStatus)
+		fmt.Fprintf(w, jobExecutionStatus)
 	}
 }
 func (executioner *executioner) Handle() http.HandlerFunc {
@@ -107,7 +107,7 @@ func (executioner *executioner) Handle() http.HandlerFunc {
 
 		envVars := utility.MergeMaps(job.Args, jobSecrets)
 
-		jobSubmittedForExecution, err := executioner.kubeClient.ExecuteJob(imageName, envVars)
+		JobNameSubmittedForExecution, err := executioner.kubeClient.ExecuteJob(imageName, envVars)
 		if err != nil {
 			logger.Error("Error executing job: %v", job, imageName, err.Error())
 			ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
@@ -118,11 +118,11 @@ func (executioner *executioner) Handle() http.HandlerFunc {
 			executioner.auditor.AuditJobsExecution(ctx)
 			return
 		}
-		ctx = context.WithValue(ctx, utility.JobSubmittedForExecutionContextKey, jobSubmittedForExecution)
+		ctx = context.WithValue(ctx, utility.JobNameSubmittedForExecutionContextKey, JobNameSubmittedForExecution)
 		ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionSuccess)
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobSubmittedForExecution)))
+		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", JobNameSubmittedForExecution)))
 
 		executioner.auditor.AuditJobsExecution(ctx)
 		return

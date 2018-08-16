@@ -14,7 +14,7 @@ const JobWaiting = "WAITING"
 const JobNameContextKey = "job_name"
 const JobArgsContextKey = "job_args"
 const ImageNameContextKey = "image_name"
-const JobSubmittedForExecutionContextKey = "job_submitted_for_execution"
+const JobNameSubmittedForExecutionContextKey = "job_name_submitted_for_execution"
 const JobSubmissionStatusContextKey = "job_sumission_status"
 
 func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {

@@ -48,8 +48,8 @@ func NewRouter() (*mux.Router, error) {
 	})
 
 	router.HandleFunc("/jobs/execute", jobExecutioner.Handle()).Methods("POST")
+	router.HandleFunc("/jobs/execute/{name}/status", jobExecutioner.Status()).Methods("GET")
 	router.HandleFunc("/jobs/logs", jobLogger.Stream()).Methods("GET")
-	router.HandleFunc("/jobs/{job_name}/status", jobExecutioner.Status()).Methods("GET")
 	router.HandleFunc("/jobs/metadata", jobMetadataHandler.HandleSubmission()).Methods("POST")
 	router.HandleFunc("/jobs/metadata", jobMetadataHandler.HandleBulkDisplay()).Methods("GET")
 	router.HandleFunc("/jobs/secrets", jobSecretsHandler.HandleSubmission()).Methods("POST")

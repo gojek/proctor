@@ -22,7 +22,7 @@ func TestExecutionAuditor(t *testing.T) {
 
 	ctx := context.WithValue(context.Background(), utility.JobSubmissionStatusContextKey, utility.JobSubmissionSuccess)
 	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
-	ctx = context.WithValue(ctx, utility.JobSubmittedForExecutionContextKey, executedJobName)
+	ctx = context.WithValue(ctx, utility.JobNameSubmittedForExecutionContextKey, executedJobName)
 	ctx = context.WithValue(ctx, utility.ImageNameContextKey, imageName)
 	ctx = context.WithValue(ctx, utility.JobArgsContextKey, jobArgs)
 

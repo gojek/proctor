@@ -19,7 +19,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 
 	jobName := "any-job"
 	imageName := "any-image"
-	jobSubmittedForExecution := "any-submission"
+	JobNameSubmittedForExecution := "any-submission"
 	jobArgs := map[string]string{"key": "value"}
 	jobSubmissionStatus := "any-status"
 	jobExecutionStatus := "any-execution-status"
@@ -30,21 +30,21 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 	assert.NoError(t, err)
 
 	data := postgres.JobsExecutionAuditLog{
-		JobName:                  jobName,
-		ImageName:                imageName,
-		JobSubmittedForExecution: jobSubmittedForExecution,
-		JobArgs:                  base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
-		JobSubmissionStatus:      jobSubmissionStatus,
-		JobExecutionStatus:       jobExecutionStatus,
+		JobName:                      jobName,
+		ImageName:                    imageName,
+		JobNameSubmittedForExecution: JobNameSubmittedForExecution,
+		JobArgs:             base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
+		JobSubmissionStatus: jobSubmissionStatus,
+		JobExecutionStatus:  jobExecutionStatus,
 	}
 
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_execution_audit_log (job_name, image_name, job_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
+		"INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
 		&data).
 		Return(nil).
 		Once()
 
-	err = testStore.JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, jobSubmittedForExecution, imageName, jobArgs)
+	err = testStore.JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, JobNameSubmittedForExecution, imageName, jobArgs)
 
 	assert.NoError(t, err)
 	mockPostgresClient.AssertExpectations(t)
@@ -64,7 +64,7 @@ func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
 	}
 
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_execution_audit_log (job_name, image_name, job_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
+		"INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
 		&data).
 		Return(errors.New("error")).
 		Once()
@@ -84,7 +84,7 @@ func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
 
 	mockPostgresClient.On("Select",
 		&dest,
-		"SELECT job_execution_status from jobs_execution_audit_log where job_name = $1",
+		"SELECT job_execution_status from jobs_execution_audit_log where job_name_submitted_for_execution = $1",
 		jobName).
 		Return(nil).
 		Run(func(args mock.Arguments) {
@@ -95,7 +95,7 @@ func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
 		}).
 		Once()
 
-	status, err := testStore.GetJobStatus(jobName)
+	status, err := testStore.GetJobExecutionStatus(jobName)
 	assert.NoError(t, err)
 
 	assert.Equal(t, utility.JobSucceeded, status)
@@ -112,12 +112,12 @@ func TestGetJobsStatusWhenJobIsNotPresent(t *testing.T) {
 
 	mockPostgresClient.On("Select",
 		&dest,
-		"SELECT job_execution_status from jobs_execution_audit_log where job_name = $1",
+		"SELECT job_execution_status from jobs_execution_audit_log where job_name_submitted_for_execution = $1",
 		jobName).
 		Return(nil).
 		Once()
 
-	status, err := testStore.GetJobStatus(jobName)
+	status, err := testStore.GetJobExecutionStatus(jobName)
 	assert.NoError(t, err)
 
 	assert.Equal(t, "", status)
@@ -134,11 +134,11 @@ func TestGetJobsStatusWhenError(t *testing.T) {
 
 	mockPostgresClient.On("Select",
 		&dest,
-		"SELECT job_execution_status from jobs_execution_audit_log where job_name = $1",
+		"SELECT job_execution_status from jobs_execution_audit_log where job_name_submitted_for_execution = $1",
 		jobName).
 		Return(errors.New("error")).
 		Once()
 
-	_, err := testStore.GetJobStatus(jobName)
+	_, err := testStore.GetJobExecutionStatus(jobName)
 	assert.Error(t, err, "error")
 }

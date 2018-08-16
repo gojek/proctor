@@ -17,10 +17,10 @@ import (
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/utility"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
 
@@ -47,7 +47,7 @@ func (suite *ExecutionerTestSuite) SetupTest() {
 
 	suite.Client = &http.Client{}
 	router := mux.NewRouter()
-	router.HandleFunc("/jobs/{job_name}/status", suite.testExecutioner.Status()).Methods("GET")
+	router.HandleFunc("/jobs/execute/{name}/status", suite.testExecutioner.Status()).Methods("GET")
 	n := negroni.Classic()
 	n.UseHandler(router)
 	suite.TestServer = httptest.NewServer(n)
@@ -84,15 +84,15 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	}
 	suite.mockSecretsStore.On("GetJobSecrets", jobName).Return(jobSecrets, nil).Once()
 
-	jobSubmittedForExecution := "proctor-ipsum-lorem"
+	JobNameSubmittedForExecution := "proctor-ipsum-lorem"
 	envVarsForImage := utility.MergeMaps(jobArgs, jobSecrets)
-	suite.mockKubeClient.On("ExecuteJob", jobMetadata.ImageName, envVarsForImage).Return(jobSubmittedForExecution, nil).Once()
+	suite.mockKubeClient.On("ExecuteJob", jobMetadata.ImageName, envVarsForImage).Return(JobNameSubmittedForExecution, nil).Once()
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
 	ctx = context.WithValue(ctx, utility.JobArgsContextKey, jobArgs)
 	ctx = context.WithValue(ctx, utility.ImageNameContextKey, jobMetadata.ImageName)
-	ctx = context.WithValue(ctx, utility.JobSubmittedForExecutionContextKey, jobSubmittedForExecution)
+	ctx = context.WithValue(ctx, utility.JobNameSubmittedForExecutionContextKey, JobNameSubmittedForExecution)
 	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionSuccess)
 	suite.mockAuditor.On("AuditJobsExecution", ctx).Return().Once()
 
@@ -104,7 +104,7 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	suite.mockAuditor.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
-	assert.Equal(t, fmt.Sprintf("{ \"name\":\"%s\" }", jobSubmittedForExecution), responseRecorder.Body.String())
+	assert.Equal(t, fmt.Sprintf("{ \"name\":\"%s\" }", JobNameSubmittedForExecution), responseRecorder.Body.String())
 }
 
 func (suite *ExecutionerTestSuite) TestJobExecutionOnMalformedRequest() {
@@ -246,9 +246,9 @@ func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn200OnSuccess() {
 
 	jobName := "sample-job-name"
 
-	url := fmt.Sprintf("%s/jobs/%s/status", suite.TestServer.URL, jobName)
+	url := fmt.Sprintf("%s/jobs/execute/%s/status", suite.TestServer.URL, jobName)
 
-	suite.mockStore.On("GetJobStatus", jobName).Return(utility.JobSucceeded, nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobSucceeded, nil).Once()
 
 	req, _ := http.NewRequest("GET", url, nil)
 
@@ -267,9 +267,9 @@ func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn404IfJobStatusIsNotF
 
 	jobName := "sample-job-name"
 
-	url := fmt.Sprintf("%s/jobs/%s/status", suite.TestServer.URL, jobName)
+	url := fmt.Sprintf("%s/jobs/execute/%s/status", suite.TestServer.URL, jobName)
 
-	suite.mockStore.On("GetJobStatus", jobName).Return("", nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return("", nil).Once()
 
 	req, _ := http.NewRequest("GET", url, nil)
 
@@ -283,9 +283,9 @@ func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn500OnError() {
 
 	jobName := "sample-job-name"
 
-	url := fmt.Sprintf("%s/jobs/%s/status", suite.TestServer.URL, jobName)
+	url := fmt.Sprintf("%s/jobs/execute/%s/status", suite.TestServer.URL, jobName)
 
-	suite.mockStore.On("GetJobStatus", jobName).Return("", errors.New("error")).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return("", errors.New("error")).Once()
 
 	req, _ := http.NewRequest("GET", url, nil)
 

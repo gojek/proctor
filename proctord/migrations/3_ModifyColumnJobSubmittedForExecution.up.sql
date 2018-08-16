@@ -1,0 +1,1 @@
+ALTER TABLE jobs_execution_audit_log RENAME COLUMN job_submitted_for_execution TO job_name_submitted_for_execution;

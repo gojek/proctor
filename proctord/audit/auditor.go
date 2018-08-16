@@ -36,25 +36,25 @@ func (auditor *auditor) AuditJobsExecution(ctx context.Context) {
 		return
 	}
 	jobName := ctx.Value(utility.JobNameContextKey).(string)
-	jobSubmittedForExecution := ctx.Value(utility.JobSubmittedForExecutionContextKey).(string)
+	JobNameSubmittedForExecution := ctx.Value(utility.JobNameSubmittedForExecutionContextKey).(string)
 	imageName := ctx.Value(utility.ImageNameContextKey).(string)
 	jobArgs := ctx.Value(utility.JobArgsContextKey).(map[string]string)
 
-	err := auditor.store.JobsExecutionAuditLog(jobSubmissionStatus, utility.JobWaiting, jobName, jobSubmittedForExecution, imageName, jobArgs)
+	err := auditor.store.JobsExecutionAuditLog(jobSubmissionStatus, utility.JobWaiting, jobName, JobNameSubmittedForExecution, imageName, jobArgs)
 	if err != nil {
 		logger.Error("Error auditing jobs execution", err)
 	}
 
-	go auditor.auditJobExecutionStatus(jobSubmittedForExecution)
+	go auditor.auditJobExecutionStatus(JobNameSubmittedForExecution)
 }
 
-func (auditor *auditor) auditJobExecutionStatus(jobSubmittedForExecution string) {
-	status, err := auditor.kubeClient.JobExecutionStatus(jobSubmittedForExecution)
+func (auditor *auditor) auditJobExecutionStatus(JobNameSubmittedForExecution string) {
+	status, err := auditor.kubeClient.JobExecutionStatus(JobNameSubmittedForExecution)
 	if err != nil {
 		logger.Error("Error getting job execution status", err)
 	}
 
-	err = auditor.store.UpdateJobsExecutionAuditLog(jobSubmittedForExecution, status)
+	err = auditor.store.UpdateJobsExecutionAuditLog(JobNameSubmittedForExecution, status)
 	if err != nil {
 		logger.Error("Error auditing jobs execution", err)
 	}
