@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX job_name_submitted_for_execution_uniqueness ON jobs_execution_audit_log (job_name_submitted_for_execution);
