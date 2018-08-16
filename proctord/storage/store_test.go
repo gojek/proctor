@@ -75,7 +75,7 @@ func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
 	mockPostgresClient.AssertExpectations(t)
 }
 
-func TestJobsStatusGetWhenJobIsPresent(t *testing.T) {
+func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
 	mockPostgresClient := &postgres.ClientMock{}
 	testStore := New(mockPostgresClient)
 	jobName := "any-job"
@@ -103,7 +103,7 @@ func TestJobsStatusGetWhenJobIsPresent(t *testing.T) {
 	mockPostgresClient.AssertExpectations(t)
 }
 
-func TestJobsStatusGetWhenJobIsNotPresent(t *testing.T) {
+func TestGetJobsStatusWhenJobIsNotPresent(t *testing.T) {
 	mockPostgresClient := &postgres.ClientMock{}
 	testStore := New(mockPostgresClient)
 	jobName := "any-job"
@@ -117,11 +117,15 @@ func TestJobsStatusGetWhenJobIsNotPresent(t *testing.T) {
 		Return(nil).
 		Once()
 
-	testStore.GetJobStatus(jobName)
+	status, err := testStore.GetJobStatus(jobName)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "", status)
+
 	mockPostgresClient.AssertExpectations(t)
 }
 
-func TestJobsStatusGetWhenError(t *testing.T) {
+func TestGetJobsStatusWhenError(t *testing.T) {
 	mockPostgresClient := &postgres.ClientMock{}
 	testStore := New(mockPostgresClient)
 	jobName := "any-job"
