@@ -1,0 +1,1 @@
+ALTER TABLE jobs_execution_audit_log ADD CONSTRAINT job_name_submitted_for_execution_uniqueness UNIQUE (job_name_submitted_for_execution);
