@@ -3,12 +3,14 @@ package list
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 	"github.com/gojektech/proctor/proc"
+	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -62,7 +64,17 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 
 func (s *ListCmdTestSuite) TestListCmdRunProctorEngineClientFailure() {
 	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("error")).Once()
-	s.mockPrinter.On("Println", "Error fetching list of procs. Please check configuration and network connectivity", color.FgRed).Once()
+	s.mockPrinter.On("Println", utility.GenericListCmdError, color.FgRed).Once()
+
+	s.testListCmd.Run(&cobra.Command{}, []string{})
+
+	s.mockProctorEngineClient.AssertExpectations(s.T())
+	s.mockPrinter.AssertExpectations(s.T())
+}
+
+func (s *ListCmdTestSuite) TestListCmdRunProctorEngineClientForUnauthorizedUser() {
+	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New(http.StatusText(http.StatusUnauthorized))).Once()
+	s.mockPrinter.On("Println", utility.UnauthorizedError, color.FgRed).Once()
 
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 

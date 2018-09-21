@@ -2,11 +2,13 @@ package execution
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
+	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 )
 
@@ -47,18 +49,22 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 
 			executedProcName, err := proctorEngineClient.ExecuteProc(procName, procArgs)
 			if err != nil {
-				printer.Println("\nError executing proc. Please check configuration and network connectivity", color.FgRed)
+				if err.Error() == http.StatusText(http.StatusUnauthorized) {
+					printer.Println(utility.UnauthorizedError, color.FgRed)
+					return
+				}
+				printer.Println(utility.GenericProcCmdError, color.FgRed)
 				return
 			}
 
 			printer.Println("Proc execution successful. \nStreaming logs:", color.FgGreen)
 			err = proctorEngineClient.StreamProcLogs(executedProcName)
 			if err != nil {
-				printer.Println("\nError Streaming Logs", color.FgRed)
+				printer.Println("Error Streaming Logs", color.FgRed)
 				return
 			}
 
-			printer.Println("\nLog stream of proc completed.", color.FgGreen)
+			printer.Println("Log stream of proc completed.", color.FgGreen)
 		},
 	}
 }

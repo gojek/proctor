@@ -1,5 +1,5 @@
-hash: 88088db8f848869631297a4b699eabc19b658462bd3f918e19cfd1e3b622bfc3
-updated: 2018-03-20T12:30:54.642221+05:30
+hash: 99d5240e2827968d8fea8861618d19371699d856ce4634572dfab614345e80c7
+updated: 2018-09-28T15:53:00.690113+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -139,18 +139,20 @@ imports:
 - name: github.com/spf13/jwalterweatherman
   version: 12bd96e66386c1960ab0f74ced1362f66f552f7b
 - name: github.com/spf13/pflag
-  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
+  version: 9a97c102cda95a86cec2345a6f09f55a939babf5
 - name: github.com/spf13/viper
-  version: b5e8006cbee93ec955a89ab31e0e3ce3204f3736
+  version: a1b837276271029e31f796ae5d03ba9ffb017244
 - name: github.com/stretchr/objx
   version: 8a3f7159479fbc75b30357fbc48f380b7320f08e
 - name: github.com/stretchr/testify
-  version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
+  version: f35b8ab0b5a2cef36673838d662e249dd9c94686
   subpackages:
   - assert
   - mock
   - require
   - suite
+- name: github.com/thingful/httpmock
+  version: 4df9ac03f1f75f097c31dde17e969d212d3fb479
 - name: github.com/tylerb/graceful
   version: 4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb
 - name: github.com/ugorji/go
@@ -364,6 +366,8 @@ imports:
   - util/integer
   - util/jsonpath
 testImports:
+- name: github.com/goware/urlx
+  version: 86bdc24560383254e8b977da31a823eddf904409
 - name: github.com/jarcoal/httpmock
   version: 4442edb3db31196622da56482fd8d0fa375fba4d
 - name: github.com/pkg/errors

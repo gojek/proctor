@@ -3,6 +3,7 @@ package daemon
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/config"
 	"github.com/gojektech/proctor/proc"
+	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/gorilla/websocket"
 )
 
@@ -25,6 +27,8 @@ type Client interface {
 
 type client struct {
 	proctorEngineURL string
+	emailId          string
+	accessToken      string
 }
 
 type ProcToExecute struct {
@@ -35,15 +39,26 @@ type ProcToExecute struct {
 func NewClient() Client {
 	return &client{
 		proctorEngineURL: config.ProctorURL(),
+		emailId:          config.EmailId(),
+		accessToken:      config.AccessToken(),
 	}
 }
 
 func (c *client) ListProcs() ([]proc.Metadata, error) {
-	resp, err := http.Get("http://" + c.proctorEngineURL + "/jobs/metadata")
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return []proc.Metadata{}, err
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "http://"+c.proctorEngineURL+"/jobs/metadata", nil)
+	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return []proc.Metadata{}, errors.New(err.Error())
 	}
+
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return []proc.Metadata{}, errors.New(http.StatusText(resp.StatusCode))
+	}
 
 	var procList []proc.Metadata
 	err = json.NewDecoder(resp.Body).Decode(&procList)
@@ -61,12 +76,22 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 		return "", err
 	}
 
-	resp, err := http.Post("http://"+c.proctorEngineURL+"/jobs/execute", "application/json", bytes.NewReader(requestBody))
-	if err != nil || resp.StatusCode != http.StatusCreated {
-		return "", err
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", "http://"+c.proctorEngineURL+"/jobs/execute", bytes.NewReader(requestBody))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return "", errors.New(err.Error())
 	}
 
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		return "", errors.New(http.StatusText(resp.StatusCode))
+	}
+
 	var executedProc ProcToExecute
 	err = json.NewDecoder(resp.Body).Decode(&executedProc)
 
@@ -84,9 +109,18 @@ func (c *client) StreamProcLogs(name string) error {
 	proctorEngineWebsocketURL := url.URL{Scheme: "ws", Host: c.proctorEngineURL, Path: "/jobs/logs"}
 	proctorEngineWebsocketURLWithProcName := proctorEngineWebsocketURL.String() + "?" + "job_name=" + name
 
-	wsConn, _, err := websocket.DefaultDialer.Dial(proctorEngineWebsocketURLWithProcName, nil)
+	headers := make(map[string][]string)
+	token := []string{c.accessToken}
+	emailId := []string{c.emailId}
+	headers[utility.AccessTokenHeaderKey] = token
+	headers[utility.UserEmailHeaderKey] = emailId
+
+	wsConn, response, err := websocket.DefaultDialer.Dial(proctorEngineWebsocketURLWithProcName, headers)
 	if err != nil {
 		animation.Stop()
+		if response.StatusCode == http.StatusUnauthorized {
+			return errors.New(http.StatusText(http.StatusUnauthorized))
+		}
 		return err
 	}
 	defer wsConn.Close()
@@ -97,6 +131,7 @@ func (c *client) StreamProcLogs(name string) error {
 			_, message, err := wsConn.ReadMessage()
 			animation.Stop()
 			if err != nil {
+				fmt.Println()
 				logStreaming <- 0
 				return
 			}

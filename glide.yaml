@@ -14,3 +14,5 @@ import:
   version: "1.0"
 - package: github.com/spf13/cobra
   version: v0.0.1
+- package: github.com/thingful/httpmock
+  version: 0.0.2
