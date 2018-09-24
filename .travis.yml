@@ -45,13 +45,13 @@ jobs:
   include:
     - stage: test
       script:
-        # testing proctord
+        # setting up proctord
         - cd proctord/
         - glide install
         - go build
         - ./proctord migrate
-        - go test -race -cover $(glide novendor)
-        # testing proctor cli
+        # setting up proctor-cli
         - cd ../.
         - glide install
-        - go test -race -cover ./cmd/... ./config/... ./io/... ./procs/... ./engine/... .
+        # testing both proctor-cli and proctord
+        - go test -race -cover $(glide novendor)

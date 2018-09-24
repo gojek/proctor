@@ -23,9 +23,12 @@ Users can use it to run procs.
 * Running `go install github.com/gojektech/proctor` will place the CLI binary in your `$GOPATH/bin` directory
 * Run `proctor version` to check installation
 
-### Running tests instructions
+### Running tests
 
 * [Setup dev environment](#dev-environment-setup)
+* `cd proctord`. Refer README to setup test environment of proctord
+* After setting up test env for proctord, `cd ..`
+* Configure environment variables `source .env.test`
 * Run tests: `go test -race -cover $(glide novendor)`
 
 #### Proctor CLI configuration
