@@ -4,6 +4,7 @@ import "database/sql"
 
 type JobsExecutionAuditLog struct {
 	JobName                      string         `db:"job_name"`
+	UserEmail                    string         `db:"user_email"`
 	ImageName                    string         `db:"image_name"`
 	JobNameSubmittedForExecution sql.NullString `db:"job_name_submitted_for_execution"`
 	JobArgs                      string         `db:"job_args"`
