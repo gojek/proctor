@@ -58,7 +58,7 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 	jobArgs := map[string]string{
 		"argOne": "sample-arg",
 		"argTwo": "another-arg",
@@ -137,7 +137,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnImageLookupFailuer() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 	job := Job{
 		Name: jobName,
 	}
@@ -172,7 +172,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnSecretsFetchFailuer() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 	job := Job{
 		Name: jobName,
 	}
@@ -211,7 +211,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnExecutionFailure() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 	emptyMap := make(map[string]string)
 	job := Job{
 		Name: jobName,

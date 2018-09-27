@@ -19,7 +19,7 @@ func TestExecutionAuditor(t *testing.T) {
 	executedJobName := "proctor-123"
 	imageName := "any/image:name"
 	jobArgs := map[string]string{"key": "value"}
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 
 	ctx := context.WithValue(context.Background(), utility.JobSubmissionStatusContextKey, utility.JobSubmissionSuccess)
 	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
@@ -44,7 +44,7 @@ func TestExecutionAuditorClientError(t *testing.T) {
 	mockStore := &storage.MockStore{}
 	mockKubeClient := &kubernetes.MockClient{}
 	testAuditor := New(mockStore, mockKubeClient)
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 
 	ctx := context.WithValue(context.Background(), utility.JobSubmissionStatusContextKey, utility.JobSubmissionClientError)
 	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
@@ -61,7 +61,7 @@ func TestExecutionAuditorServerError(t *testing.T) {
 	mockStore := &storage.MockStore{}
 	mockKubeClient := &kubernetes.MockClient{}
 	testAuditor := New(mockStore, mockKubeClient)
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 
 	ctx := context.WithValue(context.Background(), utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
 	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)

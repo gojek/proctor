@@ -19,7 +19,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 
 	jobName := "any-job"
 	imageName := "any-image"
-	userEmail := "mrproctor@go-jek.com"
+	userEmail := "mrproctor@example.com"
 	JobNameSubmittedForExecution := "any-submission"
 	jobArgs := map[string]string{"key": "value"}
 	jobSubmissionStatus := "any-status"
