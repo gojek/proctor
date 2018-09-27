@@ -1,5 +1,7 @@
 package utility
 
+const UserEmailHeaderKey = "Email-Id"
+
 const ClientError = "malformed request"
 const ServerError = "Something went wrong"
 

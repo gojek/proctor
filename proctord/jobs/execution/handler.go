@@ -65,6 +65,7 @@ func (executioner *executioner) Handle() http.HandlerFunc {
 
 		var job Job
 		err := json.NewDecoder(req.Body).Decode(&job)
+		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
 		defer req.Body.Close()
 		if err != nil {
 			logger.Error("Error parsing request body", err.Error())
@@ -77,6 +78,7 @@ func (executioner *executioner) Handle() http.HandlerFunc {
 			return
 		}
 		ctx = context.WithValue(ctx, utility.JobNameContextKey, job.Name)
+		ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
 		ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
 
 		jobMetadata, err := executioner.metadataStore.GetJobMetadata(job.Name)
