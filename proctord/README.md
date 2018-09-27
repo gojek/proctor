@@ -7,7 +7,7 @@
 
 * Install and setup golang
 * Install glide
-* Make a directory `src/github.com/gojekfarm` inside your GOPATH
+* Make a directory `src/github.com/gojektech` inside your GOPATH
 * Clone this repo inside above directory
 * Install dependencies using glide
 * Install kubectl
