@@ -1,7 +1,7 @@
 # Proctor
 
+<p align="center"><img src="doc/proctor-logo.png" width="360"></p>
 <p align="center">
-  <img src="doc/proctor-logo.png" width="360">
   <a href="https://travis-ci.org/gojektech/proctor"><img src="https://travis-ci.org/gojektech/proctor.svg?branch=master" alt="Build Status"></img></a>
   <a href="https://goreportcard.com/report/github.com/gojektech/proctor"><img src="https://goreportcard.com/badge/github.com/gojektech/proctor"></img></a>
   <a href="https://golangci.com"><img src="https://golangci.com/badges/github.com/gojektech/proctor.svg"></img></a>
