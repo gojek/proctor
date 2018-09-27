@@ -1,5 +1,7 @@
 package utility
 
+const UserEmailHeaderKey = "Email-Id"
+
 const ClientError = "malformed request"
 const ServerError = "Something went wrong"
 
@@ -12,6 +14,7 @@ const JobFailed = "FAILED"
 const JobWaiting = "WAITING"
 
 const JobNameContextKey = "job_name"
+const UserEmailContextKey = "user_email"
 const JobArgsContextKey = "job_args"
 const ImageNameContextKey = "image_name"
 const JobNameSubmittedForExecutionContextKey = "job_name_submitted_for_execution"

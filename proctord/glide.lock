@@ -1,5 +1,5 @@
-hash: 3b9817f67f48cc115816769de3b02d8892a1b8a4342af83c43c1a6a0d3e91417
-updated: 2018-03-20T12:34:34.37531+05:30
+hash: 2746d89ca9aeaafd75f5c43f1ad15bd17c1c21d86432f3aaae854036e68ca138
+updated: 2018-09-27T10:39:34.763901+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -120,8 +120,8 @@ imports:
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
-- name: github.com/sirupsen/logrus
-  version: 95cd2b9c79aa5e72ab0bc69b7ccc2be15bf850f6
+- name: github.com/Sirupsen/logrus
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/spf13/afero
   version: 8d919cbe7e2627e417f3e45c3c0e489a5b7e2536
   subpackages:
@@ -137,7 +137,7 @@ imports:
 - name: github.com/stretchr/objx
   version: 8a3f7159479fbc75b30357fbc48f380b7320f08e
 - name: github.com/stretchr/testify
-  version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
+  version: f35b8ab0b5a2cef36673838d662e249dd9c94686
   subpackages:
   - assert
   - mock

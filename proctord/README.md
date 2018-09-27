@@ -5,6 +5,8 @@
 
 ### Dev environment setup
 
+* Ensure local postgres server is up and running
+* Ensure local redis server is up and running
 * Install and setup golang
 * Install glide
 * Make a directory `src/github.com/gojektech` inside your GOPATH

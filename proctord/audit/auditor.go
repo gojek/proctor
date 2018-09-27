@@ -27,9 +27,10 @@ func New(store storage.Store, kubeClient kubernetes.Client) Auditor {
 
 func (auditor *auditor) AuditJobsExecution(ctx context.Context) {
 	jobSubmissionStatus := ctx.Value(utility.JobSubmissionStatusContextKey).(string)
+	userEmail := ctx.Value(utility.UserEmailContextKey).(string)
 
 	if jobSubmissionStatus != utility.JobSubmissionSuccess {
-		err := auditor.store.JobsExecutionAuditLog(jobSubmissionStatus, utility.JobFailed, "", "", "", map[string]string{})
+		err := auditor.store.JobsExecutionAuditLog(jobSubmissionStatus, utility.JobFailed, "", userEmail, "", "", map[string]string{})
 		if err != nil {
 			logger.Error("Error auditing jobs execution", err)
 		}
@@ -40,7 +41,7 @@ func (auditor *auditor) AuditJobsExecution(ctx context.Context) {
 	imageName := ctx.Value(utility.ImageNameContextKey).(string)
 	jobArgs := ctx.Value(utility.JobArgsContextKey).(map[string]string)
 
-	err := auditor.store.JobsExecutionAuditLog(jobSubmissionStatus, utility.JobWaiting, jobName, JobNameSubmittedForExecution, imageName, jobArgs)
+	err := auditor.store.JobsExecutionAuditLog(jobSubmissionStatus, utility.JobWaiting, jobName, userEmail, JobNameSubmittedForExecution, imageName, jobArgs)
 	if err != nil {
 		logger.Error("Error auditing jobs execution", err)
 	}

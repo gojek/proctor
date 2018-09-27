@@ -9,7 +9,7 @@ import (
 )
 
 type Store interface {
-	JobsExecutionAuditLog(string, string, string, string, string, map[string]string) error
+	JobsExecutionAuditLog(string, string, string, string, string, string, map[string]string) error
 	UpdateJobsExecutionAuditLog(string, string) error
 	GetJobExecutionStatus(string) (string, error)
 }
@@ -24,7 +24,7 @@ func New(postgresClient postgres.Client) Store {
 	}
 }
 
-func (store *store) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, JobNameSubmittedForExecution, imageName string, jobArgs map[string]string) error {
+func (store *store) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, userEmail, JobNameSubmittedForExecution, imageName string, jobArgs map[string]string) error {
 	var encodedJobArgs bytes.Buffer
 	enc := gob.NewEncoder(&encodedJobArgs)
 	err := enc.Encode(jobArgs)
@@ -34,13 +34,14 @@ func (store *store) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatu
 
 	jobsExecutionAuditLog := postgres.JobsExecutionAuditLog{
 		JobName:                      jobName,
+		UserEmail:                    userEmail,
 		ImageName:                    imageName,
 		JobNameSubmittedForExecution: postgres.StringToSQLString(JobNameSubmittedForExecution),
 		JobArgs:             base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
 		JobSubmissionStatus: jobSubmissionStatus,
 		JobExecutionStatus:  jobExecutionStatus,
 	}
-	return store.postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", &jobsExecutionAuditLog)
+	return store.postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", &jobsExecutionAuditLog)
 }
 
 func (store *store) UpdateJobsExecutionAuditLog(JobNameSubmittedForExecution, status string) error {

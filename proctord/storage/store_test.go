@@ -19,6 +19,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 
 	jobName := "any-job"
 	imageName := "any-image"
+	userEmail := "mrproctor@example.com"
 	JobNameSubmittedForExecution := "any-submission"
 	jobArgs := map[string]string{"key": "value"}
 	jobSubmissionStatus := "any-status"
@@ -31,6 +32,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 
 	data := postgres.JobsExecutionAuditLog{
 		JobName:                      jobName,
+		UserEmail:                    userEmail,
 		ImageName:                    imageName,
 		JobNameSubmittedForExecution: postgres.StringToSQLString(JobNameSubmittedForExecution),
 		JobArgs:             base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
@@ -39,12 +41,12 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 	}
 
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
+		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
 		&data).
 		Return(nil).
 		Once()
 
-	err = testStore.JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, JobNameSubmittedForExecution, imageName, jobArgs)
+	err = testStore.JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, userEmail, JobNameSubmittedForExecution, imageName, jobArgs)
 
 	assert.NoError(t, err)
 	mockPostgresClient.AssertExpectations(t)
@@ -64,12 +66,12 @@ func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
 	}
 
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
+		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
 		&data).
 		Return(errors.New("error")).
 		Once()
 
-	err = testStore.JobsExecutionAuditLog("", "", "", "", "", map[string]string{})
+	err = testStore.JobsExecutionAuditLog("", "", "", "", "", "", map[string]string{})
 
 	assert.Error(t, err)
 	mockPostgresClient.AssertExpectations(t)

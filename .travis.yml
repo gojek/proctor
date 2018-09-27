@@ -54,4 +54,4 @@ jobs:
         # testing proctor cli
         - cd ../.
         - glide install
-        - go test -race -cover ./cmd/... ./config/... ./io/... ./procs/... ./engine/... .
+        - go test -race -cover ./cmd/... ./config/... ./io/... ./proc/... ./engine/... .

@@ -58,6 +58,7 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
+	userEmail := "mrproctor@example.com"
 	jobArgs := map[string]string{
 		"argOne": "sample-arg",
 		"argTwo": "another-arg",
@@ -71,6 +72,7 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
+	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
 	responseRecorder := httptest.NewRecorder()
 
 	jobMetadata := metadata.Metadata{
@@ -90,6 +92,7 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
+	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
 	ctx = context.WithValue(ctx, utility.JobArgsContextKey, jobArgs)
 	ctx = context.WithValue(ctx, utility.ImageNameContextKey, jobMetadata.ImageName)
 	ctx = context.WithValue(ctx, utility.JobNameSubmittedForExecutionContextKey, JobNameSubmittedForExecution)
@@ -134,6 +137,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnImageLookupFailuer() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
+	userEmail := "mrproctor@example.com"
 	job := Job{
 		Name: jobName,
 	}
@@ -141,12 +145,14 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnImageLookupFailuer() {
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
+	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockMetadataStore.On("GetJobMetadata", jobName).Return(&metadata.Metadata{}, errors.New("No image found for job name")).Once()
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
+	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
 	ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
 	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
 	suite.mockAuditor.On("AuditJobsExecution", ctx).Return().Once()
@@ -166,6 +172,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnSecretsFetchFailuer() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
+	userEmail := "mrproctor@example.com"
 	job := Job{
 		Name: jobName,
 	}
@@ -173,6 +180,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnSecretsFetchFailuer() {
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
+	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockMetadataStore.On("GetJobMetadata", jobName).Return(&metadata.Metadata{}, nil).Once()
@@ -182,6 +190,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnSecretsFetchFailuer() {
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
+	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
 	ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
 	ctx = context.WithValue(ctx, utility.ImageNameContextKey, "")
 	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
@@ -202,6 +211,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnExecutionFailure() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
+	userEmail := "mrproctor@example.com"
 	emptyMap := make(map[string]string)
 	job := Job{
 		Name: jobName,
@@ -212,6 +222,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnExecutionFailure() {
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
+	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
 	responseRecorder := httptest.NewRecorder()
 
 	jobMetadata := metadata.Metadata{
@@ -225,6 +236,7 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnExecutionFailure() {
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, utility.JobNameContextKey, job.Name)
+	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
 	ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
 	ctx = context.WithValue(ctx, utility.ImageNameContextKey, jobMetadata.ImageName)
 	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
