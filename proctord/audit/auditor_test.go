@@ -44,10 +44,12 @@ func TestExecutionAuditorClientError(t *testing.T) {
 	mockStore := &storage.MockStore{}
 	mockKubeClient := &kubernetes.MockClient{}
 	testAuditor := New(mockStore, mockKubeClient)
+	userEmail := "mrproctor@go-jek.com"
 
 	ctx := context.WithValue(context.Background(), utility.JobSubmissionStatusContextKey, utility.JobSubmissionClientError)
+	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
 
-	mockStore.On("JobsExecutionAuditLog", utility.JobSubmissionClientError, utility.JobFailed, "", "", "", "", map[string]string{}).Return(nil).Once()
+	mockStore.On("JobsExecutionAuditLog", utility.JobSubmissionClientError, utility.JobFailed, "", userEmail, "", "", map[string]string{}).Return(nil).Once()
 
 	testAuditor.AuditJobsExecution(ctx)
 
@@ -59,10 +61,12 @@ func TestExecutionAuditorServerError(t *testing.T) {
 	mockStore := &storage.MockStore{}
 	mockKubeClient := &kubernetes.MockClient{}
 	testAuditor := New(mockStore, mockKubeClient)
+	userEmail := "mrproctor@go-jek.com"
 
 	ctx := context.WithValue(context.Background(), utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
+	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
 
-	mockStore.On("JobsExecutionAuditLog", utility.JobSubmissionServerError, utility.JobFailed, "", "", "", "", map[string]string{}).Return(nil).Once()
+	mockStore.On("JobsExecutionAuditLog", utility.JobSubmissionServerError, utility.JobFailed, "", userEmail, "", "", map[string]string{}).Return(nil).Once()
 
 	testAuditor.AuditJobsExecution(ctx)
 
