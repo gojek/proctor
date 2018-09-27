@@ -1,6 +1,6 @@
 package: github.com/gojektech/proctor/proctord
 import:
-- package: github.com/sirupsen/logrus
+- package: github.com/Sirupsen/logrus
 - package: github.com/davecgh/go-spew
   subpackages:
   - spew
