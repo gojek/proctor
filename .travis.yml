@@ -61,5 +61,3 @@ deploy:
   script:
     - curl -sL https://gist.github.com/achilles42/eddcae4be7bc76274d9f6e84d560f1d6
     - /tmp/goreleaser --rm-dist --snapshot
-  on:
-    condition: $TRAVIS_OS_NAME = linux
