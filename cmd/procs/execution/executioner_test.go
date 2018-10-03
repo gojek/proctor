@@ -3,11 +3,13 @@ package execution
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
+	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -51,7 +53,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmd() {
 	s.mockPrinter.On("Println", "Proc execution successful. \nStreaming logs:", color.FgGreen).Once()
 
 	s.mockProctorEngineClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
-	s.mockPrinter.On("Println", "\nLog stream of proc completed.", color.FgGreen).Once()
+	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
 
@@ -79,7 +81,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForNoProcVariables() {
 	s.mockPrinter.On("Println", "Proc execution successful. \nStreaming logs:", color.FgGreen).Once()
 
 	s.mockProctorEngineClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
-	s.mockPrinter.On("Println", "\nLog stream of proc completed.", color.FgGreen).Once()
+	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
 
@@ -100,7 +102,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForIncorrectVariableFormat() {
 	s.mockPrinter.On("Println", "Proc execution successful. \nStreaming logs:", color.FgGreen).Once()
 
 	s.mockProctorEngineClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
-	s.mockPrinter.On("Println", "\nLog stream of proc completed.", color.FgGreen).Once()
+	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
 
@@ -117,7 +119,24 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorEngineExecutionFailure
 	procArgs := make(map[string]string)
 	s.mockProctorEngineClient.On("ExecuteProc", "say-hello-world", procArgs).Return("", errors.New("error")).Once()
 
-	s.mockPrinter.On("Println", "\nError executing proc. Please check configuration and network connectivity", color.FgRed).Once()
+	s.mockPrinter.On("Println", utility.GenericProcCmdError, color.FgRed).Once()
+
+	s.testExecutionCmd.Run(&cobra.Command{}, args)
+
+	s.mockProctorEngineClient.AssertExpectations(s.T())
+	s.mockPrinter.AssertExpectations(s.T())
+}
+
+func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorEngineExecutionForUnauthorizedUser() {
+	args := []string{"say-hello-world"}
+
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
+	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
+
+	procArgs := make(map[string]string)
+	s.mockProctorEngineClient.On("ExecuteProc", "say-hello-world", procArgs).Return("", errors.New(http.StatusText(http.StatusUnauthorized))).Once()
+
+	s.mockPrinter.On("Println", utility.UnauthorizedError, color.FgRed).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
 
@@ -137,7 +156,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorEngineLogStreamingFail
 	s.mockPrinter.On("Println", "Proc execution successful. \nStreaming logs:", color.FgGreen).Once()
 
 	s.mockProctorEngineClient.On("StreamProcLogs", "executed-proc-name").Return(errors.New("error")).Once()
-	s.mockPrinter.On("Println", "\nError Streaming Logs", color.FgRed).Once()
+	s.mockPrinter.On("Println", "Error Streaming Logs", color.FgRed).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
 

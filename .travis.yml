@@ -6,6 +6,7 @@ go:
 
 env:
   global:
+    - ENVIRONMENT="test"
     - PROCTOR_KUBE_CONFIG="out-of-cluster"
     - PROCTOR_LOG_LEVEL="debug"
     - PROCTOR_APP_PORT="5000"
@@ -54,4 +55,4 @@ jobs:
         # testing proctor cli
         - cd ../.
         - glide install
-        - go test -race -cover ./cmd/... ./config/... ./io/... ./proc/... ./engine/... .
+        - go test -race -cover ./cmd/... ./config/... ./io/... ./proc/... ./daemon/... . -v

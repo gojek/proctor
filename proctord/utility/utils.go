@@ -1,9 +1,11 @@
 package utility
 
-const UserEmailHeaderKey = "Email-Id"
-
 const ClientError = "malformed request"
 const ServerError = "Something went wrong"
+const UnauthorizedError = "Unauthorized. Please check the email id and access token"
+const GenericListCmdError = "Error fetching list of procs. Please check configuration and network connectivity"
+const GenericProcCmdError = "Error executing proc. Please check configuration and network connectivity"
+const GenericDescribeCmdError = "Error fetching description of proc. Please check configuration and network connectivity"
 
 const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"
@@ -19,6 +21,9 @@ const JobArgsContextKey = "job_args"
 const ImageNameContextKey = "image_name"
 const JobNameSubmittedForExecutionContextKey = "job_name_submitted_for_execution"
 const JobSubmissionStatusContextKey = "job_sumission_status"
+
+const UserEmailHeaderKey = "Email-Id"
+const AccessTokenHeaderKey = "Access-Token"
 
 func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 	result := make(map[string]string)

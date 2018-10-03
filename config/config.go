@@ -9,15 +9,20 @@ import (
 
 func InitConfig() {
 	viper.SetConfigType("yaml")
+	viper.AutomaticEnv()
+	var configFileDir string
 
-	home := "$HOME/.proctor"
-	viper.AddConfigPath(home)
+	if viper.GetString("ENVIRONMENT") == "test" {
+		configFileDir = "/tmp"
+	} else {
+		configFileDir = "$HOME/.proctor"
+	}
 
+	viper.AddConfigPath(configFileDir)
 	viper.SetConfigName("proctor")
 
-	viper.AutomaticEnv()
-
 	err := viper.ReadInConfig()
+
 	if err != nil {
 		fmt.Println("Error reading proctor config")
 		os.Exit(1)
@@ -27,9 +32,17 @@ func InitConfig() {
 func ProctorURL() string {
 	InitConfig()
 	proctorUrl := viper.GetString("PROCTOR_URL")
-	if len(proctorUrl) == 0 {
-		fmt.Println("proctor url not configured")
-		os.Exit(1)
-	}
 	return proctorUrl
+}
+
+func EmailId() string {
+	InitConfig()
+	emailId := viper.GetString("EMAIL_ID")
+	return emailId
+}
+
+func AccessToken() string {
+	InitConfig()
+	accessToken := viper.GetString("ACCESS_TOKEN")
+	return accessToken
 }
