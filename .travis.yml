@@ -56,3 +56,6 @@ jobs:
         - cd ../.
         - glide install
         - go test -race -cover ./cmd/... ./config/... ./io/... ./proc/... ./daemon/... . -v
+
+after_success:
+  - if [ -n "$TRAVIS_TAG" ]; then curl -sL https://git.io/goreleaser | bash; fi
