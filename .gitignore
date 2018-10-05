@@ -1,5 +1,7 @@
 proctor
 proctord/proctord
+homebrew-gojek
+scripts/proctor.rb
 
 proctord/.env
 .env
