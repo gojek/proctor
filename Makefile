@@ -4,10 +4,7 @@ all: build-deps build fmt vet lint test
 GLIDE_NOVENDOR=$(shell glide novendor | grep -v proctord)
 
 setup:
-	mkdir -p $(GOPATH)/bin
-	go get -u github.com/golang/lint/golint
-	which glide &>/dev/null
-	if [ $? -ne 0 ]; then curl https://glide.sh/get | sh; fi
+	@echo $(shell scripts/setup.sh)
 
 build-deps:
 	glide install
