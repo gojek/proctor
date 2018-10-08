@@ -13,3 +13,4 @@ dist/
 *.swp
 *.swo
 .idea
+.DS_Store
