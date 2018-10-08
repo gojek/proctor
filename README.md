@@ -43,7 +43,3 @@ Users can use it to run procs.
 ``` sh
 PROCTOR_URL: [hostname where proctord is running]
 ```
-
-# Changelog
-
-v0.3.0 = Dummy change to test travis artifact upload
