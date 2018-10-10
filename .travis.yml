@@ -2,7 +2,7 @@ dist: trusty
 sudo: required
 language: go
 go:
-- "1.8"
+- "1.10"
 
 env:
   global:
@@ -14,6 +14,7 @@ env:
     - PROCTOR_REDIS_ADDRESS="localhost:6379"
     - PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS="10"
     - PROCTOR_KUBE_JOB_ACTIVE_DEADLINE_SECONDS="60"
+    - PROCTOR_KUBE_JOB_RETRIES="0"
     - PROCTOR_LOGS_STREAM_READ_BUFFER_SIZE="140"
     - PROCTOR_LOGS_STREAM_WRITE_BUFFER_SIZE="4096"
     - PROCTOR_KUBE_CLUSTER_HOST_NAME="localhost:8001"

@@ -47,6 +47,7 @@
   * If unset, service will execute jobs in the same kubernetes cluster where it is run
   * When set to "out-of-cluster", service will fetch kube config based on current-context from `.kube/config` file in home directory
 * If a job doesn't reach completion, it is terminated after `PROCTOR_KUBE_JOB_ACTIVE_DEADLINE_SECONDS`
+* `PROCTOR_KUBE_JOB_RETRIES` is the number of retries for a kubernetes job (on failure)
 * `PROCTOR_DEFAULT_NAMESPACE` is the namespace under which jobs will be run in kubernetes cluster. By default, K8s has namespace "default". If you set another value, please create namespace in K8s before deploying `proctord`
 * `PROCTOR_KUBE_CLUSTER_HOST_NAME` is address/ip address to api-server of kube cluster. It is used for fetching logs of a pod using https
 * `PROCTOR_KUBE_CA_CERT_ENCODED` is the CA cert file encoded in base64. This is used for establishing authority while talking to kubernetes api-server on a public https call

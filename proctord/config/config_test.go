@@ -105,6 +105,15 @@ func TestKubeJobActiveDeadlineSeconds(t *testing.T) {
 	assert.Equal(t, &expectedValue, KubeJobActiveDeadlineSeconds())
 }
 
+func TestKubeJobRetries(t *testing.T) {
+	os.Setenv("PROCTOR_KUBE_JOB_RETRIES", "0")
+
+	viper.AutomaticEnv()
+
+	expectedValue := int32(0)
+	assert.Equal(t, &expectedValue, KubeJobRetries())
+}
+
 func TestPostgresUser(t *testing.T) {
 	os.Setenv("PROCTOR_POSTGRES_USER", "postgres")
 

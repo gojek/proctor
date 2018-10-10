@@ -10,13 +10,13 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	batch_v1 "k8s.io/client-go/kubernetes/typed/batch/v1"
-	"k8s.io/client-go/pkg/api/v1"
 
+	batchV1 "k8s.io/api/batch/v1"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
-	batchV1 "k8s.io/client-go/pkg/apis/batch/v1"
 	testing_kubernetes "k8s.io/client-go/testing"
 )
 
@@ -98,8 +98,9 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	assert.Equal(t, expectedLabel, executedJob.Spec.Template.ObjectMeta.Labels)
 
 	assert.Equal(t, config.KubeJobActiveDeadlineSeconds(), executedJob.Spec.ActiveDeadlineSeconds)
+	assert.Equal(t, config.KubeJobRetries(), executedJob.Spec.BackoffLimit)
 
-	assert.Equal(t, v1.RestartPolicyOnFailure, executedJob.Spec.Template.Spec.RestartPolicy)
+	assert.Equal(t, v1.RestartPolicyNever, executedJob.Spec.Template.Spec.RestartPolicy)
 
 	container := executedJob.Spec.Template.Spec.Containers[0]
 	assert.Equal(t, executedJobname, container.Name)
