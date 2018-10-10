@@ -3,20 +3,18 @@ package procs
 import (
 	"testing"
 
-	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestProcCmdUsage(t *testing.T) {
-	procCmd := NewCmd(&io.MockPrinter{}, &daemon.MockClient{})
+	procCmd := NewCmd(&io.MockPrinter{})
 	assert.Equal(t, "proc", procCmd.Use)
-	assert.Equal(t, "Interact with proctor procs", procCmd.Short)
-	assert.Equal(t, "Example: proctor proc <command>", procCmd.Long)
+	assert.Equal(t, "[Deprecated][Correct Usage: `proctor list/describe/execute`]", procCmd.Short)
 }
 
 func TestProcCmdSubCommands(t *testing.T) {
-	procCmd := NewCmd(&io.MockPrinter{}, &daemon.MockClient{})
+	procCmd := NewCmd(&io.MockPrinter{})
 
 	subCommands := procCmd.Commands()
 

@@ -23,10 +23,8 @@
 
 ### Running tests
 
-* [Setup dev environment](#dev-environment-setup)
-* Use `.env.test` file to configure environment variables for running test
-* Setup database `make db.setup`
-* Run tests: `go test -race -cover $(glide novendor)`
+* [Setup dev environment](#dev-environment-setup) only uptil `Cloning this repo`
+* Run `make setup-test-teardown`
 
 #### proctord configuration
 

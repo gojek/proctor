@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gojektech/proctor/cmd/description"
+	"github.com/gojektech/proctor/cmd/execution"
+	"github.com/gojektech/proctor/cmd/list"
 	"github.com/gojektech/proctor/cmd/procs"
 	"github.com/gojektech/proctor/cmd/version"
 	"github.com/gojektech/proctor/config"
@@ -15,8 +18,9 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:  "proctor",
-		Long: `A command-line interface to interact with proctord, the heart of Proctor: An Automation Orchestrator`,
+		Use:   "proctor",
+		Short: "A command-line interface to run procs",
+		Long:  `A command-line interface to interact with proctord, the heart of Proctor: An Automation Orchestrator`,
 	}
 )
 
@@ -26,8 +30,17 @@ func Execute(printer io.Printer, proctorEngineClient daemon.Client) {
 	versionCmd := version.NewCmd(printer)
 	rootCmd.AddCommand(versionCmd)
 
-	procCmd := procs.NewCmd(printer, proctorEngineClient)
+	procCmd := procs.NewCmd(printer)
 	rootCmd.AddCommand(procCmd)
+
+	descriptionCmd := description.NewCmd(printer, proctorEngineClient)
+	rootCmd.AddCommand(descriptionCmd)
+
+	executionCmd := execution.NewCmd(printer, proctorEngineClient)
+	rootCmd.AddCommand(executionCmd)
+
+	listCmd := list.NewCmd(printer, proctorEngineClient)
+	rootCmd.AddCommand(listCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
