@@ -10,11 +10,11 @@ import (
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/utility"
 	uuid "github.com/satori/go.uuid"
+	batch_v1 "k8s.io/api/batch/v1"
+	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
-	batch_v1 "k8s.io/client-go/pkg/apis/batch/v1"
 	//Package needed for kubernetes cluster in google cloud
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
@@ -101,7 +101,7 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 
 	podSpec := v1.PodSpec{
 		Containers:    []v1.Container{container},
-		RestartPolicy: v1.RestartPolicyOnFailure,
+		RestartPolicy: v1.RestartPolicyNever,
 	}
 
 	objectMeta := meta_v1.ObjectMeta{
@@ -117,6 +117,7 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 	jobSpec := batch_v1.JobSpec{
 		Template:              template,
 		ActiveDeadlineSeconds: config.KubeJobActiveDeadlineSeconds(),
+		BackoffLimit:          config.KubeJobRetries(),
 	}
 
 	jobToRun := batch_v1.Job{

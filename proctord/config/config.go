@@ -56,8 +56,13 @@ func KubePodsListWaitTime() int {
 }
 
 func KubeJobActiveDeadlineSeconds() *int64 {
-	tmp := viper.GetInt64("KUBE_JOB_ACTIVE_DEADLINE_SECONDS")
-	return &tmp
+	kubeJobActiveDeadlineSeconds := viper.GetInt64("KUBE_JOB_ACTIVE_DEADLINE_SECONDS")
+	return &kubeJobActiveDeadlineSeconds
+}
+
+func KubeJobRetries() *int32 {
+	kubeJobRetries := int32(viper.GetInt("KUBE_JOB_RETRIES"))
+	return &kubeJobRetries
 }
 
 func PostgresUser() string {
