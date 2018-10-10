@@ -27,9 +27,12 @@ func (s *MetadataStoreTestSuite) TestCreateOrUpdateJobMetadata() {
 	t := s.T()
 
 	metadata := Metadata{
-		Name:        "any-name",
-		ImageName:   "any-image-name",
-		Description: "any-description",
+		Name:         "any-name",
+		ImageName:    "any-image-name",
+		Description:  "any-description",
+		Author:       "Test User<testuser@example.com>",
+		Contributors: "Test User<testuser@example.com>, Test Admin<testadmin@example.com>",
+		Organization: "Test Org",
 	}
 
 	binaryJobMetadata, err := json.Marshal(metadata)
@@ -59,14 +62,20 @@ func (s *MetadataStoreTestSuite) TestGetAllJobsMetadata() {
 	t := s.T()
 
 	metadata1 := Metadata{
-		Name:        "job1",
-		ImageName:   "job1-image-name",
-		Description: "desc1",
+		Name:         "job1",
+		ImageName:    "job1-image-name",
+		Description:  "desc1",
+		Author:       "Test User<testuser@example.com",
+		Contributors: "Test User<testuser@example.com",
+		Organization: "Test Org",
 	}
 	metadata2 := Metadata{
-		Name:        "job2",
-		ImageName:   "job2-image-name",
-		Description: "desc2",
+		Name:         "job2",
+		ImageName:    "job2-image-name",
+		Description:  "desc2",
+		Author:       "Test User 2<testuser2@example.com",
+		Contributors: "Test User 2<testuser2@example.com",
+		Organization: "Test Org2",
 	}
 
 	s.mockRedisClient.On("KEYS", "*-metadata").Return(
@@ -126,9 +135,12 @@ func (s *MetadataStoreTestSuite) TestGetJobMetadata() {
 	t := s.T()
 
 	metadata := Metadata{
-		Name:        "job1",
-		ImageName:   "job1-image-name",
-		Description: "desc1",
+		Name:         "job1",
+		ImageName:    "job1-image-name",
+		Description:  "desc1",
+		Author:       "Test User<testuser@example.com",
+		Contributors: "Test User<testuser@example.com",
+		Organization: "Test Org",
 	}
 	binaryJobMetadata, err := json.Marshal(metadata)
 	assert.NoError(t, err)

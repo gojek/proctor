@@ -55,8 +55,7 @@ jobs:
         - go test -race -cover $(glide novendor)
         # testing proctor cli
         - cd ../.
-        - glide install
-        - go test -race -cover ./cmd/... ./config/... ./io/... ./proc/... ./daemon/... . -v
+        - make ci.test
 
 after_success:
   - scripts/release.sh

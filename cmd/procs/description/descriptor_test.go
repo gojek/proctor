@@ -64,6 +64,8 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Proc Name", doSomething.Name), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Proc Description", doSomething.Description), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Contributors", doSomething.Contributors), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Organization", doSomething.Organization), color.Reset).Once()
 	s.mockPrinter.On("Println", "\nVariables", color.FgMagenta).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", arg.Name, arg.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", "\nConstants", color.FgMagenta).Once()
