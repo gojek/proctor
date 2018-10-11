@@ -16,3 +16,5 @@ import:
   version: v0.0.1
 - package: github.com/thingful/httpmock
   version: 0.0.2
+- package: github.com/Sirupsen/logrus
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f

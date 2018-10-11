@@ -52,10 +52,13 @@ func (s *MetadataHandlerTestSuite) TestSuccessfulMetadataSubmission() {
 		Args:    args,
 	}
 	metadata := Metadata{
-		Name:        "run-sample",
-		Description: "This is a hello world script",
-		ImageName:   "proctor-jobs-run-sample",
-		EnvVars:     envVars,
+		Name:         "run-sample",
+		Description:  "This is a hello world script",
+		ImageName:    "proctor-jobs-run-sample",
+		Author:       "Test User<testuser@example.com>",
+		Contributors: "Test User<testuser@example.com>",
+		Organization: "Test Org",
+		EnvVars:      envVars,
 	}
 
 	jobMetadata := []Metadata{metadata}

@@ -16,6 +16,12 @@ compile:
 	mkdir -p out/
 	go build -race $(GLIDE_NOVENDOR)
 
+ci.test: build-deps
+	ENVIRONMENT=test go test $(shell glide novendor | grep -v proctord) -v
+
+test:
+	ENVIRONMENT=test go test $(shell glide novendor | grep -v proctord)
+
 build: build-deps compile fmt vet lint
 
 fmt:

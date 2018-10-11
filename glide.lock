@@ -1,5 +1,5 @@
-hash: 99d5240e2827968d8fea8861618d19371699d856ce4634572dfab614345e80c7
-updated: 2018-09-28T15:53:00.690113+05:30
+hash: 67ebf11da4bd491f297d869e5d2ac01ee6b3248b355be7312ea6a73df316c3ac
+updated: 2018-10-10T10:38:35.770913+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -126,8 +126,8 @@ imports:
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
-- name: github.com/sirupsen/logrus
-  version: 95cd2b9c79aa5e72ab0bc69b7ccc2be15bf850f6
+- name: github.com/Sirupsen/logrus
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/spf13/afero
   version: 8d919cbe7e2627e417f3e45c3c0e489a5b7e2536
   subpackages:
@@ -139,7 +139,7 @@ imports:
 - name: github.com/spf13/jwalterweatherman
   version: 12bd96e66386c1960ab0f74ced1362f66f552f7b
 - name: github.com/spf13/pflag
-  version: 9a97c102cda95a86cec2345a6f09f55a939babf5
+  version: 298182f68c66c05229eb03ac171abe6e309ee79a
 - name: github.com/spf13/viper
   version: a1b837276271029e31f796ae5d03ba9ffb017244
 - name: github.com/stretchr/objx
