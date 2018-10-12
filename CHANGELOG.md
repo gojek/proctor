@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Modified
   - Changelog format
   - CI golang version. Reason: [kubernetes client-go issue](https://github.com/kubernetes/client-go/issues/449)
+  - `PROCTOR_URL` config variable to `PROCTOR_HOST`
 ### Removed
   - Redundant typing of `proc` for  listing, discribing and executing procs
 

@@ -26,9 +26,9 @@ type Client interface {
 }
 
 type client struct {
-	proctorEngineURL string
-	emailId          string
-	accessToken      string
+	proctordHost string
+	emailId      string
+	accessToken  string
 }
 
 type ProcToExecute struct {
@@ -38,15 +38,15 @@ type ProcToExecute struct {
 
 func NewClient() Client {
 	return &client{
-		proctorEngineURL: config.ProctorURL(),
-		emailId:          config.EmailId(),
-		accessToken:      config.AccessToken(),
+		proctordHost: config.ProctorHost(),
+		emailId:      config.EmailId(),
+		accessToken:  config.AccessToken(),
 	}
 }
 
 func (c *client) ListProcs() ([]proc.Metadata, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://"+c.proctorEngineURL+"/jobs/metadata", nil)
+	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/metadata", nil)
 	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
 	resp, err := client.Do(req)
@@ -77,7 +77,7 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", "http://"+c.proctorEngineURL+"/jobs/execute", bytes.NewReader(requestBody))
+	req, err := http.NewRequest("POST", "http://"+c.proctordHost+"/jobs/execute", bytes.NewReader(requestBody))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
@@ -106,8 +106,8 @@ func (c *client) StreamProcLogs(name string) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	proctorEngineWebsocketURL := url.URL{Scheme: "ws", Host: c.proctorEngineURL, Path: "/jobs/logs"}
-	proctorEngineWebsocketURLWithProcName := proctorEngineWebsocketURL.String() + "?" + "job_name=" + name
+	proctodWebsocketURL := url.URL{Scheme: "ws", Host: c.proctordHost, Path: "/jobs/logs"}
+	proctodWebsocketURLWithProcName := proctodWebsocketURL.String() + "?" + "job_name=" + name
 
 	headers := make(map[string][]string)
 	token := []string{c.accessToken}
@@ -115,7 +115,7 @@ func (c *client) StreamProcLogs(name string) error {
 	headers[utility.AccessTokenHeaderKey] = token
 	headers[utility.UserEmailHeaderKey] = emailId
 
-	wsConn, response, err := websocket.DefaultDialer.Dial(proctorEngineWebsocketURLWithProcName, headers)
+	wsConn, response, err := websocket.DefaultDialer.Dial(proctodWebsocketURLWithProcName, headers)
 	if err != nil {
 		animation.Stop()
 		if response.StatusCode == http.StatusUnauthorized {

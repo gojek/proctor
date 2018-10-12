@@ -9,17 +9,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProctorURL(t *testing.T) {
+func TestProctorHost(t *testing.T) {
 	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorUrl := []byte("PROCTOR_URL: any-random-url.com")
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorUrl, 0644)
+	proctorHost := []byte("PROCTOR_HOST: any-random-host.com")
+	err := ioutil.WriteFile(proctorConfigFilePath, proctorHost, 0644)
 	defer os.Remove(proctorConfigFilePath)
 	assert.NoError(t, err)
 
 	config.InitConfig()
-	configuredProctorURL := config.ProctorURL()
+	configuredProctorHost := config.ProctorHost()
 
-	assert.Equal(t, "any-random-url.com", configuredProctorURL)
+	assert.Equal(t, "any-random-host.com", configuredProctorHost)
 }
 
 func TestProctorEmailId(t *testing.T) {

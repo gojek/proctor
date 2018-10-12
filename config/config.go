@@ -29,10 +29,10 @@ func InitConfig() {
 	}
 }
 
-func ProctorURL() string {
+func ProctorHost() string {
 	InitConfig()
-	proctorUrl := viper.GetString("PROCTOR_URL")
-	return proctorUrl
+	proctorHost := viper.GetString("PROCTOR_HOST")
+	return proctorHost
 }
 
 func EmailId() string {
