@@ -42,6 +42,9 @@ func Execute(printer io.Printer, proctorEngineClient daemon.Client) {
 	listCmd := list.NewCmd(printer, proctorEngineClient)
 	rootCmd.AddCommand(listCmd)
 
+	configCmd := config.NewCmd(printer, proctorEngineClient)
+	rootCmd.AddCommand(configCmd)
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
