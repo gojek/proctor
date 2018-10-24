@@ -49,7 +49,7 @@
 * `PROCTOR_DEFAULT_NAMESPACE` is the namespace under which jobs will be run in kubernetes cluster. By default, K8s has namespace "default". If you set another value, please create namespace in K8s before deploying `proctord`
 * `PROCTOR_KUBE_CLUSTER_HOST_NAME` is address/ip address to api-server of kube cluster. It is used for fetching logs of a pod using https
 * `PROCTOR_KUBE_CA_CERT_ENCODED` is the CA cert file encoded in base64. This is used for establishing authority while talking to kubernetes api-server on a public https call
-* `PROCTOR_KUBE_BASIC_AUTH` is the base64 encoded authentication of kubernetes. Enocde `username:password` to base64 and set this config.
+* `PROCTOR_KUBE_BASIC_AUTH_ENCODED` is the base64 encoded authentication of kubernetes. Enocde `username:password` to base64 and set this config.
 * Before streaming logs of jobs, `PROCTOR_KUBE_POD_LIST_WAIT_TIME` is the time to wait until jobs and pods are in active/successful/failed state
 * `PROCTOR_POSTGRES_USER`, `PROCTOR_POSTGRES_PASSWORD`, `PROCTOR_POSTGRES_HOST` and `PROCTOR_POSTGRES_PORT` is the username and password to the postgres database you wish to connect to
 * Set `PROCTOR_POSTGRES_DATABASE` to `proctord_development` for development purpose
