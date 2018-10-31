@@ -41,5 +41,5 @@ Users can use it to run procs.
 * Put the following content in the above file
 
 ``` sh
-PROCTOR_URL: [hostname where proctord is running]
+PROCTOR_HOST: [hostname where proctord is running]
 ```
