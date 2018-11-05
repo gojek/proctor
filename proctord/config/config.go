@@ -92,3 +92,15 @@ func PostgresMaxConnections() int {
 func PostgresConnectionMaxLifetime() int {
 	return viper.GetInt("POSTGRES_CONNECTIONS_MAX_LIFETIME")
 }
+
+func NewRelicAppName() string {
+	return viper.GetString("NEW_RELIC_APP_NAME")
+}
+
+func NewRelicLicenceKey() string {
+	return viper.GetString("NEW_RELIC_LICENCE_KEY")
+}
+
+func NewRelicEnabled() bool {
+	return viper.GetBool("NEW_RELIC_ENABLED")
+}

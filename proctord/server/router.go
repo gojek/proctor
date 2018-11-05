@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+	"github.com/gojektech/proctor/proctord/instrumentation"
+	"github.com/newrelic/go-agent"
 	"net/http"
 
 	"github.com/gojektech/proctor/proctord/audit"
@@ -47,12 +49,16 @@ func NewRouter() (*mux.Router, error) {
 		fmt.Fprintf(w, "pong")
 	})
 
-	router.HandleFunc("/jobs/execute", jobExecutioner.Handle()).Methods("POST")
-	router.HandleFunc("/jobs/execute/{name}/status", jobExecutioner.Status()).Methods("GET")
-	router.HandleFunc("/jobs/logs", jobLogger.Stream()).Methods("GET")
-	router.HandleFunc("/jobs/metadata", jobMetadataHandler.HandleSubmission()).Methods("POST")
-	router.HandleFunc("/jobs/metadata", jobMetadataHandler.HandleBulkDisplay()).Methods("GET")
-	router.HandleFunc("/jobs/secrets", jobSecretsHandler.HandleSubmission()).Methods("POST")
+	router.HandleFunc(wrapWithNewRelicInstrumentation("/jobs/execute", jobExecutioner.Handle())).Methods("POST")
+	router.HandleFunc(wrapWithNewRelicInstrumentation("/jobs/execute/{name}/status", jobExecutioner.Status())).Methods("GET")
+	router.HandleFunc(wrapWithNewRelicInstrumentation("/jobs/logs", jobLogger.Stream())).Methods("GET")
+	router.HandleFunc(wrapWithNewRelicInstrumentation("/jobs/metadata", jobMetadataHandler.HandleSubmission())).Methods("POST")
+	router.HandleFunc(wrapWithNewRelicInstrumentation("/jobs/metadata", jobMetadataHandler.HandleBulkDisplay())).Methods("GET")
+	router.HandleFunc(wrapWithNewRelicInstrumentation("/jobs/secrets", jobSecretsHandler.HandleSubmission())).Methods("POST")
 
 	return router, nil
+}
+
+func wrapWithNewRelicInstrumentation(pattern string, handlerFunc http.HandlerFunc) (string, func(http.ResponseWriter, *http.Request)) {
+	return newrelic.WrapHandleFunc(instrumentation.NewRelicApp, pattern, handlerFunc)
 }

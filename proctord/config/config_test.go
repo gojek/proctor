@@ -169,3 +169,27 @@ func TestPostgresConnectionMaxLifetime(t *testing.T) {
 
 	assert.Equal(t, 30, PostgresConnectionMaxLifetime())
 }
+
+func TestNewRelicAppName(t *testing.T) {
+	os.Setenv("PROCTOR_NEW_RELIC_APP_NAME", "PROCTORD")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "PROCTORD", NewRelicAppName())
+}
+
+func TestNewRelicLicenceKey(t *testing.T) {
+	os.Setenv("PROCTOR_NEW_RELIC_LICENCE_KEY", "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr", NewRelicLicenceKey())
+}
+
+func TestNewRelicEnabled(t *testing.T) {
+	os.Setenv("PROCTOR_NEW_RELIC_ENABLED", "true")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, true, NewRelicEnabled())
+}

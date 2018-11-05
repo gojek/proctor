@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/gojektech/proctor/proctord/instrumentation"
 	"time"
 
 	"github.com/gojektech/proctor/proctord/config"
@@ -11,6 +12,10 @@ import (
 )
 
 func Start() error {
+	err := instrumentation.InitNewRelic()
+	if err != nil {
+		logger.Fatal(err)
+	}
 	appPort := ":" + config.AppPort()
 
 	server := negroni.New(negroni.NewRecovery())
