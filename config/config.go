@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"github.com/fatih/color"
+	"github.com/gojektech/proctor/io"
 	"os"
 
 	"github.com/spf13/viper"
@@ -9,9 +11,9 @@ import (
 
 const (
 	Environment = "ENVIRONMENT"
-	Host        = "PROCTOR_HOST"
-	Email       = "EMAIL_ID"
-	Token       = "ACCESS_TOKEN"
+	ProctorHost = "PROCTOR_HOST"
+	EmailId     = "EMAIL_ID"
+	AccessToken = "ACCESS_TOKEN"
 )
 
 type ProctorConfig struct {
@@ -30,12 +32,19 @@ func LoadConfig() (ProctorConfig, error) {
 	err := viper.ReadInConfig()
 
 	if err != nil {
+		configFileUsed := viper.ConfigFileUsed()
+		if _, err := os.Stat(configFileUsed); os.IsNotExist(err) {
+			bytes, _ := dataConfig_templateYamlBytes()
+			template := string(bytes)
+			io.GetPrinter().Println(fmt.Sprintf("Config file not found in %s/proctor.yaml", ConfigFileDir()), color.FgRed)
+			io.GetPrinter().Println(fmt.Sprintf("Create a config file with template:\n\n%s\n\n", template), color.FgGreen)
+		}
 		return ProctorConfig{}, err
 	}
 
-	proctorHost := viper.GetString(Host)
-	emailId := viper.GetString(Email)
-	accessToken := viper.GetString(Token)
+	proctorHost := viper.GetString(ProctorHost)
+	emailId := viper.GetString(EmailId)
+	accessToken := viper.GetString(AccessToken)
 	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken}, nil
 }
 

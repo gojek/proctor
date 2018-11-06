@@ -12,14 +12,17 @@ build-deps:
 update-deps:
 	glide update
 
-compile:
+generate:
+	go-bindata -pkg config -o config/data.go data/config_template.yaml
+
+compile: generate
 	mkdir -p out/
 	go build -race $(GLIDE_NOVENDOR)
 
-ci.test: build-deps
+ci.test: build-deps generate
 	ENVIRONMENT=test go test $(shell glide novendor | grep -v proctord) -v
 
-test:
+test: generate
 	ENVIRONMENT=test go test $(shell glide novendor | grep -v proctord)
 
 build: build-deps compile fmt vet lint
