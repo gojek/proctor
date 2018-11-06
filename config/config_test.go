@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -37,28 +38,39 @@ func TestLoadConfigsFromEnvironmentVariables(t *testing.T) {
 	os.Setenv(ProctorHost, proctorHost)
 	os.Setenv(EmailId, email)
 	os.Setenv(AccessToken, accessToken)
+	os.Setenv(ConnectionTimeoutSecs, "20")
 	configFilePath := createProctorConfigFile(t, "")
 	defer os.Remove(configFilePath)
 
 	proctorConfig, err := LoadConfig()
 
 	assert.NoError(t, err)
-	assert.Equal(t, ProctorConfig{Host: proctorHost, Email: email, AccessToken: accessToken}, proctorConfig)
+	assert.Equal(t, ProctorConfig{Host: proctorHost, Email: email, AccessToken: accessToken, ConnectionTimeoutSecs: time.Duration(20 * time.Second)}, proctorConfig)
 }
 
 func TestLoadConfigFromFile(t *testing.T) {
 	setUp()
-	os.Unsetenv(ProctorHost)
-	os.Unsetenv(EmailId)
-	os.Unsetenv(AccessToken)
+	unsetEnvs()
 
+	configFilePath := createProctorConfigFile(t, "PROCTOR_HOST: file.example.com\nEMAIL_ID: file@example.com\nACCESS_TOKEN: file-token\nCONNECTION_TIMEOUT_SECS: 30")
+	defer os.Remove(configFilePath)
+
+	proctorConfig, err := LoadConfig()
+
+	assert.NoError(t, err)
+	assert.Equal(t, ProctorConfig{Host: "file.example.com", Email: "file@example.com", AccessToken: "file-token", ConnectionTimeoutSecs: time.Duration(30 * time.Second)}, proctorConfig)
+}
+
+func TestTakesDefaultValueForConfigs(t *testing.T) {
+	setUp()
+	unsetEnvs()
 	configFilePath := createProctorConfigFile(t, "PROCTOR_HOST: file.example.com\nEMAIL_ID: file@example.com\nACCESS_TOKEN: file-token")
 	defer os.Remove(configFilePath)
 
 	proctorConfig, err := LoadConfig()
 
 	assert.NoError(t, err)
-	assert.Equal(t, ProctorConfig{Host: "file.example.com", Email: "file@example.com", AccessToken: "file-token"}, proctorConfig)
+	assert.Equal(t, time.Duration(10*time.Second), proctorConfig.ConnectionTimeoutSecs)
 }
 
 func TestShouldPrintInstructionsForConfigFileIfFileNotFound(t *testing.T) {
@@ -77,6 +89,13 @@ func TestShouldPrintInstructionsForConfigFileIfFileNotFound(t *testing.T) {
 
 	assert.Error(t, err)
 	mockPrinter.AssertExpectations(t)
+}
+
+func unsetEnvs() {
+	os.Unsetenv(ProctorHost)
+	os.Unsetenv(EmailId)
+	os.Unsetenv(AccessToken)
+	os.Unsetenv(ConnectionTimeoutSecs)
 }
 
 func createProctorConfigFile(t *testing.T, content string) string {

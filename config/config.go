@@ -5,24 +5,28 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/io"
 	"os"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 const (
-	Environment = "ENVIRONMENT"
-	ProctorHost = "PROCTOR_HOST"
-	EmailId     = "EMAIL_ID"
-	AccessToken = "ACCESS_TOKEN"
+	Environment           = "ENVIRONMENT"
+	ProctorHost           = "PROCTOR_HOST"
+	EmailId               = "EMAIL_ID"
+	AccessToken           = "ACCESS_TOKEN"
+	ConnectionTimeoutSecs = "CONNECTION_TIMEOUT_SECS"
 )
 
 type ProctorConfig struct {
-	Host        string
-	Email       string
-	AccessToken string
+	Host                  string
+	Email                 string
+	AccessToken           string
+	ConnectionTimeoutSecs time.Duration
 }
 
 func LoadConfig() (ProctorConfig, error) {
+	viper.SetDefault(ConnectionTimeoutSecs, 10)
 	viper.AutomaticEnv()
 
 	viper.AddConfigPath(ConfigFileDir())
@@ -45,7 +49,8 @@ func LoadConfig() (ProctorConfig, error) {
 	proctorHost := viper.GetString(ProctorHost)
 	emailId := viper.GetString(EmailId)
 	accessToken := viper.GetString(AccessToken)
-	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken}, nil
+	connectionTimeout := time.Duration(viper.GetInt(ConnectionTimeoutSecs)) * time.Second
+	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken, ConnectionTimeoutSecs: connectionTimeout}, nil
 }
 
 // Returns Config file directory

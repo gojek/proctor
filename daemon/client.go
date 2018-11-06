@@ -26,9 +26,10 @@ type Client interface {
 }
 
 type client struct {
-	proctordHost string
-	emailId      string
-	accessToken  string
+	proctordHost          string
+	emailId               string
+	accessToken           string
+	connectionTimeoutSecs time.Duration
 }
 
 type ProcToExecute struct {
@@ -38,14 +39,17 @@ type ProcToExecute struct {
 
 func NewClient(proctorConfig config.ProctorConfig) Client {
 	return &client{
-		proctordHost: proctorConfig.Host,
-		emailId:      proctorConfig.Email,
-		accessToken:  proctorConfig.AccessToken,
+		proctordHost:          proctorConfig.Host,
+		emailId:               proctorConfig.Email,
+		accessToken:           proctorConfig.AccessToken,
+		connectionTimeoutSecs: proctorConfig.ConnectionTimeoutSecs,
 	}
 }
 
 func (c *client) ListProcs() ([]proc.Metadata, error) {
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: c.connectionTimeoutSecs,
+	}
 	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/metadata", nil)
 	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
