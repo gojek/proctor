@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -56,12 +57,20 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return []proc.Metadata{}, errors.New(err.Error())
+		if err, ok := err.(net.Error); ok && err.Timeout() {
+			return []proc.Metadata{}, fmt.Errorf("%s\n%s\n%s", utility.GenericTimeoutErrorHeader, err.Error(), utility.GenericTimeoutErrorBody)
+		}
+		return []proc.Metadata{}, fmt.Errorf("%s\n%s", utility.GenericNetworkErrorHeader, err.Error())
 	}
 
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return []proc.Metadata{}, errors.New(http.StatusText(resp.StatusCode))
+	if resp.StatusCode == http.StatusUnauthorized {
+		if c.emailId == "" || c.accessToken == "" {
+			return []proc.Metadata{}, fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
+		}
+		return []proc.Metadata{}, fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
+	} else if resp.StatusCode != http.StatusOK {
+		return []proc.Metadata{}, fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 
 	var procList []proc.Metadata

@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListProcs(t *testing.T) {
+func TestListProcsReturnsListOfProcsWithDetails(t *testing.T) {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	proctorClient := NewClient(proctorConfig)
 
@@ -52,14 +52,12 @@ func TestListProcs(t *testing.T) {
 	assert.Equal(t, procListExpected, procList)
 }
 
-func TestListProcsReturnInternalServerError(t *testing.T) {
+func TestListProcsReturnErrorFromResponseBody(t *testing.T) {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	proctorClient := NewClient(proctorConfig)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-
-	var procListExpected = []proc.Metadata{}
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
@@ -78,26 +76,24 @@ func TestListProcsReturnInternalServerError(t *testing.T) {
 
 	procList, err := proctorClient.ListProcs()
 
-	assert.Equal(t, procListExpected, procList)
+	assert.Equal(t, []proc.Metadata{}, procList)
 	assert.Error(t, err)
+	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
 }
 
-func TestListProcsReturnClientSideConnectionError(t *testing.T) {
+func TestListProcsReturnClientSideTimeoutError(t *testing.T) {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	proctorClient := NewClient(proctorConfig)
-	connectionTimeOut := "Connection TimeOut"
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-
-	var procListExpected = []proc.Metadata{}
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
 			"http://"+proctorConfig.Host+"/jobs/metadata",
 			func(req *http.Request) (*http.Response, error) {
-				return nil, errors.New(connectionTimeOut)
+				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
 			},
 		).WithHeader(
 			&http.Header{
@@ -109,8 +105,36 @@ func TestListProcsReturnClientSideConnectionError(t *testing.T) {
 
 	procList, err := proctorClient.ListProcs()
 
-	assert.Equal(t, errors.New("Get http://proctor.example.com/jobs/metadata: Connection TimeOut"), err)
-	assert.Equal(t, procListExpected, procList)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to Proctor server."), err)
+	assert.Equal(t, []proc.Metadata{}, procList)
+}
+
+func TestListProcsReturnClientSideConnectionError(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
+			func(req *http.Request) (*http.Response, error) {
+				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+			},
+		),
+	)
+
+	procList, err := proctorClient.ListProcs()
+
+	assert.Equal(t, errors.New("Network Error!!!\nGet http://proctor.example.com/jobs/metadata: Unknown Error"), err)
+	assert.Equal(t, []proc.Metadata{}, procList)
 }
 
 func TestListProcsForUnauthorizedUser(t *testing.T) {
@@ -118,8 +142,6 @@ func TestListProcsForUnauthorizedUser(t *testing.T) {
 	proctorClient := NewClient(proctorConfig)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-
-	var procListExpected = []proc.Metadata{}
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
@@ -138,8 +160,35 @@ func TestListProcsForUnauthorizedUser(t *testing.T) {
 
 	procList, err := proctorClient.ListProcs()
 
-	assert.Equal(t, procListExpected, procList)
-	assert.Equal(t, err.Error(), http.StatusText(http.StatusUnauthorized))
+	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
+}
+
+func TestListProcsForUnauthorizedErrorWithConfigMissing(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: ""}
+	proctorClient := NewClient(proctorConfig)
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(401, `{}`), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{""},
+			},
+		),
+	)
+
+	procList, err := proctorClient.ListProcs()
+
+	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, "Unauthorized Access!!!\nEMAIL_ID or ACCESS_TOKEN is not present in proctor config file.", err.Error())
 }
 
 func TestExecuteProc(t *testing.T) {
@@ -286,3 +335,12 @@ func TestLogStreamForUnauthorizedUser(t *testing.T) {
 func makeHostname(s string) string {
 	return strings.TrimPrefix(s, "http://")
 }
+
+type TestConnectionError struct {
+	message string
+	timeout bool
+}
+
+func (e TestConnectionError) Error() string   { return e.message }
+func (e TestConnectionError) Timeout() bool   { return e.timeout }
+func (e TestConnectionError) Temporary() bool { return false }

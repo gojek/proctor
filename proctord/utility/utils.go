@@ -2,10 +2,20 @@ package utility
 
 const ClientError = "malformed request"
 const ServerError = "Something went wrong"
-const UnauthorizedError = "Unauthorized. Please check the email id and access token"
+
+const UnauthorizedErrorMissingConfig = "EMAIL_ID or ACCESS_TOKEN is not present in proctor config file."
+const UnauthorizedErrorInvalidConfig = "Please check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file."
+const UnauthorizedError = "Please check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file." //to deprecate
 const GenericListCmdError = "Error fetching list of procs. Please check configuration and network connectivity"
 const GenericProcCmdError = "Error executing proc. Please check configuration and network connectivity"
 const GenericDescribeCmdError = "Error fetching description of proc. Please check configuration and network connectivity"
+
+const UnauthorizedErrorHeader = "Unauthorized Access!!!"
+const GenericTimeoutErrorHeader = "Connection Timeout!!!"
+const GenericNetworkErrorHeader = "Network Error!!!"
+const GenericResponseErrorHeader = "Server Error!!!"
+
+const GenericTimeoutErrorBody = "Please check your Internet/VPN connection for connectivity to Proctor server."
 
 const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"

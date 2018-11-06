@@ -2,12 +2,9 @@ package list
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 )
 
@@ -20,12 +17,7 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 		Run: func(cmd *cobra.Command, args []string) {
 			procList, err := proctorEngineClient.ListProcs()
 			if err != nil {
-				if err.Error() == http.StatusText(http.StatusUnauthorized) {
-					printer.Println(utility.UnauthorizedError, color.FgRed)
-					return
-				}
-
-				printer.Println(utility.GenericListCmdError, color.FgRed)
+				printer.Println(err.Error(), color.FgRed)
 				return
 			}
 
