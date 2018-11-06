@@ -1,4 +1,4 @@
-package config_test
+package config
 
 import (
 	"fmt"
@@ -6,24 +6,23 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gojektech/proctor/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func setUp() {
-	os.Setenv(config.Environment, "test")
+	os.Setenv(Environment, "test")
 }
 
 func TestReturnsConfigDirAsTmpIfEnvironmentIsTest(t *testing.T) {
-	os.Setenv(config.Environment, "test")
-	dir := config.ConfigFileDir()
+	os.Setenv(Environment, "test")
+	dir := ConfigFileDir()
 	assert.Equal(t, "/tmp", dir)
 }
 
 func TestReturnsConfigDirAsHomeDotProctorIfEnvironmentIsNotSet(t *testing.T) {
-	os.Unsetenv(config.Environment)
+	os.Unsetenv(Environment)
 
-	dir := config.ConfigFileDir()
+	dir := ConfigFileDir()
 	expectedDir := fmt.Sprintf("%s/.proctor", os.Getenv("HOME"))
 	assert.Equal(t, expectedDir, dir)
 }
@@ -33,36 +32,36 @@ func TestLoadConfigsFromEnvironmentVariables(t *testing.T) {
 	proctorHost := "test.example.com"
 	email := "user@example.com"
 	accessToken := "test-token"
-	os.Setenv(config.Host, proctorHost)
-	os.Setenv(config.Email, email)
-	os.Setenv(config.Token, accessToken)
+	os.Setenv(Host, proctorHost)
+	os.Setenv(Email, email)
+	os.Setenv(Token, accessToken)
 	configFilePath := createProctorConfigFile(t, "")
 	defer os.Remove(configFilePath)
 
-	proctorConfig, err := config.LoadConfig()
+	proctorConfig, err := LoadConfig()
 
 	assert.NoError(t, err)
-	assert.Equal(t, config.ProctorConfig{Host: proctorHost, Email: email, AccessToken: accessToken}, proctorConfig)
+	assert.Equal(t, ProctorConfig{Host: proctorHost, Email: email, AccessToken: accessToken}, proctorConfig)
 }
 
 func TestLoadConfigFromFile(t *testing.T) {
 	setUp()
-	os.Unsetenv(config.Host)
-	os.Unsetenv(config.Email)
-	os.Unsetenv(config.Token)
+	os.Unsetenv(Host)
+	os.Unsetenv(Email)
+	os.Unsetenv(Token)
 
 	configFilePath := createProctorConfigFile(t, "PROCTOR_HOST: file.example.com\nEMAIL_ID: file@example.com\nACCESS_TOKEN: file-token")
 	defer os.Remove(configFilePath)
 
-	proctorConfig, err := config.LoadConfig()
+	proctorConfig, err := LoadConfig()
 
 	assert.NoError(t, err)
-	assert.Equal(t, config.ProctorConfig{Host: "file.example.com", Email: "file@example.com", AccessToken: "file-token"}, proctorConfig)
+	assert.Equal(t, ProctorConfig{Host: "file.example.com", Email: "file@example.com", AccessToken: "file-token"}, proctorConfig)
 }
 
 func createProctorConfigFile(t *testing.T, content string) string {
 	proctorHost := []byte(fmt.Sprintf(content))
-	configFilePath := fmt.Sprintf("%s/proctor.yaml", config.ConfigFileDir())
+	configFilePath := fmt.Sprintf("%s/proctor.yaml", ConfigFileDir())
 	err := ioutil.WriteFile(configFilePath, proctorHost, 0644)
 	assert.NoError(t, err)
 	return configFilePath
@@ -75,21 +74,21 @@ func TestProctorHost(t *testing.T) {
 	defer os.Remove(proctorConfigFilePath)
 	assert.NoError(t, err)
 
-	config.InitConfig()
-	configuredProctorHost := config.ProctorHost()
+	InitConfig()
+	configuredProctorHost := ProctorHost()
 
 	assert.Equal(t, "any-random-host.com", configuredProctorHost)
 }
 
 func TestProctorEmailId(t *testing.T) {
 	proctorConfigFilePath := "/tmp/proctor.yaml"
-	EmailId := []byte("EMAIL_ID: foobar@gmail.com")
-	err := ioutil.WriteFile(proctorConfigFilePath, EmailId, 0644)
+	emailId := []byte("EMAIL_ID: foobar@gmail.com")
+	err := ioutil.WriteFile(proctorConfigFilePath, emailId, 0644)
 	defer os.Remove(proctorConfigFilePath)
 	assert.NoError(t, err)
 
-	config.InitConfig()
-	configuredEmailId := config.EmailId()
+	InitConfig()
+	configuredEmailId := EmailId()
 
 	assert.Equal(t, "foobar@gmail.com", configuredEmailId)
 }
@@ -97,13 +96,13 @@ func TestProctorEmailId(t *testing.T) {
 func TestProctorAccessToken(t *testing.T) {
 	proctorConfigFilePath := "/tmp/proctor.yaml"
 
-	AccessToken := []byte("ACCESS_TOKEN: access-token")
-	err := ioutil.WriteFile(proctorConfigFilePath, AccessToken, 0644)
+	accessToken := []byte("ACCESS_TOKEN: access-token")
+	err := ioutil.WriteFile(proctorConfigFilePath, accessToken, 0644)
 	defer os.Remove(proctorConfigFilePath)
 	assert.NoError(t, err)
 
-	config.InitConfig()
-	configuredAccessToken := config.AccessToken()
+	InitConfig()
+	configuredAccessToken := AccessToken()
 
 	assert.Equal(t, "access-token", configuredAccessToken)
 }
