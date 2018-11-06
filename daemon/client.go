@@ -36,11 +36,11 @@ type ProcToExecute struct {
 	Args map[string]string `json:"args"`
 }
 
-func NewClient() Client {
+func NewClient(proctorConfig config.ProctorConfig) Client {
 	return &client{
-		proctordHost: config.ProctorHost(),
-		emailId:      config.EmailId(),
-		accessToken:  config.AccessToken(),
+		proctordHost: proctorConfig.Host,
+		emailId:      proctorConfig.Email,
+		accessToken:  proctorConfig.AccessToken,
 	}
 }
 
