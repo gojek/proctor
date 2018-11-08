@@ -57,8 +57,8 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		if err, ok := err.(net.Error); ok && err.Timeout() {
-			return []proc.Metadata{}, fmt.Errorf("%s\n%s\n%s", utility.GenericTimeoutErrorHeader, err.Error(), utility.GenericTimeoutErrorBody)
+		if netError, ok := err.(net.Error); ok && netError.Timeout() {
+			return []proc.Metadata{}, fmt.Errorf("%s\n%s\n%s", utility.GenericTimeoutErrorHeader, netError.Error(), utility.GenericTimeoutErrorBody)
 		}
 		return []proc.Metadata{}, fmt.Errorf("%s\n%s", utility.GenericNetworkErrorHeader, err.Error())
 	}

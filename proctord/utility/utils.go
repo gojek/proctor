@@ -16,7 +16,7 @@ const GenericNetworkErrorHeader = "Network Error!!!"
 const GenericResponseErrorHeader = "Server Error!!!"
 
 const ConfigProctorHostMissingError = "Config Error!!!\nMandatory config PROCTOR_HOST is missing in Proctor Config file."
-const GenericTimeoutErrorBody = "Please check your Internet/VPN connection for connectivity to Proctor server."
+const GenericTimeoutErrorBody = "Please check your Internet/VPN connection for connectivity to ProctorD."
 
 const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"

@@ -105,7 +105,7 @@ func TestListProcsReturnClientSideTimeoutError(t *testing.T) {
 
 	procList, err := proctorClient.ListProcs()
 
-	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to Proctor server."), err)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	assert.Equal(t, []proc.Metadata{}, procList)
 }
 

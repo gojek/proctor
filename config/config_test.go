@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/gojektech/proctor/io"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -89,15 +88,11 @@ func TestShouldPrintInstructionsForConfigFileIfFileNotFound(t *testing.T) {
 	configFilePath := fmt.Sprintf("%s/proctor.yaml", ConfigFileDir())
 	os.Remove(configFilePath)
 
-	mockPrinter := &io.MockPrinter{}
-	io.SetupMockPrinter(mockPrinter)
-	defer io.ResetPrinter()
 	expectedMessage := fmt.Sprintf("Config file not found in %s\nCreate a config file with template:\n\nPROCTOR_HOST: <host>\nEMAIL_ID: <email>\nACCESS_TOKEN: <access-token>\n", configFilePath)
 
 	_, err := LoadConfig()
 
 	assert.Equal(t, expectedMessage, err.Message)
-	mockPrinter.AssertExpectations(t)
 }
 
 func unsetEnvs() {
@@ -108,9 +103,9 @@ func unsetEnvs() {
 }
 
 func createProctorConfigFile(t *testing.T, content string) string {
-	proctorHost := []byte(fmt.Sprintf(content))
+	fileContent := []byte(fmt.Sprintf(content))
 	configFilePath := fmt.Sprintf("%s/proctor.yaml", ConfigFileDir())
-	err := ioutil.WriteFile(configFilePath, proctorHost, 0644)
+	err := ioutil.WriteFile(configFilePath, fileContent, 0644)
 	assert.NoError(t, err)
 	return configFilePath
 }
