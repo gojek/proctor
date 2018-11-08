@@ -5,7 +5,6 @@ const ServerError = "Something went wrong"
 
 const UnauthorizedErrorMissingConfig = "EMAIL_ID or ACCESS_TOKEN is not present in proctor config file."
 const UnauthorizedErrorInvalidConfig = "Please check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file."
-const UnauthorizedError = "Please check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file." //to deprecate
 const GenericListCmdError = "Error fetching list of procs. Please check configuration and network connectivity"
 const GenericProcCmdError = "Error executing proc. Please check configuration and network connectivity"
 const GenericDescribeCmdError = "Error fetching description of proc. Please check configuration and network connectivity"

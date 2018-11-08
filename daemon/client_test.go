@@ -250,16 +250,13 @@ func TestExecuteProcInternalServerError(t *testing.T) {
 
 	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
 
-	assert.Error(t, err)
+	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 }
 
 func TestExecuteProcUnAuthorized(t *testing.T) {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	proctorClient := NewClient(proctorConfig)
-	expectedProcResponse := ""
-	procName := "run-sample"
-	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -279,10 +276,66 @@ func TestExecuteProcUnAuthorized(t *testing.T) {
 		),
 	)
 
-	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
+	executeProcResponse, err := proctorClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	assert.Equal(t, expectedProcResponse, executeProcResponse)
-	assert.Error(t, errors.New(http.StatusText(http.StatusUnauthorized)), err)
+	assert.Equal(t, "", executeProcResponse)
+	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
+}
+
+func TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotSet(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com"}
+	proctorClient := NewClient(proctorConfig)
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+"/jobs/execute",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(401, ""), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{""},
+				utility.AccessTokenHeaderKey: []string{""},
+			},
+		),
+	)
+
+	executeProcResponse, err := proctorClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
+
+	assert.Equal(t, "", executeProcResponse)
+	assert.Equal(t, "Unauthorized Access!!!\nEMAIL_ID or ACCESS_TOKEN is not present in proctor config file.", err.Error())
+}
+
+func TestExecuteProcsReturnClientSideConnectionError(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+"/jobs/execute",
+			func(req *http.Request) (*http.Response, error) {
+				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+			},
+		),
+	)
+
+	response, err := proctorClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
+
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("Network Error!!!\nPost http://proctor.example.com/jobs/execute: Unknown Error"), err)
 }
 
 func TestLogStreamForAuthorizedUser(t *testing.T) {

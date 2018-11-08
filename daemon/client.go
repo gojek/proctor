@@ -3,7 +3,6 @@ package daemon
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -57,20 +56,12 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		if netError, ok := err.(net.Error); ok && netError.Timeout() {
-			return []proc.Metadata{}, fmt.Errorf("%s\n%s\n%s", utility.GenericTimeoutErrorHeader, netError.Error(), utility.GenericTimeoutErrorBody)
-		}
-		return []proc.Metadata{}, fmt.Errorf("%s\n%s", utility.GenericNetworkErrorHeader, err.Error())
+		return []proc.Metadata{}, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusUnauthorized {
-		if c.emailId == "" || c.accessToken == "" {
-			return []proc.Metadata{}, fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
-		}
-		return []proc.Metadata{}, fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
-	} else if resp.StatusCode != http.StatusOK {
-		return []proc.Metadata{}, fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
+	if resp.StatusCode != http.StatusOK {
+		return []proc.Metadata{}, buildHTTPError(c, resp)
 	}
 
 	var procList []proc.Metadata
@@ -97,12 +88,12 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return "", errors.New(err.Error())
+		return "", buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
-		return "", errors.New(http.StatusText(resp.StatusCode))
+		return "", buildHTTPError(c, resp)
 	}
 
 	var executedProc ProcToExecute
@@ -132,7 +123,10 @@ func (c *client) StreamProcLogs(name string) error {
 	if err != nil {
 		animation.Stop()
 		if response.StatusCode == http.StatusUnauthorized {
-			return errors.New(http.StatusText(http.StatusUnauthorized))
+			if c.emailId == "" || c.accessToken == "" {
+				return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
+			}
+			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
 		}
 		return err
 	}
@@ -161,5 +155,23 @@ func (c *client) StreamProcLogs(name string) error {
 		case <-logStreaming:
 			return nil
 		}
+	}
+}
+
+func buildNetworkError(err error) error {
+	if netError, ok := err.(net.Error); ok && netError.Timeout() {
+		return fmt.Errorf("%s\n%s\n%s", utility.GenericTimeoutErrorHeader, netError.Error(), utility.GenericTimeoutErrorBody)
+	}
+	return fmt.Errorf("%s\n%s", utility.GenericNetworkErrorHeader, err.Error())
+}
+
+func buildHTTPError(c *client, resp *http.Response) error {
+	if resp.StatusCode == http.StatusUnauthorized {
+		if c.emailId == "" || c.accessToken == "" {
+			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
+		}
+		return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
+	} else {
+		return fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 }
