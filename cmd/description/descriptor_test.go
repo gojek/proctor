@@ -3,7 +3,6 @@ package description
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/fatih/color"
@@ -11,7 +10,6 @@ import (
 	"github.com/gojektech/proctor/io"
 	"github.com/gojektech/proctor/proc"
 	"github.com/gojektech/proctor/proc/env"
-	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -90,8 +88,8 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdForIncorrectUsage() {
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorEngineClientFailure() {
-	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("error")).Once()
-	s.mockPrinter.On("Println", utility.GenericDescribeCmdError, color.FgRed).Once()
+	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("test error")).Once()
+	s.mockPrinter.On("Println", "test error", color.FgRed).Once()
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-proc"})
 
@@ -102,16 +100,6 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorEngineClientFailure() {
 func (s *DescribeCmdTestSuite) TestDescribeCmdRunProcNotSupported() {
 	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, nil).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("Proctor doesn't support proc: %s", "any-proc"), color.FgRed).Once()
-
-	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-proc"})
-
-	s.mockProctorEngineClient.AssertExpectations(s.T())
-	s.mockPrinter.AssertExpectations(s.T())
-}
-
-func (s *DescribeCmdTestSuite) TestDescribeCmdRunProcForUnauthorizedUser() {
-	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New(http.StatusText(http.StatusUnauthorized))).Once()
-	s.mockPrinter.On("Println", utility.UnauthorizedError, color.FgRed).Once()
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-proc"})
 

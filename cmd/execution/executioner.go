@@ -2,13 +2,11 @@ package execution
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 )
 
@@ -50,11 +48,7 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 
 			executedProcName, err := proctorEngineClient.ExecuteProc(procName, procArgs)
 			if err != nil {
-				if err.Error() == http.StatusText(http.StatusUnauthorized) {
-					printer.Println(utility.UnauthorizedError, color.FgRed)
-					return
-				}
-				printer.Println(utility.GenericProcCmdError, color.FgRed)
+				printer.Println(err.Error(), color.FgRed)
 				return
 			}
 

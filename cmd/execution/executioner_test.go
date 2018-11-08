@@ -3,13 +3,11 @@ package execution
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -118,26 +116,9 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorEngineExecutionFailure
 	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
 
 	procArgs := make(map[string]string)
-	s.mockProctorEngineClient.On("ExecuteProc", "say-hello-world", procArgs).Return("", errors.New("error")).Once()
+	s.mockProctorEngineClient.On("ExecuteProc", "say-hello-world", procArgs).Return("", errors.New("test error")).Once()
 
-	s.mockPrinter.On("Println", utility.GenericProcCmdError, color.FgRed).Once()
-
-	s.testExecutionCmd.Run(&cobra.Command{}, args)
-
-	s.mockProctorEngineClient.AssertExpectations(s.T())
-	s.mockPrinter.AssertExpectations(s.T())
-}
-
-func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorEngineExecutionForUnauthorizedUser() {
-	args := []string{"say-hello-world"}
-
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
-	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
-
-	procArgs := make(map[string]string)
-	s.mockProctorEngineClient.On("ExecuteProc", "say-hello-world", procArgs).Return("", errors.New(http.StatusText(http.StatusUnauthorized))).Once()
-
-	s.mockPrinter.On("Println", utility.UnauthorizedError, color.FgRed).Once()
+	s.mockPrinter.On("Println", "test error", color.FgRed).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
 

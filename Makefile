@@ -12,6 +12,10 @@ build-deps:
 update-deps:
 	glide update
 
+generate:
+	go get github.com/go-bindata/go-bindata
+	$(GOPATH)/bin/go-bindata -pkg config -o config/data.go data/config_template.yaml
+
 compile:
 	mkdir -p out/
 	go build -race $(GLIDE_NOVENDOR)

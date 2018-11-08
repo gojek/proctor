@@ -6,10 +6,15 @@ type Printer interface {
 	Println(string, ...color.Attribute)
 }
 
+var printerInstance Printer
+
 type printer struct{}
 
-func NewPrinter() Printer {
-	return &printer{}
+func GetPrinter() Printer {
+	if printerInstance == nil {
+		printerInstance = &printer{}
+	}
+	return printerInstance
 }
 
 func (p *printer) Println(msg string, attr ...color.Attribute) {

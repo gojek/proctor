@@ -2,11 +2,8 @@ package daemon
 
 import (
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -21,17 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestListProcs(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorConfig := []byte("PROCTOR_HOST: proctor.example.com\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com")
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	fmt.Println(err)
-
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
+func TestListProcsReturnsListOfProcsWithDetails(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -45,7 +34,7 @@ func TestListProcs(t *testing.T) {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+config.ProctorHost()+"/jobs/metadata",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, body), nil
 			},
@@ -63,25 +52,17 @@ func TestListProcs(t *testing.T) {
 	assert.Equal(t, procListExpected, procList)
 }
 
-func TestListProcsReturnInternalServerError(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorConfig := []byte("PROCTOR_HOST: proctor.example.com\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com")
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
+func TestListProcsReturnErrorFromResponseBody(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	var procListExpected = []proc.Metadata{}
-
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+config.ProctorHost()+"/jobs/metadata",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, `{}`), nil
 			},
@@ -95,32 +76,24 @@ func TestListProcsReturnInternalServerError(t *testing.T) {
 
 	procList, err := proctorClient.ListProcs()
 
-	assert.Equal(t, procListExpected, procList)
+	assert.Equal(t, []proc.Metadata{}, procList)
 	assert.Error(t, err)
+	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
 }
 
-func TestListProcsReturnClientSideConnectionError(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorConfig := []byte("PROCTOR_HOST: proctor.example.com\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com")
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	connectionTimeOut := "Connection TimeOut"
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
+func TestListProcsReturnClientSideTimeoutError(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	var procListExpected = []proc.Metadata{}
-
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+config.ProctorHost()+"/jobs/metadata",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
 			func(req *http.Request) (*http.Response, error) {
-				return nil, errors.New(connectionTimeOut)
+				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
 			},
 		).WithHeader(
 			&http.Header{
@@ -132,29 +105,48 @@ func TestListProcsReturnClientSideConnectionError(t *testing.T) {
 
 	procList, err := proctorClient.ListProcs()
 
-	assert.Equal(t, errors.New("Get http://proctor.example.com/jobs/metadata: Connection TimeOut"), err)
-	assert.Equal(t, procListExpected, procList)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	assert.Equal(t, []proc.Metadata{}, procList)
 }
 
-func TestListProcsForUnauthorizedUser(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorConfig := []byte("PROCTOR_HOST: proctor.example.com\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com")
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
+func TestListProcsReturnClientSideConnectionError(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	var procListExpected = []proc.Metadata{}
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
+			func(req *http.Request) (*http.Response, error) {
+				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+			},
+		),
+	)
+
+	procList, err := proctorClient.ListProcs()
+
+	assert.Equal(t, errors.New("Network Error!!!\nGet http://proctor.example.com/jobs/metadata: Unknown Error"), err)
+	assert.Equal(t, []proc.Metadata{}, procList)
+}
+
+func TestListProcsForUnauthorizedUser(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+config.ProctorHost()+"/jobs/metadata",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(401, `{}`), nil
 			},
@@ -168,24 +160,44 @@ func TestListProcsForUnauthorizedUser(t *testing.T) {
 
 	procList, err := proctorClient.ListProcs()
 
-	assert.Equal(t, procListExpected, procList)
-	assert.Equal(t, err.Error(), http.StatusText(http.StatusUnauthorized))
+	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
+}
+
+func TestListProcsForUnauthorizedErrorWithConfigMissing(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: ""}
+	proctorClient := NewClient(proctorConfig)
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(401, `{}`), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{""},
+			},
+		),
+	)
+
+	procList, err := proctorClient.ListProcs()
+
+	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, "Unauthorized Access!!!\nEMAIL_ID or ACCESS_TOKEN is not present in proctor config file.", err.Error())
 }
 
 func TestExecuteProc(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorConfig := []byte("PROCTOR_HOST: proctor.example.com\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com")
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 	expectedProcResponse := "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"
 	body := `{ "name": "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"}`
 	procName := "run-sample"
 	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -193,7 +205,7 @@ func TestExecuteProc(t *testing.T) {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+config.ProctorHost()+"/jobs/execute",
+			"http://"+proctorConfig.Host+"/jobs/execute",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(201, body), nil
 			},
@@ -212,17 +224,11 @@ func TestExecuteProc(t *testing.T) {
 }
 
 func TestExecuteProcInternalServerError(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorConfig := []byte("PROCTOR_HOST: proctor.example.com\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com")
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 	expectedProcResponse := ""
 	procName := "run-sample"
 	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -230,7 +236,7 @@ func TestExecuteProcInternalServerError(t *testing.T) {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+config.ProctorHost()+"/jobs/execute",
+			"http://"+proctorConfig.Host+"/jobs/execute",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, ""), nil
 			},
@@ -244,22 +250,13 @@ func TestExecuteProcInternalServerError(t *testing.T) {
 
 	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
 
-	assert.Error(t, err)
+	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 }
 
 func TestExecuteProcUnAuthorized(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
-	proctorConfig := []byte("PROCTOR_HOST: proctor.example.com\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com")
-	expectedProcResponse := ""
-	procName := "run-sample"
-	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -267,7 +264,7 @@ func TestExecuteProcUnAuthorized(t *testing.T) {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+config.ProctorHost()+"/jobs/execute",
+			"http://"+proctorConfig.Host+"/jobs/execute",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(401, ""), nil
 			},
@@ -279,14 +276,69 @@ func TestExecuteProcUnAuthorized(t *testing.T) {
 		),
 	)
 
-	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
+	executeProcResponse, err := proctorClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	assert.Equal(t, expectedProcResponse, executeProcResponse)
-	assert.Error(t, errors.New(http.StatusText(http.StatusUnauthorized)), err)
+	assert.Equal(t, "", executeProcResponse)
+	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
+}
+
+func TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotSet(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com"}
+	proctorClient := NewClient(proctorConfig)
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+"/jobs/execute",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(401, ""), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{""},
+				utility.AccessTokenHeaderKey: []string{""},
+			},
+		),
+	)
+
+	executeProcResponse, err := proctorClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
+
+	assert.Equal(t, "", executeProcResponse)
+	assert.Equal(t, "Unauthorized Access!!!\nEMAIL_ID or ACCESS_TOKEN is not present in proctor config file.", err.Error())
+}
+
+func TestExecuteProcsReturnClientSideConnectionError(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+"/jobs/execute",
+			func(req *http.Request) (*http.Response, error) {
+				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+			},
+		),
+	)
+
+	response, err := proctorClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
+
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("Network Error!!!\nPost http://proctor.example.com/jobs/execute: Unknown Error"), err)
 }
 
 func TestLogStreamForAuthorizedUser(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
 	logStreamAuthorizer := func(t *testing.T) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			upgrader := websocket.Upgrader{}
@@ -298,39 +350,27 @@ func TestLogStreamForAuthorizedUser(t *testing.T) {
 	}
 	testServer := httptest.NewServer(logStreamAuthorizer(t))
 	defer testServer.Close()
+	proctorConfig := config.ProctorConfig{Host: makeHostname(testServer.URL), Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
-	proctorConfig := []byte(fmt.Sprintf("PROCTOR_HOST: %s\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com", makeHostname(testServer.URL)))
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
-	err = proctorClient.StreamProcLogs("test-job-id")
+	err := proctorClient.StreamProcLogs("test-job-id")
 	assert.NoError(t, err)
 }
 
 func TestLogStreamForBadWebSocketHandshake(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
 	badWebSocketHandshakeHandler := func() http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {}
 	}
 	testServer := httptest.NewServer(badWebSocketHandshakeHandler())
 	defer testServer.Close()
+	proctorConfig := config.ProctorConfig{Host: makeHostname(testServer.URL), Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
-	proctorConfig := []byte(fmt.Sprintf("PROCTOR_HOST: %s\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com", makeHostname(testServer.URL)))
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
 	errStreamLogs := proctorClient.StreamProcLogs("test-job-id")
 	assert.Equal(t, errors.New("websocket: bad handshake"), errStreamLogs)
 }
 
 func TestLogStreamForUnauthorizedUser(t *testing.T) {
-	proctorConfigFilePath := "/tmp/proctor.yaml"
 	unauthorizedUserHandler := func() http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -338,14 +378,9 @@ func TestLogStreamForUnauthorizedUser(t *testing.T) {
 	}
 	testServer := httptest.NewServer(unauthorizedUserHandler())
 	defer testServer.Close()
+	proctorConfig := config.ProctorConfig{Host: makeHostname(testServer.URL), Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
 
-	proctorConfig := []byte(fmt.Sprintf("PROCTOR_HOST: %s\nACCESS_TOKEN: access-token\nEMAIL_ID: proctor@example.com", makeHostname(testServer.URL)))
-	err := ioutil.WriteFile(proctorConfigFilePath, proctorConfig, 0644)
-	defer os.Remove(proctorConfigFilePath)
-	assert.NoError(t, err)
-	config.InitConfig()
-
-	proctorClient := NewClient()
 	errStreamLogs := proctorClient.StreamProcLogs("test-job-id")
 	assert.Error(t, errors.New(http.StatusText(http.StatusUnauthorized)), errStreamLogs)
 }
@@ -353,3 +388,12 @@ func TestLogStreamForUnauthorizedUser(t *testing.T) {
 func makeHostname(s string) string {
 	return strings.TrimPrefix(s, "http://")
 }
+
+type TestConnectionError struct {
+	message string
+	timeout bool
+}
+
+func (e TestConnectionError) Error() string   { return e.message }
+func (e TestConnectionError) Timeout() bool   { return e.timeout }
+func (e TestConnectionError) Temporary() bool { return false }

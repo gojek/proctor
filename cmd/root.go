@@ -9,7 +9,6 @@ import (
 	"github.com/gojektech/proctor/cmd/list"
 	"github.com/gojektech/proctor/cmd/procs"
 	"github.com/gojektech/proctor/cmd/version"
-	"github.com/gojektech/proctor/config"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 
@@ -25,8 +24,6 @@ var (
 )
 
 func Execute(printer io.Printer, proctorEngineClient daemon.Client) {
-	cobra.OnInitialize(config.InitConfig)
-
 	versionCmd := version.NewCmd(printer)
 	rootCmd.AddCommand(versionCmd)
 
