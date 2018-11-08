@@ -1,6 +1,8 @@
 package instrumentation
 
 import (
+	"net/http"
+
 	"github.com/gojektech/proctor/proctord/config"
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/newrelic/go-agent"
@@ -24,4 +26,8 @@ func InitNewRelic() error {
 	}
 	NewRelicApp = app
 	return nil
+}
+
+func Wrap(pattern string, handlerFunc http.HandlerFunc) (string, func(http.ResponseWriter, *http.Request)) {
+	return newrelic.WrapHandleFunc(NewRelicApp, pattern, handlerFunc)
 }
