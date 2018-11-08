@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"github.com/gojektech/proctor/io"
 	"io/ioutil"
 	"os"
@@ -44,7 +43,7 @@ func TestLoadConfigsFromEnvironmentVariables(t *testing.T) {
 
 	proctorConfig, err := LoadConfig()
 
-	assert.NoError(t, err)
+	assert.Empty(t, err)
 	assert.Equal(t, ProctorConfig{Host: proctorHost, Email: email, AccessToken: accessToken, ConnectionTimeoutSecs: time.Duration(20 * time.Second)}, proctorConfig)
 }
 
@@ -57,8 +56,20 @@ func TestLoadConfigFromFile(t *testing.T) {
 
 	proctorConfig, err := LoadConfig()
 
-	assert.NoError(t, err)
+	assert.Empty(t, err)
 	assert.Equal(t, ProctorConfig{Host: "file.example.com", Email: "file@example.com", AccessToken: "file-token", ConnectionTimeoutSecs: time.Duration(30 * time.Second)}, proctorConfig)
+}
+
+func TestCheckForMandatoryConfig(t *testing.T) {
+	setUp()
+	unsetEnvs()
+
+	configFilePath := createProctorConfigFile(t, "EMAIL_ID: file@example.com\nACCESS_TOKEN: file-token\nCONNECTION_TIMEOUT_SECS: 30")
+	defer os.Remove(configFilePath)
+
+	_, err := LoadConfig()
+
+	assert.Error(t, err, "Config Error!!!\nMandatory config PROCTOR_HOST is missing in Proctor Config file.")
 }
 
 func TestTakesDefaultValueForConfigs(t *testing.T) {
@@ -69,7 +80,7 @@ func TestTakesDefaultValueForConfigs(t *testing.T) {
 
 	proctorConfig, err := LoadConfig()
 
-	assert.NoError(t, err)
+	assert.Empty(t, err)
 	assert.Equal(t, time.Duration(10*time.Second), proctorConfig.ConnectionTimeoutSecs)
 }
 
@@ -81,13 +92,11 @@ func TestShouldPrintInstructionsForConfigFileIfFileNotFound(t *testing.T) {
 	mockPrinter := &io.MockPrinter{}
 	io.SetupMockPrinter(mockPrinter)
 	defer io.ResetPrinter()
-	mockPrinter.On("Println", fmt.Sprintf("Config file not found in %s", configFilePath), color.FgRed).Once()
-	helpMessage := "Create a config file with template:\n\nPROCTOR_HOST: <host>\nEMAIL_ID: <email>\nACCESS_TOKEN: <access-token>\n\n"
-	mockPrinter.On("Println", helpMessage, color.FgGreen).Once()
+	expectedMessage := fmt.Sprintf("Config file not found in %s\nCreate a config file with template:\n\nPROCTOR_HOST: <host>\nEMAIL_ID: <email>\nACCESS_TOKEN: <access-token>\n", configFilePath)
 
 	_, err := LoadConfig()
 
-	assert.Error(t, err)
+	assert.Equal(t, expectedMessage, err.Message)
 	mockPrinter.AssertExpectations(t)
 }
 

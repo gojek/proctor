@@ -2,8 +2,8 @@ package config
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/gojektech/proctor/io"
+	"github.com/gojektech/proctor/proctord/utility"
+	"github.com/pkg/errors"
 	"os"
 	"time"
 
@@ -25,7 +25,16 @@ type ProctorConfig struct {
 	ConnectionTimeoutSecs time.Duration
 }
 
-func LoadConfig() (ProctorConfig, error) {
+type ConfigError struct {
+	error
+	Message string
+}
+
+func (c *ConfigError) RootError() error {
+	return c.error
+}
+
+func LoadConfig() (ProctorConfig, ConfigError) {
 	viper.SetDefault(ConnectionTimeoutSecs, 10)
 	viper.AutomaticEnv()
 
@@ -37,20 +46,24 @@ func LoadConfig() (ProctorConfig, error) {
 
 	if err != nil {
 		configFileUsed := viper.ConfigFileUsed()
+		message := ""
 		if _, err := os.Stat(configFileUsed); os.IsNotExist(err) {
 			bytes, _ := dataConfig_templateYamlBytes()
 			template := string(bytes)
-			io.GetPrinter().Println(fmt.Sprintf("Config file not found in %s/proctor.yaml", ConfigFileDir()), color.FgRed)
-			io.GetPrinter().Println(fmt.Sprintf("Create a config file with template:\n\n%s\n\n", template), color.FgGreen)
+			message = fmt.Sprintf("Config file not found in %s/proctor.yaml\n", ConfigFileDir())
+			message += fmt.Sprintf("Create a config file with template:\n\n%s\n", template)
 		}
-		return ProctorConfig{}, err
+		return ProctorConfig{}, ConfigError{error: err, Message: message}
 	}
 
 	proctorHost := viper.GetString(ProctorHost)
+	if proctorHost == "" {
+		return ProctorConfig{}, ConfigError{error: errors.New("Mandatory Config Missing"), Message: utility.ConfigProctorHostMissingError}
+	}
 	emailId := viper.GetString(EmailId)
 	accessToken := viper.GetString(AccessToken)
 	connectionTimeout := time.Duration(viper.GetInt(ConnectionTimeoutSecs)) * time.Second
-	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken, ConnectionTimeoutSecs: connectionTimeout}, nil
+	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken, ConnectionTimeoutSecs: connectionTimeout}, ConfigError{}
 }
 
 // Returns Config file directory

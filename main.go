@@ -11,8 +11,11 @@ import (
 func main() {
 	printer := io.GetPrinter()
 	proctorConfig, err := config.LoadConfig()
-	if err != nil {
+	if (config.ConfigError{}) != err {
+		printer.Println(err.RootError().Error(), color.FgRed)
+		printer.Println(err.Message, color.FgGreen)
 		printer.Println("Encountered error while loading config, exiting.", color.FgRed)
+		return
 	}
 	proctorEngineClient := daemon.NewClient(proctorConfig)
 
