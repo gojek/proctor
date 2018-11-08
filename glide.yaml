@@ -16,5 +16,3 @@ import:
   version: v0.0.1
 - package: github.com/thingful/httpmock
   version: 0.0.2
-- package: github.com/go-bindata/go-bindata
-  version: v1.0.0

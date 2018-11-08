@@ -1,10 +1,11 @@
-hash: ba218d599c8c9483f497b4c513fe4dcb6b73bfd9a23731c511571bf6e99d2e69
-updated: 2018-11-06T16:19:56.2487+05:30
+hash: 99d5240e2827968d8fea8861618d19371699d856ce4634572dfab614345e80c7
+updated: 2018-11-08T12:28:48.456666+05:30
 imports:
 - name: cloud.google.com/go
-  version: c15541d6cecc1153b5cd2dbbb10371a796efe74c
+  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
   subpackages:
   - compute/metadata
+  - internal
 - name: github.com/briandowns/spinner
   version: 48dbb65d7bd5c74ab50d53d04c949f20e3d14944
 - name: github.com/davecgh/go-spew
@@ -24,8 +25,6 @@ imports:
   - redis
 - name: github.com/ghodss/yaml
   version: c7ce16629ff4cd059ed96ed06419dd3856fd3577
-- name: github.com/go-bindata/go-bindata
-  version: 5ebd2c033d84e12a7f4aae4483d98ec7dde53b66
 - name: github.com/gogo/protobuf
   version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
   subpackages:
@@ -42,7 +41,7 @@ imports:
   - ptypes/duration
   - ptypes/timestamp
 - name: github.com/google/btree
-  version: 4030bb1f1f0c35b30ca7009e9ebd06849dd45306
+  version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/googleapis/gnostic
@@ -56,7 +55,7 @@ imports:
 - name: github.com/gorilla/websocket
   version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
 - name: github.com/gregjones/httpcache
-  version: 9cad4c3443a7200dd6400aef47183728de563a38
+  version: 787624de3eb7bd915c329cba748687a3b22666a6
   subpackages:
   - diskcache
 - name: github.com/hashicorp/hcl
@@ -72,7 +71,7 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/imdario/mergo
-  version: 9f23e2d6bd2a77f959b2bf6acdbefd708a83a4a4
+  version: 9316a62528ac99aaecb4e47eadd6dc8aa6533d58
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmoiron/sqlx
@@ -118,7 +117,9 @@ imports:
 - name: github.com/pelletier/go-toml
   version: 81a861c69d25a841d0c4394f0e6f84bc8c5afae0
 - name: github.com/peterbourgon/diskv
-  version: 0646ccaebea1ed1539efcab30cae44019090093f
+  version: 5f041e8faa004a95c88a202771f4cc3e991971e6
+- name: github.com/pkg/errors
+  version: 059132a15dd08d6704c67711dae0cf35ab991756
 - name: github.com/pmezard/go-difflib
   version: 792786c7400a136282c1664665ae0a8db921c6c2
   subpackages:
@@ -159,7 +160,7 @@ imports:
 - name: github.com/urfave/negroni
   version: 0af0d913cfc4cc6c389cc402eb70bf8a8fec374d
 - name: golang.org/x/crypto
-  version: 4d3f4d9ffa16a13f451c3b2999e9c49e9750bf06
+  version: de0752318171da717af4ce24d0a2e8626afaeb11
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
@@ -167,22 +168,19 @@ imports:
   subpackages:
   - context
   - context/ctxhttp
-  - html
-  - html/atom
   - http2
   - http2/hpack
   - idna
   - lex/httplex
-  - websocket
 - name: golang.org/x/oauth2
-  version: ca4130e427c7982e64cb9b5e717ff67bdb725037
+  version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
   - google
   - internal
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 7155702f2d47d94b134229da97195d0130cab001
+  version: 95c6576299259db960f6c5b9b69ea52422860fce
   subpackages:
   - unix
   - windows
@@ -201,7 +199,7 @@ imports:
   - unicode/norm
   - width
 - name: golang.org/x/time
-  version: fbb02b2291d28baffd63558aa44b4b56f178d650
+  version: f51c12702a4d776e4c1fa9b0fabab841babae631
   subpackages:
   - rate
 - name: google.golang.org/appengine
@@ -258,9 +256,14 @@ imports:
 - name: k8s.io/apimachinery
   version: 0aa9751e8aaff1b6afa1ca5270d8e280878797e4
   subpackages:
+  - pkg/api/apitesting
+  - pkg/api/apitesting/fuzzer
+  - pkg/api/apitesting/roundtrip
+  - pkg/api/equality
   - pkg/api/errors
   - pkg/api/meta
   - pkg/api/resource
+  - pkg/apis/meta/fuzzer
   - pkg/apis/meta/v1
   - pkg/apis/meta/v1/unstructured
   - pkg/apis/meta/v1beta1
@@ -279,6 +282,7 @@ imports:
   - pkg/selection
   - pkg/types
   - pkg/util/clock
+  - pkg/util/diff
   - pkg/util/errors
   - pkg/util/framer
   - pkg/util/intstr
@@ -401,8 +405,6 @@ testImports:
   version: 86bdc24560383254e8b977da31a823eddf904409
 - name: github.com/jarcoal/httpmock
   version: 9c70cfe4a1dad2f143c2244b45f2161fc72ceddf
-- name: github.com/pkg/errors
-  version: 059132a15dd08d6704c67711dae0cf35ab991756
 - name: github.com/PuerkitoBio/purell
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
