@@ -18,6 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const clientVersion = "v0.2.0"
+
 func TestListProcsReturnsListOfProcsWithDetails(t *testing.T) {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	proctorClient := NewClient(proctorConfig)
@@ -42,6 +44,7 @@ func TestListProcsReturnsListOfProcsWithDetails(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+			 	utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -70,6 +73,7 @@ func TestListProcsReturnErrorFromResponseBody(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -99,6 +103,7 @@ func TestListProcsReturnClientSideTimeoutError(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -127,6 +132,7 @@ func TestListProcsReturnClientSideConnectionError(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -154,6 +160,7 @@ func TestListProcsForUnauthorizedUser(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -181,6 +188,7 @@ func TestListProcsForUnauthorizedErrorWithConfigMissing(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{""},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -213,6 +221,7 @@ func TestExecuteProc(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -244,6 +253,7 @@ func TestExecuteProcInternalServerError(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -272,6 +282,7 @@ func TestExecuteProcUnAuthorized(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -300,6 +311,7 @@ func TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotSet(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{""},
 				utility.AccessTokenHeaderKey: []string{""},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -328,6 +340,7 @@ func TestExecuteProcsReturnClientSideConnectionError(t *testing.T) {
 			&http.Header{
 				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
 				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
 			},
 		),
 	)
@@ -344,6 +357,7 @@ func TestLogStreamForAuthorizedUser(t *testing.T) {
 			upgrader := websocket.Upgrader{}
 			assert.Equal(t, "proctor@example.com", r.Header.Get(utility.UserEmailHeaderKey))
 			assert.Equal(t, "access-token", r.Header.Get(utility.AccessTokenHeaderKey))
+			assert.Equal(t, clientVersion, r.Header.Get(utility.ClientVersion))
 			conn, _ := upgrader.Upgrade(w, r, nil)
 			defer conn.Close()
 		}

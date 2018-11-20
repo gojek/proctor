@@ -34,6 +34,7 @@ const JobSubmissionStatusContextKey = "job_sumission_status"
 
 const UserEmailHeaderKey = "Email-Id"
 const AccessTokenHeaderKey = "Access-Token"
+const ClientVersion  =  "Client-Version"
 
 func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 	result := make(map[string]string)
