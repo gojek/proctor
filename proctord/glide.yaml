@@ -32,6 +32,8 @@ import:
   version: v3.0.1
 - package: github.com/newrelic/go-agent
   version: v1.4.0
+- package: github.com/hashicorp/go-version
+  version: v1.0.0
 - package: github.com/jmoiron/sqlx
 - package: github.com/lib/pq
 - package: k8s.io/client-go
