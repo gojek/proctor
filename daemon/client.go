@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gojektech/proctor/cmd/version"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -29,6 +31,7 @@ type client struct {
 	proctordHost          string
 	emailId               string
 	accessToken           string
+	clientVersion         string
 	connectionTimeoutSecs time.Duration
 }
 
@@ -43,6 +46,7 @@ func NewClient(proctorConfig config.ProctorConfig) Client {
 		emailId:               proctorConfig.Email,
 		accessToken:           proctorConfig.AccessToken,
 		connectionTimeoutSecs: proctorConfig.ConnectionTimeoutSecs,
+		clientVersion:         version.ClientVersion,
 	}
 }
 
@@ -53,8 +57,9 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/metadata", nil)
 	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	resp, err := client.Do(req)
+	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
 
+	resp, err := client.Do(req)
 	if err != nil {
 		return []proc.Metadata{}, buildNetworkError(err)
 	}
@@ -85,6 +90,7 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -116,8 +122,10 @@ func (c *client) StreamProcLogs(name string) error {
 	headers := make(map[string][]string)
 	token := []string{c.accessToken}
 	emailId := []string{c.emailId}
+	clientVersion := []string{c.clientVersion}
 	headers[utility.AccessTokenHeaderKey] = token
 	headers[utility.UserEmailHeaderKey] = emailId
+	headers[utility.ClientVersionHeaderKey] = clientVersion
 
 	wsConn, response, err := websocket.DefaultDialer.Dial(proctodWebsocketURLWithProcName, headers)
 	if err != nil {
@@ -171,6 +179,10 @@ func buildHTTPError(c *client, resp *http.Response) error {
 			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
 		}
 		return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
+	} else if resp.StatusCode == http.StatusBadRequest {
+		body, _ := ioutil.ReadAll(resp.Body)
+		bodyString := string(body)
+		return fmt.Errorf(bodyString)
 	} else {
 		return fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 	}

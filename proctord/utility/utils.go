@@ -16,6 +16,7 @@ const GenericResponseErrorHeader = "Server Error!!!"
 
 const ConfigProctorHostMissingError = "Config Error!!!\nMandatory config PROCTOR_HOST is missing in Proctor Config file."
 const GenericTimeoutErrorBody = "Please check your Internet/VPN connection for connectivity to ProctorD."
+const ClientOutdatedErrorMessage = "Your Proctor client is using an outdated version: %s . To continue using proctor, please upgrade to latest version."
 
 const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"
@@ -34,6 +35,7 @@ const JobSubmissionStatusContextKey = "job_sumission_status"
 
 const UserEmailHeaderKey = "Email-Id"
 const AccessTokenHeaderKey = "Access-Token"
+const ClientVersionHeaderKey =  "Client-Version"
 
 func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 	result := make(map[string]string)

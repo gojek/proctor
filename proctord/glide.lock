@@ -1,5 +1,5 @@
-hash: 591a21f5626d17095e158099424116a8a28e78be335a67fd5bef2626698a3569
-updated: 2018-11-05T12:24:29.782532+05:30
+hash: fe6e5f703f103d1435f5e31c46d38268461714ed7b21489501bd3e9e0acd89ee
+updated: 2018-11-21T15:18:35.009438+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -56,6 +56,8 @@ imports:
   version: 787624de3eb7bd915c329cba748687a3b22666a6
   subpackages:
   - diskcache
+- name: github.com/hashicorp/go-version
+  version: b5a281d3160aa11950a6182bd9a9dc2cb1e02d50
 - name: github.com/hashicorp/hcl
   version: 23c074d0eceb2b8a5bfdbb271ab780cde70f05a8
   subpackages:

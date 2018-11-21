@@ -111,7 +111,7 @@ func (executioner *executioner) Handle() http.HandlerFunc {
 
 		JobNameSubmittedForExecution, err := executioner.kubeClient.ExecuteJob(imageName, envVars)
 		if err != nil {
-			logger.Error("Error executing job: %v", job, imageName, err.Error())
+			logger.Error("Error executing job:", job, imageName, err.Error())
 			ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
 
 			w.WriteHeader(http.StatusInternalServerError)

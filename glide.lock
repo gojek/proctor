@@ -1,5 +1,5 @@
 hash: 99d5240e2827968d8fea8861618d19371699d856ce4634572dfab614345e80c7
-updated: 2018-11-08T12:28:48.456666+05:30
+updated: 2018-11-21T15:16:40.295388+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -12,21 +12,19 @@ imports:
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
   - spew
-- name: github.com/evanphx/json-patch
-  version: 36442dbdb585210f8d5a1b45e67aa323c197d5c4
 - name: github.com/fatih/color
   version: 507f6050b8568533fb3f5504de8e5205fa62a114
 - name: github.com/fsnotify/fsnotify
   version: ccc981bf80385c528a65fbfdd49bf2d8da22aa23
 - name: github.com/garyburd/redigo
-  version: 569eae59ada904ea8db7a225c2b47165af08735a
+  version: 47dc60e71eed504e3ef8e77ee3c6fe720f3be57f
   subpackages:
   - internal
   - redis
 - name: github.com/ghodss/yaml
-  version: c7ce16629ff4cd059ed96ed06419dd3856fd3577
+  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gogo/protobuf
-  version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
+  version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
   subpackages:
   - proto
   - sortkeys
@@ -58,6 +56,8 @@ imports:
   version: 787624de3eb7bd915c329cba748687a3b22666a6
   subpackages:
   - diskcache
+- name: github.com/hashicorp/go-version
+  version: b5a281d3160aa11950a6182bd9a9dc2cb1e02d50
 - name: github.com/hashicorp/hcl
   version: 65a6292f0157eff210d03ed1bf6c59b190b8b906
   subpackages:
@@ -89,7 +89,7 @@ imports:
 - name: github.com/magiconair/properties
   version: c2353362d570a7bfa228149c62842019201cfb71
 - name: github.com/mattes/migrate
-  version: 4768a648fbd9e04389a73a21139d14a4ccb1a61a
+  version: 035c07716cd373d88456ec4d701402df52584cb4
   subpackages:
   - database
   - database/postgres
@@ -104,12 +104,11 @@ imports:
 - name: github.com/modern-go/concurrent
   version: bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94
 - name: github.com/modern-go/reflect2
-  version: 94122c33edd36123c84d5368cfb2b69df93a0ec8
+  version: 05fbef0ca5da472bbf96c9322b84a53edc03c9fd
 - name: github.com/newrelic/go-agent
-  version: 46d73e6be8b4faeee70850d0df829e4fe00d6819
+  version: 372845e16294c9fa73951b27d5631b601643fc51
   subpackages:
   - internal
-  - internal/cat
   - internal/jsonx
   - internal/logger
   - internal/sysinfo
@@ -125,7 +124,7 @@ imports:
   subpackages:
   - difflib
 - name: github.com/satori/go.uuid
-  version: b2ce2384e17bbe0c6d34077efa39dbab3e09123b
+  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/Sirupsen/logrus
   version: 44067abb194b1bc8b342e1f2120f8d3ea691b834
 - name: github.com/spf13/afero
@@ -154,11 +153,11 @@ imports:
 - name: github.com/thingful/httpmock
   version: 4df9ac03f1f75f097c31dde17e969d212d3fb479
 - name: github.com/tylerb/graceful
-  version: d72b0151351a13d0421b763b88f791469c4f5dc7
+  version: 4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb
 - name: github.com/urfave/cli
-  version: b67dcf995b6a7b7f14fad5fcb7cc5441b05e814b
+  version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
 - name: github.com/urfave/negroni
-  version: 0af0d913cfc4cc6c389cc402eb70bf8a8fec374d
+  version: 5dbbc83f748fc3ad38585842b0aedab546d0ea1e
 - name: golang.org/x/crypto
   version: de0752318171da717af4ce24d0a2e8626afaeb11
   subpackages:
@@ -219,14 +218,13 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
 - name: k8s.io/api
-  version: de5c567eef5cb050b5476484727b074df9185088
+  version: fd83cbc87e7632ccd8bbab63d2b673d4e0c631cc
   subpackages:
   - admissionregistration/v1alpha1
   - admissionregistration/v1beta1
   - apps/v1
   - apps/v1beta1
   - apps/v1beta2
-  - auditregistration/v1alpha1
   - authentication/v1
   - authentication/v1beta1
   - authorization/v1
@@ -254,7 +252,7 @@ imports:
   - storage/v1alpha1
   - storage/v1beta1
 - name: k8s.io/apimachinery
-  version: 0aa9751e8aaff1b6afa1ca5270d8e280878797e4
+  version: 6dd46049f39503a1fc8d65de4bd566829e95faff
   subpackages:
   - pkg/api/apitesting
   - pkg/api/apitesting/fuzzer
@@ -301,7 +299,7 @@ imports:
   - third_party/forked/golang/json
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
-  version: 193c4639ffa27c9afcc06c3858b6da1f522b3b81
+  version: 1638f8970cefaa404ff3a62950f88b08292b2696
   subpackages:
   - discovery
   - discovery/fake
@@ -318,8 +316,6 @@ imports:
   - kubernetes/typed/apps/v1beta1/fake
   - kubernetes/typed/apps/v1beta2
   - kubernetes/typed/apps/v1beta2/fake
-  - kubernetes/typed/auditregistration/v1alpha1
-  - kubernetes/typed/auditregistration/v1alpha1/fake
   - kubernetes/typed/authentication/v1
   - kubernetes/typed/authentication/v1/fake
   - kubernetes/typed/authentication/v1beta1
@@ -397,7 +393,7 @@ imports:
   - util/integer
   - util/jsonpath
 - name: k8s.io/kube-openapi
-  version: 72693cb1fadd73ae2742f6fe29af77d1aecdd8cd
+  version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
   subpackages:
   - pkg/util/proto
 testImports:
