@@ -2,6 +2,7 @@ package list
 
 import (
 	"fmt"
+
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
@@ -27,7 +28,7 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 				printer.Println(fmt.Sprintf("%-40s %-100s", proc.Name, proc.Description), color.Reset)
 			}
 
-			printer.Println("\nFor detailed information of procs, run:\nproctor describe <proc_name>", color.FgGreen)
+			printer.Println("\nFor detailed information of any proc, run:\nproctor help <proc_name>", color.FgGreen)
 		},
 	}
 }

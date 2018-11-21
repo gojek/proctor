@@ -34,6 +34,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdUsage() {
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdHelp() {
 	assert.Equal(s.T(), "Describe a proc, list help for variables and constants", s.testDescribeCmd.Short)
+	assert.Equal(s.T(), []string{"help"}, s.testDescribeCmd.Aliases)
 	assert.Equal(s.T(), "In order to execute a proc, you need to provide certain variables. Describe command helps you with those variables and their meanings/convention/usage, etc.", s.testDescribeCmd.Long)
 	assert.Equal(s.T(), "proctor describe proc-one\nproctor describe proc-two", s.testDescribeCmd.Example)
 }
@@ -50,7 +51,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 	}
 
 	anyProc := proc.Metadata{
-		Name:         "any-proc",
+		Name:         "do-something",
 		Description:  "does something",
 		Contributors: "user@example.com",
 		Organization: "org",
@@ -63,17 +64,14 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 
 	s.mockProctorEngineClient.On("ListProcs").Return(procList, nil).Once()
 
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Proc Name", anyProc.Name), color.Reset).Once()
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Proc Description", anyProc.Description), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Description", anyProc.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Contributors", anyProc.Contributors), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Organization", anyProc.Organization), color.Reset).Once()
-	s.mockPrinter.On("Println", "\nVariables", color.FgMagenta).Once()
+	s.mockPrinter.On("Println", "\nArgs", color.FgMagenta).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", arg.Name, arg.Description), color.Reset).Once()
-	s.mockPrinter.On("Println", "\nConstants", color.FgMagenta).Once()
-	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", secret.Name, secret.Description), color.Reset).Once()
-	s.mockPrinter.On("Println", "\nFor executing a proc, run:\nproctor execute <proc_name> <args_name>", color.FgGreen).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("\nTo %s, run:\nproctor execute %s ARG_ONE=foo ARG_TWO=bar", anyProc.Name, anyProc.Name), color.FgGreen).Once()
 
-	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-proc"})
+	s.testDescribeCmd.Run(&cobra.Command{}, []string{anyProc.Name})
 
 	s.mockProctorEngineClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -91,7 +89,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorEngineClientFailure() {
 	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("test error")).Once()
 	s.mockPrinter.On("Println", "test error", color.FgRed).Once()
 
-	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-proc"})
+	s.testDescribeCmd.Run(&cobra.Command{}, []string{"do-something"})
 
 	s.mockProctorEngineClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -99,9 +97,10 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorEngineClientFailure() {
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdRunProcNotSupported() {
 	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, nil).Once()
-	s.mockPrinter.On("Println", fmt.Sprintf("Proctor doesn't support proc: %s", "any-proc"), color.FgRed).Once()
+	testProcName := "do-something"
+	s.mockPrinter.On("Println", fmt.Sprintf("Proctor doesn't support Proc `%s`\nRun `proctor list` to view supported Procs", testProcName), color.FgRed).Once()
 
-	s.testDescribeCmd.Run(&cobra.Command{}, []string{"any-proc"})
+	s.testDescribeCmd.Run(&cobra.Command{}, []string{testProcName})
 
 	s.mockProctorEngineClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
