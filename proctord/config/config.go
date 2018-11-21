@@ -104,3 +104,7 @@ func NewRelicLicenceKey() string {
 func NewRelicEnabled() bool {
 	return viper.GetBool("NEW_RELIC_ENABLED")
 }
+
+func MinClientVersion() string {
+	return viper.GetString("MIN_CLIENT_VERSION")
+}

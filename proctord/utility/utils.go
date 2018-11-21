@@ -16,6 +16,7 @@ const GenericResponseErrorHeader = "Server Error!!!"
 
 const ConfigProctorHostMissingError = "Config Error!!!\nMandatory config PROCTOR_HOST is missing in Proctor Config file."
 const GenericTimeoutErrorBody = "Please check your Internet/VPN connection for connectivity to ProctorD."
+const ClientOutdatedErrorMessage = "You are proctor client version %s outdated. Please upgrade to latest proctor client to continue use proctor!"
 
 const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"
