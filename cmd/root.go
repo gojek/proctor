@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gojektech/proctor/cmd/config"
+	"github.com/gojektech/proctor/cmd/config/view"
 	"github.com/gojektech/proctor/cmd/description"
 	"github.com/gojektech/proctor/cmd/execution"
 	"github.com/gojektech/proctor/cmd/list"
@@ -38,6 +40,11 @@ func Execute(printer io.Printer, proctorEngineClient daemon.Client) {
 
 	listCmd := list.NewCmd(printer, proctorEngineClient)
 	rootCmd.AddCommand(listCmd)
+
+	configCmd := config.NewCmd(printer)
+	configShowCmd := view.NewCmd(printer)
+	rootCmd.AddCommand(configCmd)
+	configCmd.AddCommand(configShowCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

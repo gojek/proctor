@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/gojektech/proctor/proctord/utility"
-	"github.com/pkg/errors"
 	"os"
 	"time"
+
+	"github.com/gojektech/proctor/proctord/utility"
+	"github.com/pkg/errors"
 
 	"github.com/spf13/viper"
 )
@@ -34,7 +35,17 @@ func (c *ConfigError) RootError() error {
 	return c.error
 }
 
-func LoadConfig() (ProctorConfig, ConfigError) {
+type Loader interface {
+	Load() (ProctorConfig, ConfigError)
+}
+
+type loader struct{}
+
+func NewLoader() Loader {
+	return &loader{}
+}
+
+func (loader *loader) Load() (ProctorConfig, ConfigError) {
 	viper.SetDefault(ConnectionTimeoutSecs, 10)
 	viper.AutomaticEnv()
 
@@ -51,7 +62,8 @@ func LoadConfig() (ProctorConfig, ConfigError) {
 			bytes, _ := dataConfig_templateYamlBytes()
 			template := string(bytes)
 			message = fmt.Sprintf("Config file not found in %s/proctor.yaml\n", ConfigFileDir())
-			message += fmt.Sprintf("Create a config file with template:\n\n%s\n", template)
+			message += fmt.Sprintf("Setup config using `proctor config PROCTOR_HOST=some.host ...`\n\n")
+			message += fmt.Sprintf("Alternatively create a config file with template:\n\n%s\n", template)
 		}
 		return ProctorConfig{}, ConfigError{error: err, Message: message}
 	}

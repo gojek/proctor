@@ -3,8 +3,8 @@ package daemon
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/gojektech/proctor/cmd/version"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -13,9 +13,12 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gojektech/proctor/cmd/version"
+
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/config"
+	"github.com/gojektech/proctor/io"
 	"github.com/gojektech/proctor/proc"
 	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/gorilla/websocket"
@@ -28,6 +31,8 @@ type Client interface {
 }
 
 type client struct {
+	printer               io.Printer
+	proctorConfigLoader   config.Loader
 	proctordHost          string
 	emailId               string
 	accessToken           string
@@ -40,17 +45,36 @@ type ProcToExecute struct {
 	Args map[string]string `json:"args"`
 }
 
-func NewClient(proctorConfig config.ProctorConfig) Client {
+func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	return &client{
-		proctordHost:          proctorConfig.Host,
-		emailId:               proctorConfig.Email,
-		accessToken:           proctorConfig.AccessToken,
-		connectionTimeoutSecs: proctorConfig.ConnectionTimeoutSecs,
-		clientVersion:         version.ClientVersion,
+		clientVersion:       version.ClientVersion,
+		printer:             printer,
+		proctorConfigLoader: proctorConfigLoader,
 	}
 }
 
+func (c *client) loadProctorConfig() error {
+	proctorConfig, err := c.proctorConfigLoader.Load()
+	if err != (config.ConfigError{}) {
+		c.printer.Println(err.RootError().Error(), color.FgRed)
+		c.printer.Println(err.Message, color.FgGreen)
+		return errors.New("Encountered error while loading config, exiting.")
+	}
+
+	c.proctordHost = proctorConfig.Host
+	c.emailId = proctorConfig.Email
+	c.accessToken = proctorConfig.AccessToken
+	c.connectionTimeoutSecs = proctorConfig.ConnectionTimeoutSecs
+
+	return nil
+}
+
 func (c *client) ListProcs() ([]proc.Metadata, error) {
+	err := c.loadProctorConfig()
+	if err != nil {
+		return []proc.Metadata{}, err
+	}
+
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
@@ -75,6 +99,11 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 }
 
 func (c *client) ExecuteProc(name string, args map[string]string) (string, error) {
+	err := c.loadProctorConfig()
+	if err != nil {
+		return "", err
+	}
+
 	procToExecute := ProcToExecute{
 		Name: name,
 		Args: args,
@@ -109,6 +138,11 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 }
 
 func (c *client) StreamProcLogs(name string) error {
+	err := c.loadProctorConfig()
+	if err != nil {
+		return err
+	}
+
 	animation := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
 	animation.Color("green")
 	animation.Start()

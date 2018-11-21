@@ -16,13 +16,9 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 		Short:   "Execute a proc with arguments given",
 		Long:    "To execute a proc, this command helps communicate with `proctord` and streams to logs of proc in execution",
 		Example: "proctor execute proc-one SOME_VAR=foo ANOTHER_VAR=bar\nproctor execute proc-two ANY_VAR=baz",
+		Args:    cobra.MinimumNArgs(1),
 
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) < 1 {
-				printer.Println("Incorrect command. See `proctor execute --help` for usage", color.FgRed)
-				return
-			}
-
 			procName := args[0]
 			printer.Println(fmt.Sprintf("%-40s %-100s", "Executing Proc", procName), color.Reset)
 

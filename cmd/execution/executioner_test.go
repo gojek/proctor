@@ -60,14 +60,6 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmd() {
 	s.mockPrinter.AssertExpectations(s.T())
 }
 
-func (s *ExecutionCmdTestSuite) TestExecutionCmdForIncorrectUsage() {
-	s.mockPrinter.On("Println", "Incorrect command. See `proctor execute --help` for usage", color.FgRed).Once()
-
-	s.testExecutionCmd.Run(&cobra.Command{}, []string{})
-
-	s.mockPrinter.AssertExpectations(s.T())
-}
-
 func (s *ExecutionCmdTestSuite) TestExecutionCmdForNoProcVariables() {
 	args := []string{"say-hello-world"}
 
