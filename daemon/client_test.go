@@ -171,6 +171,69 @@ func TestListProcsForUnauthorizedUser(t *testing.T) {
 	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
 }
 
+func TestListProcsReturnProcListIfClientVersionHttpHeaderIsEmpty(t *testing.T) {
+	body := `[ { "name": "job-1", "description": "job description", "image_name": "hub.docker.com/job-1:latest", "env_vars": { "secrets": [ { "name": "SECRET1", "description": "Base64 encoded secret for authentication." } ], "args": [ { "name": "ARG1", "description": "Argument name" } ] } } ]`
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+	var args = []env.VarMetadata{env.VarMetadata{Name: "ARG1", Description: "Argument name"}}
+	var secrets = []env.VarMetadata{env.VarMetadata{Name: "SECRET1", Description: "Base64 encoded secret for authentication."}}
+	envVars := env.Vars{Secrets: secrets, Args: args}
+	var procListExpected = []proc.Metadata{proc.Metadata{Name: "job-1", Description: "job description", EnvVars: envVars}}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(200, body), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+			},
+		),
+	)
+
+	procList, err := proctorClient.ListProcs()
+
+	assert.Equal(t, procListExpected, procList)
+	assert.NoError(t,err)
+}
+
+func TestListProcsReturnProcListBadrequestError(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+	var procListExpected = []proc.Metadata{}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/metadata",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(400, "You are proctor client version 0.1.0 outdated. Please upgrade to latest proctor client to continue use proctor!"), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion: []string{clientVersion},
+			},
+		),
+	)
+
+	listProcResponse, err := proctorClient.ListProcs()
+	assert.Equal(t,"You are proctor client version 0.1.0 outdated. Please upgrade to latest proctor client to continue use proctor!",err.Error())
+	assert.Equal(t, procListExpected, listProcResponse)
+
+}
+
 func TestListProcsForUnauthorizedErrorWithConfigMissing(t *testing.T) {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: ""}
 	proctorClient := NewClient(proctorConfig)
@@ -232,6 +295,38 @@ func TestExecuteProc(t *testing.T) {
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 }
 
+func TestExecuteProcWithEmptyClientVersionHttpHeader(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+	expectedProcResponse := "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"
+	body := `{ "name": "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"}`
+	procName := "run-sample"
+	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+"/jobs/execute",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(201, body), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+			},
+		),
+	)
+
+	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedProcResponse, executeProcResponse)
+}
+
 func TestExecuteProcInternalServerError(t *testing.T) {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	proctorClient := NewClient(proctorConfig)
@@ -261,6 +356,38 @@ func TestExecuteProcInternalServerError(t *testing.T) {
 	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
 
 	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	assert.Equal(t, expectedProcResponse, executeProcResponse)
+}
+
+func TestExecuteProcbadRequest(t *testing.T) {
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+	expectedProcResponse := ""
+	procName := "run-sample"
+	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+"/jobs/execute",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(400, "You are proctor client version 0.2.0 outdated. Please upgrade to latest proctor client to continue use proctor!"), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:   []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey: []string{"access-token"},
+				utility.ClientVersion:        []string{clientVersion},
+			},
+		),
+	)
+
+	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
+
+	assert.Equal(t, "You are proctor client version 0.2.0 outdated. Please upgrade to latest proctor client to continue use proctor!", err.Error())
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 }
 
@@ -358,6 +485,25 @@ func TestLogStreamForAuthorizedUser(t *testing.T) {
 			assert.Equal(t, "proctor@example.com", r.Header.Get(utility.UserEmailHeaderKey))
 			assert.Equal(t, "access-token", r.Header.Get(utility.AccessTokenHeaderKey))
 			assert.Equal(t, clientVersion, r.Header.Get(utility.ClientVersion))
+			conn, _ := upgrader.Upgrade(w, r, nil)
+			defer conn.Close()
+		}
+	}
+	testServer := httptest.NewServer(logStreamAuthorizer(t))
+	defer testServer.Close()
+	proctorConfig := config.ProctorConfig{Host: makeHostname(testServer.URL), Email: "proctor@example.com", AccessToken: "access-token"}
+	proctorClient := NewClient(proctorConfig)
+
+	err := proctorClient.StreamProcLogs("test-job-id")
+	assert.NoError(t, err)
+}
+
+func TestLogStreamForAuthorizedUserWithoutClientVersionHttpHeader(t *testing.T) {
+	logStreamAuthorizer := func(t *testing.T) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			upgrader := websocket.Upgrader{}
+			assert.Equal(t, "proctor@example.com", r.Header.Get(utility.UserEmailHeaderKey))
+			assert.Equal(t, "access-token", r.Header.Get(utility.AccessTokenHeaderKey))
 			conn, _ := upgrader.Upgrade(w, r, nil)
 			defer conn.Close()
 		}

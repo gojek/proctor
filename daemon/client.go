@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gojektech/proctor/cmd/version"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -59,7 +60,6 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 	req.Header.Add(utility.ClientVersion, c.clientVersion)
 
 	resp, err := client.Do(req)
-
 	if err != nil {
 		return []proc.Metadata{}, buildNetworkError(err)
 	}
@@ -179,6 +179,10 @@ func buildHTTPError(c *client, resp *http.Response) error {
 			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
 		}
 		return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
+	} else if resp.StatusCode == http.StatusBadRequest {
+		body, _ := ioutil.ReadAll(resp.Body)
+		bodyString := string(body)
+		return fmt.Errorf(bodyString)
 	} else {
 		return fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
