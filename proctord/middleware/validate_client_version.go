@@ -12,7 +12,7 @@ import (
 func ValidateClientVersion(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		requestHeaderClientVersion := r.Header.Get(utility.ClientVersion)
+		requestHeaderClientVersion := r.Header.Get(utility.ClientVersionHeaderKey)
 
 		if requestHeaderClientVersion != "" {
 			clientVersion, err := version.NewVersion(requestHeaderClientVersion)

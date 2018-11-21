@@ -26,7 +26,7 @@ func TestValidClientVersionHttpHeader(t *testing.T) {
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", ts.URL+"/jobs/metadata", nil)
-	req.Header.Add(utility.ClientVersion, "0.2.0")
+	req.Header.Add(utility.ClientVersionHeaderKey, "0.2.0")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
@@ -61,7 +61,7 @@ func TestInvalidClientVersionHttpHeader(t *testing.T) {
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", ts.URL+"/jobs/metadata", nil)
-	req.Header.Add(utility.ClientVersion, "0.1.0")
+	req.Header.Add(utility.ClientVersionHeaderKey, "0.1.0")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
@@ -69,5 +69,5 @@ func TestInvalidClientVersionHttpHeader(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	body, _ := ioutil.ReadAll(resp.Body)
 	bodyString := string(body)
-	assert.Equal(t,bodyString,"You are proctor client version 0.1.0 outdated. Please upgrade to latest proctor client to continue use proctor!")
+	assert.Equal(t,bodyString,"Your Proctor client is using an outdated version: 0.1.0 . To continue using proctor, please upgrade to latest version.")
 }

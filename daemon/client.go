@@ -57,7 +57,7 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/metadata", nil)
 	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersion, c.clientVersion)
+	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -90,7 +90,7 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersion, c.clientVersion)
+	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -125,7 +125,7 @@ func (c *client) StreamProcLogs(name string) error {
 	clientVersion := []string{c.clientVersion}
 	headers[utility.AccessTokenHeaderKey] = token
 	headers[utility.UserEmailHeaderKey] = emailId
-	headers[utility.ClientVersion] = clientVersion
+	headers[utility.ClientVersionHeaderKey] = clientVersion
 
 	wsConn, response, err := websocket.DefaultDialer.Dial(proctodWebsocketURLWithProcName, headers)
 	if err != nil {
