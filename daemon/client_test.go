@@ -300,6 +300,7 @@ func TestExecuteProcBadRequest(t *testing.T) {
 	expectedProcResponse := ""
 	procName := "run-sample"
 	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
+	expectedBody := fmt.Sprintf("Your Proctor client is using an outdated version: %s . To continue using proctor, please upgrade to latest version.", "0.1.0")
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -309,7 +310,7 @@ func TestExecuteProcBadRequest(t *testing.T) {
 			"POST",
 			"http://"+proctorConfig.Host+"/jobs/execute",
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(400, "You are proctor client version 0.2.0 outdated. Please upgrade to latest proctor client to continue use proctor!"), nil
+				return httpmock.NewStringResponse(400, expectedBody), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -322,7 +323,7 @@ func TestExecuteProcBadRequest(t *testing.T) {
 
 	executeProcResponse, err := proctorClient.ExecuteProc(procName, procArgs)
 
-	assert.Equal(t, "You are proctor client version 0.2.0 outdated. Please upgrade to latest proctor client to continue use proctor!", err.Error())
+	assert.Equal(t, expectedBody, err.Error())
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 }
 
