@@ -49,11 +49,11 @@ func NewRouter() (*mux.Router, error) {
 	})
 
 	router.HandleFunc(instrumentation.Wrap("/jobs/execute", middleware.ValidateClientVersion(jobExecutioner.Handle()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/jobs/execute/{name}/status", jobExecutioner.Status())).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/logs", jobLogger.Stream())).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", jobMetadataHandler.HandleSubmission())).Methods("POST")
+	router.HandleFunc(instrumentation.Wrap("/jobs/execute/{name}/status", middleware.ValidateClientVersion(jobExecutioner.Status()))).Methods("GET")
+	router.HandleFunc(instrumentation.Wrap("/jobs/logs", middleware.ValidateClientVersion(jobLogger.Stream()))).Methods("GET")
+	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleSubmission()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleBulkDisplay()))).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/secrets", jobSecretsHandler.HandleSubmission())).Methods("POST")
+	router.HandleFunc(instrumentation.Wrap("/jobs/secrets", middleware.ValidateClientVersion(jobSecretsHandler.HandleSubmission()))).Methods("POST")
 
 	return router, nil
 }
