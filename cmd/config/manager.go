@@ -28,7 +28,7 @@ func NewCmd(printer io.Printer) *cobra.Command {
 		Use:     "config",
 		Short:   "Configure proctor client",
 		Long:    "This command helps configure client with proctord host, email id and access token",
-		Example: fmt.Sprintf("proctor config set %s=example.proctor.com %s=example@proctor.com %s=XXXXX", proctor_config.ProctorHost, proctor_config.EmailId, proctor_config.AccessToken),
+		Example: fmt.Sprintf("proctor config %s=example.proctor.com %s=example@proctor.com %s=XXXXX", proctor_config.ProctorHost, proctor_config.EmailId, proctor_config.AccessToken),
 		Args:    cobra.MinimumNArgs(1),
 
 		Run: func(cmd *cobra.Command, args []string) {
@@ -53,7 +53,7 @@ func NewCmd(printer io.Printer) *cobra.Command {
 				}
 
 				if userPermission != "y\n" && userPermission != "Y\n" {
-					printer.Println("Skipping configuring proctor client", color.FgYellow)
+					printer.Println("Skipped configuring proctor client", color.FgYellow)
 					return
 				}
 			}
@@ -71,9 +71,9 @@ func NewCmd(printer io.Printer) *cobra.Command {
 				switch arg[0] {
 				case proctor_config.ProctorHost:
 					proctorHost = arg[1]
-				case "EMAIL_ID":
+				case proctor_config.EmailId:
 					emailID = arg[1]
-				case "ACCESS_TOKEN":
+				case proctor_config.AccessToken:
 					accessToken = arg[1]
 				default:
 					printer.Println(fmt.Sprintf("Proctor doesn't support config key: %s", arg[0]), color.FgYellow)

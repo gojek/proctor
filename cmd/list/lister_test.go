@@ -32,8 +32,8 @@ func (s *ListCmdTestSuite) TestListCmdUsage() {
 }
 
 func (s *ListCmdTestSuite) TestListCmdHelp() {
-	assert.Equal(s.T(), "List procs available with proctor for execution", s.testListCmd.Short)
-	assert.Equal(s.T(), "List procs available with proctor for execution", s.testListCmd.Long)
+	assert.Equal(s.T(), "List procs available for execution", s.testListCmd.Short)
+	assert.Equal(s.T(), "List procs available for execution", s.testListCmd.Long)
 	assert.Equal(s.T(), "proctor list", s.testListCmd.Example)
 }
 
@@ -53,7 +53,7 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 	s.mockPrinter.On("Println", "List of Procs:\n", color.FgGreen).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procOne.Name, procOne.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procTwo.Name, procTwo.Description), color.Reset).Once()
-	s.mockPrinter.On("Println", "\nFor detailed information of any proc, run:\nproctor help <proc_name>", color.FgGreen).Once()
+	s.mockPrinter.On("Println", "\nFor detailed information of any proc, run:\nproctor describe <proc_name>", color.FgGreen).Once()
 
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 

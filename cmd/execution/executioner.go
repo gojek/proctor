@@ -13,7 +13,7 @@ import (
 func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Command {
 	return &cobra.Command{
 		Use:     "execute",
-		Short:   "Execute a proc with arguments given",
+		Short:   "Execute a proc with given arguments",
 		Long:    "To execute a proc, this command helps communicate with `proctord` and streams to logs of proc in execution",
 		Example: "proctor execute proc-one SOME_VAR=foo ANOTHER_VAR=bar\nproctor execute proc-two ANY_VAR=baz",
 		Args:    cobra.MinimumNArgs(1),

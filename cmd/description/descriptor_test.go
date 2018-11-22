@@ -33,8 +33,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdUsage() {
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdHelp() {
-	assert.Equal(s.T(), "Describe a proc, list help for variables and constants", s.testDescribeCmd.Short)
-	assert.Equal(s.T(), []string{"help"}, s.testDescribeCmd.Aliases)
+	assert.Equal(s.T(), "Help on executing a proc", s.testDescribeCmd.Short)
 	assert.Equal(s.T(), "In order to execute a proc, you need to provide certain variables. Describe command helps you with those variables and their meanings/convention/usage, etc.", s.testDescribeCmd.Long)
 	assert.Equal(s.T(), "proctor describe proc-one\nproctor describe proc-two", s.testDescribeCmd.Example)
 }

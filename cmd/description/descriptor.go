@@ -13,10 +13,10 @@ import (
 func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Command {
 	return &cobra.Command{
 		Use:     "describe",
-		Short:   "Describe a proc, list help for variables and constants",
+		Short:   "Help on executing a proc",
 		Long:    "In order to execute a proc, you need to provide certain variables. Describe command helps you with those variables and their meanings/convention/usage, etc.",
 		Example: "proctor describe proc-one\nproctor describe proc-two",
-		Aliases: []string{"help"},
+		Args:    cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) < 1 {
 				printer.Println("Incorrect command. See `proctor describe --help` for usage", color.FgRed)

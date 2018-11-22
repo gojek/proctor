@@ -14,7 +14,7 @@ func TestRootCmdUsage(t *testing.T) {
 
 	assert.Equal(t, "proctor", rootCmd.Use)
 	assert.Equal(t, "A command-line interface to run procs", rootCmd.Short)
-	assert.Equal(t, "A command-line interface to interact with proctord, the heart of Proctor: An Automation Orchestrator", rootCmd.Long)
+	assert.Equal(t, "A command-line interface to run procs", rootCmd.Long)
 }
 
 func contains(commands []*cobra.Command, commandName string) bool {
@@ -34,6 +34,5 @@ func TestRootCmdSubCommands(t *testing.T) {
 	assert.True(t, contains(rootCmd.Commands(), "help"))
 	assert.True(t, contains(rootCmd.Commands(), "list"))
 	assert.True(t, contains(rootCmd.Commands(), "config"))
-	assert.True(t, contains(rootCmd.Commands(), "proc"))
 	assert.True(t, contains(rootCmd.Commands(), "version"))
 }
