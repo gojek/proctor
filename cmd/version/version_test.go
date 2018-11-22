@@ -1,6 +1,7 @@
 package version
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/fatih/color"
@@ -20,7 +21,7 @@ func TestVersionCmd(t *testing.T) {
 	mockPrinter := &io.MockPrinter{}
 	versionCmd := NewCmd(mockPrinter)
 
-	mockPrinter.On("Println", "Proctor: A Developer Friendly Automation Orchestrator v0.2.0", color.Reset).Once()
+	mockPrinter.On("Println", fmt.Sprintf("Proctor: A Developer Friendly Automation Orchestrator %s", ClientVersion), color.Reset).Once()
 
 	versionCmd.Run(&cobra.Command{}, []string{})
 
