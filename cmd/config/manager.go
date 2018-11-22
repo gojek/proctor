@@ -59,35 +59,37 @@ func NewCmd(printer io.Printer) *cobra.Command {
 			}
 
 			CreateDirIfNotExist(proctor_config.ConfigFileDir())
-			var proctorHost, emailID, accessToken string
+			var configFileContent string
 			for _, v := range args {
 				arg := strings.Split(v, "=")
 
 				if len(arg) != 2 {
-					printer.Println(fmt.Sprintf("%-40s %-100s", "\nIncorrect config format: %s. Correct format: CONFIG_KEY=VALUE\n", v), color.FgRed)
+					printer.Println(fmt.Sprintf("\nIncorrect config key-value pair format: %s. Correct format: CONFIG_KEY=VALUE\n", v), color.FgRed)
 					return
 				}
 
 				switch arg[0] {
 				case proctor_config.ProctorHost:
-					proctorHost = arg[1]
+					configFileContent += fmt.Sprintf("%s: %s\n", proctor_config.ProctorHost, arg[1])
 				case proctor_config.EmailId:
-					emailID = arg[1]
+					configFileContent += fmt.Sprintf("%s: %s\n", proctor_config.EmailId, arg[1])
 				case proctor_config.AccessToken:
-					accessToken = arg[1]
+					configFileContent += fmt.Sprintf("%s: %s\n", proctor_config.AccessToken, arg[1])
+				case proctor_config.ConnectionTimeoutSecs:
+					configFileContent += fmt.Sprintf("%s: %s\n", proctor_config.ConnectionTimeoutSecs, arg[1])
 				default:
 					printer.Println(fmt.Sprintf("Proctor doesn't support config key: %s", arg[0]), color.FgYellow)
 				}
 			}
 
-			configFileContent := []byte(fmt.Sprintf("%s: "+proctorHost+"\n"+"%s: "+emailID+"\n"+"%s: "+accessToken, proctor_config.ProctorHost, proctor_config.EmailId, proctor_config.AccessToken))
+			configFileContentBytes := []byte(configFileContent)
 			f, err := os.Create(configFile)
 			if err != nil {
 				printer.Println(fmt.Sprintf("Error creating config file %s: %s", configFile, err.Error()), color.FgRed)
 			}
-			_, err = f.Write(configFileContent)
+			_, err = f.Write(configFileContentBytes)
 			if err != nil {
-				printer.Println(fmt.Sprintf("Error writing content %v \n to config file %s: %s", configFileContent, configFile, err.Error()), color.FgRed)
+				printer.Println(fmt.Sprintf("Error writing content %v \n to config file %s: %s", configFileContentBytes, configFile, err.Error()), color.FgRed)
 			}
 			defer f.Close()
 			printer.Println("Proctor client configured successfully", color.FgGreen)
