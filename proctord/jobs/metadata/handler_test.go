@@ -52,18 +52,19 @@ func (s *MetadataHandlerTestSuite) TestSuccessfulMetadataSubmission() {
 		Args:    args,
 	}
 	metadata := Metadata{
-		Name:         "run-sample",
-		Description:  "This is a hello world script",
-		ImageName:    "proctor-jobs-run-sample",
-		Author:       "Test User<testuser@example.com>",
-		Contributors: "Test User<testuser@example.com>",
-		Organization: "Test Org",
-		EnvVars:      envVars,
+		Name:             "run-sample",
+		Description:      "This is a hello world script",
+		ImageName:        "proctor-jobs-run-sample",
+		EnvVars:          envVars,
+		AuthorizedGroups: []string{"group_one", "group_two"},
+		Author:           "Test User<testuser@example.com>",
+		Contributors:     "Test User<testuser@example.com>",
+		Organization:     "Test Org",
 	}
 
-	jobMetadata := []Metadata{metadata}
+	jobsMetadata := []Metadata{metadata}
 
-	metadataSubmissionRequestBody, err := json.Marshal(jobMetadata)
+	metadataSubmissionRequestBody, err := json.Marshal(jobsMetadata)
 	assert.NoError(t, err)
 	req := httptest.NewRequest("PUT", "/jobs/metadata", bytes.NewReader(metadataSubmissionRequestBody))
 	responseRecorder := httptest.NewRecorder()
