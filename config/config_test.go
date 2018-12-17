@@ -40,6 +40,7 @@ func (s *ConfigTestSuite) TearDownTest() {
 	os.Unsetenv(EmailId)
 	os.Unsetenv(AccessToken)
 	os.Unsetenv(ConnectionTimeoutSecs)
+	os.Unsetenv(ProcExecutionStatusPollCount)
 	os.Remove(s.configFilePath)
 }
 
@@ -64,23 +65,24 @@ func (s *ConfigTestSuite) TestLoadConfigsFromEnvironmentVariables() {
 	os.Setenv(EmailId, email)
 	os.Setenv(AccessToken, accessToken)
 	os.Setenv(ConnectionTimeoutSecs, "20")
+	os.Setenv(ProcExecutionStatusPollCount, "10")
 	s.createProctorConfigFile("")
 
 	proctorConfig, err := s.configLoader.Load()
 
 	assert.Empty(t, err)
-	assert.Equal(t, ProctorConfig{Host: proctorHost, Email: email, AccessToken: accessToken, ConnectionTimeoutSecs: time.Duration(20 * time.Second)}, proctorConfig)
+	assert.Equal(t, ProctorConfig{Host: proctorHost, Email: email, AccessToken: accessToken, ConnectionTimeoutSecs: time.Duration(20 * time.Second), ProcExecutionStatusPollCount: 10}, proctorConfig)
 }
 
 func (s *ConfigTestSuite) TestLoadConfigFromFile() {
 	t := s.T()
 
-	s.createProctorConfigFile("PROCTOR_HOST: file.example.com\nEMAIL_ID: file@example.com\nACCESS_TOKEN: file-token\nCONNECTION_TIMEOUT_SECS: 30")
+	s.createProctorConfigFile("PROCTOR_HOST: file.example.com\nEMAIL_ID: file@example.com\nACCESS_TOKEN: file-token\nCONNECTION_TIMEOUT_SECS: 30\nPROC_EXECUTION_STATUS_POLL_COUNT: 15")
 
 	proctorConfig, err := s.configLoader.Load()
 
 	assert.Empty(t, err)
-	assert.Equal(t, ProctorConfig{Host: "file.example.com", Email: "file@example.com", AccessToken: "file-token", ConnectionTimeoutSecs: time.Duration(30 * time.Second)}, proctorConfig)
+	assert.Equal(t, ProctorConfig{Host: "file.example.com", Email: "file@example.com", AccessToken: "file-token", ConnectionTimeoutSecs: time.Duration(30 * time.Second), ProcExecutionStatusPollCount: 15}, proctorConfig)
 }
 
 func (s *ConfigTestSuite) TestCheckForMandatoryConfig() {
@@ -101,6 +103,7 @@ func (s *ConfigTestSuite) TestTakesDefaultValueForConfigs() {
 
 	assert.Empty(t, err)
 	assert.Equal(t, time.Duration(10*time.Second), proctorConfig.ConnectionTimeoutSecs)
+	assert.Equal(t, 30, proctorConfig.ProcExecutionStatusPollCount)
 }
 
 func (s *ConfigTestSuite) TestShouldPrintInstructionsForConfigFileIfFileNotFound() {

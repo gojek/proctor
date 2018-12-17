@@ -7,10 +7,11 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
+	proctord_utility "github.com/gojektech/proctor/proctord/utility"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Command {
+func NewCmd(printer io.Printer, proctorEngineClient daemon.Client, osExitFunc func(int)) *cobra.Command {
 	return &cobra.Command{
 		Use:     "execute",
 		Short:   "Execute a proc with given arguments",
@@ -44,11 +45,11 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 
 			executedProcName, err := proctorEngineClient.ExecuteProc(procName, procArgs)
 			if err != nil {
-				printer.Println(err.Error(), color.FgRed)
+				printer.Println("Error submitting proc for execution", color.FgRed)
 				return
 			}
 
-			printer.Println("Proc execution successful. \nStreaming logs:", color.FgGreen)
+			printer.Println("Proc submitted for execution. \nStreaming logs:", color.FgGreen)
 			err = proctorEngineClient.StreamProcLogs(executedProcName)
 			if err != nil {
 				printer.Println("Error Streaming Logs", color.FgRed)
@@ -56,6 +57,21 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 			}
 
 			printer.Println("Log stream of proc completed.", color.FgGreen)
+
+			procExecutionStatus, err := proctorEngineClient.GetDefinitiveProcExecutionStatus(executedProcName)
+			if err != nil {
+				printer.Println("Error Fetching Proc execution status", color.FgRed)
+				osExitFunc(1)
+				return
+			}
+
+			if procExecutionStatus != proctord_utility.JobSucceeded {
+				printer.Println("Proc execution failed", color.FgRed)
+				osExitFunc(1)
+				return
+			}
+
+			printer.Println("Proc execution successful", color.FgGreen)
 		},
 	}
 }

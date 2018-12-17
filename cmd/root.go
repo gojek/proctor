@@ -31,7 +31,8 @@ func Execute(printer io.Printer, proctorEngineClient daemon.Client) {
 	descriptionCmd := description.NewCmd(printer, proctorEngineClient)
 	rootCmd.AddCommand(descriptionCmd)
 
-	executionCmd := execution.NewCmd(printer, proctorEngineClient)
+	//TODO: Test execution.NewCmd is given os.Exit function as params
+	executionCmd := execution.NewCmd(printer, proctorEngineClient, os.Exit)
 	rootCmd.AddCommand(executionCmd)
 
 	listCmd := list.NewCmd(printer, proctorEngineClient)
