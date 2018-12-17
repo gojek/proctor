@@ -24,18 +24,18 @@ var (
 	}
 )
 
-func Execute(printer io.Printer, proctorEngineClient daemon.Client) {
+func Execute(printer io.Printer, proctorDClient daemon.Client) {
 	versionCmd := version.NewCmd(printer)
 	rootCmd.AddCommand(versionCmd)
 
-	descriptionCmd := description.NewCmd(printer, proctorEngineClient)
+	descriptionCmd := description.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(descriptionCmd)
 
 	//TODO: Test execution.NewCmd is given os.Exit function as params
-	executionCmd := execution.NewCmd(printer, proctorEngineClient, os.Exit)
+	executionCmd := execution.NewCmd(printer, proctorDClient, os.Exit)
 	rootCmd.AddCommand(executionCmd)
 
-	listCmd := list.NewCmd(printer, proctorEngineClient)
+	listCmd := list.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(listCmd)
 
 	configCmd := config.NewCmd(printer)

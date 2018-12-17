@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(printer io.Printer, proctorEngineClient daemon.Client, osExitFunc func(int)) *cobra.Command {
+func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(int)) *cobra.Command {
 	return &cobra.Command{
 		Use:     "execute",
 		Short:   "Execute a proc with given arguments",
@@ -43,14 +43,14 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client, osExitFunc fu
 				printer.Println("With No Variables", color.FgRed)
 			}
 
-			executedProcName, err := proctorEngineClient.ExecuteProc(procName, procArgs)
+			executedProcName, err := proctorDClient.ExecuteProc(procName, procArgs)
 			if err != nil {
 				printer.Println("Error submitting proc for execution", color.FgRed)
 				return
 			}
 
 			printer.Println("Proc submitted for execution. \nStreaming logs:", color.FgGreen)
-			err = proctorEngineClient.StreamProcLogs(executedProcName)
+			err = proctorDClient.StreamProcLogs(executedProcName)
 			if err != nil {
 				printer.Println("Error Streaming Logs", color.FgRed)
 				return
@@ -58,7 +58,7 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client, osExitFunc fu
 
 			printer.Println("Log stream of proc completed.", color.FgGreen)
 
-			procExecutionStatus, err := proctorEngineClient.GetDefinitiveProcExecutionStatus(executedProcName)
+			procExecutionStatus, err := proctorDClient.GetDefinitiveProcExecutionStatus(executedProcName)
 			if err != nil {
 				printer.Println("Error Fetching Proc execution status", color.FgRed)
 				osExitFunc(1)
