@@ -480,3 +480,182 @@ func (s *ClientTestSuite) TestLogStreamForUnauthorizedUser() {
 	s.mockConfigLoader.AssertExpectations(t)
 
 }
+
+func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	expectedProcExecutionStatus := utility.JobSucceeded
+	responseBody := expectedProcExecutionStatus
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(200, responseBody), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+
+	assert.NoError(t, err)
+	s.mockConfigLoader.AssertExpectations(t)
+	assert.Equal(t, expectedProcExecutionStatus, procExecutionStatus)
+}
+
+func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	expectedProcExecutionStatus := utility.JobFailed
+	responseBody := expectedProcExecutionStatus
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(200, responseBody), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+
+	assert.NoError(t, err)
+	s.mockConfigLoader.AssertExpectations(t)
+	assert.Equal(t, expectedProcExecutionStatus, procExecutionStatus)
+}
+
+func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFailure() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			func(req *http.Request) (*http.Response, error) {
+				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/execute/some-proc-name/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	s.mockConfigLoader.AssertExpectations(t)
+	assert.Equal(t, "", procExecutionStatus)
+}
+
+func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(500, ""), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+
+	assert.Equal(t, errors.New("Server Error!!!\nStatus Code: 500, Internal Server Error"), err)
+	s.mockConfigLoader.AssertExpectations(t)
+	assert.Equal(t, "", procExecutionStatus)
+}
+
+func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReached() {
+	t := s.T()
+
+	expectedRequestsToProctorDCount := 2
+	requestsToProctorDCount := 0
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: expectedRequestsToProctorDCount}
+
+	expectedProcExecutionStatus := utility.JobWaiting
+	responseBody := expectedProcExecutionStatus
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			func(req *http.Request) (*http.Response, error) {
+				requestsToProctorDCount += 1
+				return httpmock.NewStringResponse(200, responseBody), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+
+	assert.Equal(t, errors.New("No definitive status received for proc name some-proc-name from proctord"), err)
+	s.mockConfigLoader.AssertExpectations(t)
+	assert.Equal(t, expectedRequestsToProctorDCount, requestsToProctorDCount)
+	assert.Equal(t, "", procExecutionStatus)
+}

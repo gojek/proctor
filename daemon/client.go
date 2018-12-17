@@ -28,16 +28,18 @@ type Client interface {
 	ListProcs() ([]proc.Metadata, error)
 	ExecuteProc(string, map[string]string) (string, error)
 	StreamProcLogs(string) error
+	GetDefinitiveProcExecutionStatus(string) (string, error)
 }
 
 type client struct {
-	printer               io.Printer
-	proctorConfigLoader   config.Loader
-	proctordHost          string
-	emailId               string
-	accessToken           string
-	clientVersion         string
-	connectionTimeoutSecs time.Duration
+	printer                      io.Printer
+	proctorConfigLoader          config.Loader
+	proctordHost                 string
+	emailId                      string
+	accessToken                  string
+	clientVersion                string
+	connectionTimeoutSecs        time.Duration
+	procExecutionStatusPollCount int
 }
 
 type ProcToExecute struct {
@@ -65,6 +67,7 @@ func (c *client) loadProctorConfig() error {
 	c.emailId = proctorConfig.Email
 	c.accessToken = proctorConfig.AccessToken
 	c.connectionTimeoutSecs = proctorConfig.ConnectionTimeoutSecs
+	c.procExecutionStatusPollCount = proctorConfig.ProcExecutionStatusPollCount
 
 	return nil
 }
@@ -198,6 +201,47 @@ func (c *client) StreamProcLogs(name string) error {
 			return nil
 		}
 	}
+}
+
+func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, error) {
+	err := c.loadProctorConfig()
+	if err != nil {
+		return "", err
+	}
+
+	for count := 0; count < c.procExecutionStatusPollCount; count += 1 {
+		httpClient := &http.Client{
+			Timeout: c.connectionTimeoutSecs,
+		}
+
+		req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/execute/"+procName+"/status", nil)
+		req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
+		req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
+		req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return "", buildNetworkError(err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return "", buildHTTPError(c, resp)
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if err != nil {
+			return "", err
+		}
+
+		procExecutionStatus := string(body)
+		if procExecutionStatus == utility.JobSucceeded || procExecutionStatus == utility.JobFailed {
+			return procExecutionStatus, nil
+		}
+
+		time.Sleep(time.Duration(count) * 100 * time.Millisecond)
+	}
+	return "", errors.New(fmt.Sprintf("No definitive status received for proc name %s from proctord", procName))
 }
 
 func buildNetworkError(err error) error {

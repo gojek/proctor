@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Command {
+func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 	return &cobra.Command{
 		Use:     "describe",
 		Short:   "Help on executing a proc",
@@ -23,7 +23,7 @@ func NewCmd(printer io.Printer, proctorEngineClient daemon.Client) *cobra.Comman
 				return
 			}
 
-			procList, err := proctorEngineClient.ListProcs()
+			procList, err := proctorDClient.ListProcs()
 			if err != nil {
 				printer.Println(err.Error(), color.FgRed)
 				return

@@ -12,18 +12,20 @@ import (
 )
 
 const (
-	Environment           = "ENVIRONMENT"
-	ProctorHost           = "PROCTOR_HOST"
-	EmailId               = "EMAIL_ID"
-	AccessToken           = "ACCESS_TOKEN"
-	ConnectionTimeoutSecs = "CONNECTION_TIMEOUT_SECS"
+	Environment                  = "ENVIRONMENT"
+	ProctorHost                  = "PROCTOR_HOST"
+	EmailId                      = "EMAIL_ID"
+	AccessToken                  = "ACCESS_TOKEN"
+	ConnectionTimeoutSecs        = "CONNECTION_TIMEOUT_SECS"
+	ProcExecutionStatusPollCount = "PROC_EXECUTION_STATUS_POLL_COUNT"
 )
 
 type ProctorConfig struct {
-	Host                  string
-	Email                 string
-	AccessToken           string
-	ConnectionTimeoutSecs time.Duration
+	Host                         string
+	Email                        string
+	AccessToken                  string
+	ConnectionTimeoutSecs        time.Duration
+	ProcExecutionStatusPollCount int
 }
 
 type ConfigError struct {
@@ -47,6 +49,7 @@ func NewLoader() Loader {
 
 func (loader *loader) Load() (ProctorConfig, ConfigError) {
 	viper.SetDefault(ConnectionTimeoutSecs, 10)
+	viper.SetDefault(ProcExecutionStatusPollCount, 30)
 	viper.AutomaticEnv()
 
 	viper.AddConfigPath(ConfigFileDir())
@@ -75,7 +78,9 @@ func (loader *loader) Load() (ProctorConfig, ConfigError) {
 	emailId := viper.GetString(EmailId)
 	accessToken := viper.GetString(AccessToken)
 	connectionTimeout := time.Duration(viper.GetInt(ConnectionTimeoutSecs)) * time.Second
-	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken, ConnectionTimeoutSecs: connectionTimeout}, ConfigError{}
+	procExecutionStatusPollCount := viper.GetInt(ProcExecutionStatusPollCount)
+
+	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken, ConnectionTimeoutSecs: connectionTimeout, ProcExecutionStatusPollCount: procExecutionStatusPollCount}, ConfigError{}
 }
 
 // Returns Config file directory

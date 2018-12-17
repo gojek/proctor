@@ -16,15 +16,15 @@ import (
 
 type ListCmdTestSuite struct {
 	suite.Suite
-	mockPrinter             *io.MockPrinter
-	mockProctorEngineClient *daemon.MockClient
-	testListCmd             *cobra.Command
+	mockPrinter        *io.MockPrinter
+	mockProctorDClient *daemon.MockClient
+	testListCmd        *cobra.Command
 }
 
 func (s *ListCmdTestSuite) SetupTest() {
 	s.mockPrinter = &io.MockPrinter{}
-	s.mockProctorEngineClient = &daemon.MockClient{}
-	s.testListCmd = NewCmd(s.mockPrinter, s.mockProctorEngineClient)
+	s.mockProctorDClient = &daemon.MockClient{}
+	s.testListCmd = NewCmd(s.mockPrinter, s.mockProctorDClient)
 }
 
 func (s *ListCmdTestSuite) TestListCmdUsage() {
@@ -48,7 +48,7 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 	}
 	procList := []proc.Metadata{procOne, procTwo}
 
-	s.mockProctorEngineClient.On("ListProcs").Return(procList, nil).Once()
+	s.mockProctorDClient.On("ListProcs").Return(procList, nil).Once()
 
 	s.mockPrinter.On("Println", "List of Procs:\n", color.FgGreen).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procOne.Name, procOne.Description), color.Reset).Once()
@@ -57,17 +57,17 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 
-	s.mockProctorEngineClient.AssertExpectations(s.T())
+	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
 }
 
-func (s *ListCmdTestSuite) TestListCmdRunProctorEngineClientFailure() {
-	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("Error!!!\nUnknown Error.")).Once()
+func (s *ListCmdTestSuite) TestListCmdRunProctorDClientFailure() {
+	s.mockProctorDClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("Error!!!\nUnknown Error.")).Once()
 	s.mockPrinter.On("Println", "Error!!!\nUnknown Error.", color.FgRed).Once()
 
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 
-	s.mockProctorEngineClient.AssertExpectations(s.T())
+	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
 }
 

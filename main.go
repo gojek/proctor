@@ -10,7 +10,7 @@ import (
 func main() {
 	printer := io.GetPrinter()
 	proctorConfigLoader := config.NewLoader()
-	proctorEngineClient := daemon.NewClient(printer, proctorConfigLoader)
+	proctorDClient := daemon.NewClient(printer, proctorConfigLoader)
 
-	cmd.Execute(printer, proctorEngineClient)
+	cmd.Execute(printer, proctorDClient)
 }

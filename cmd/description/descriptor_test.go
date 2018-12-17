@@ -17,15 +17,15 @@ import (
 
 type DescribeCmdTestSuite struct {
 	suite.Suite
-	mockPrinter             *io.MockPrinter
-	mockProctorEngineClient *daemon.MockClient
-	testDescribeCmd         *cobra.Command
+	mockPrinter        *io.MockPrinter
+	mockProctorDClient *daemon.MockClient
+	testDescribeCmd    *cobra.Command
 }
 
 func (s *DescribeCmdTestSuite) SetupTest() {
 	s.mockPrinter = &io.MockPrinter{}
-	s.mockProctorEngineClient = &daemon.MockClient{}
-	s.testDescribeCmd = NewCmd(s.mockPrinter, s.mockProctorEngineClient)
+	s.mockProctorDClient = &daemon.MockClient{}
+	s.testDescribeCmd = NewCmd(s.mockPrinter, s.mockProctorDClient)
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdUsage() {
@@ -61,7 +61,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 	}
 	procList := []proc.Metadata{anyProc}
 
-	s.mockProctorEngineClient.On("ListProcs").Return(procList, nil).Once()
+	s.mockProctorDClient.On("ListProcs").Return(procList, nil).Once()
 
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Description", anyProc.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Contributors", anyProc.Contributors), color.Reset).Once()
@@ -72,7 +72,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{anyProc.Name})
 
-	s.mockProctorEngineClient.AssertExpectations(s.T())
+	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
 }
 
@@ -84,24 +84,24 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdForIncorrectUsage() {
 	s.mockPrinter.AssertExpectations(s.T())
 }
 
-func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorEngineClientFailure() {
-	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("test error")).Once()
+func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorDClientFailure() {
+	s.mockProctorDClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("test error")).Once()
 	s.mockPrinter.On("Println", "test error", color.FgRed).Once()
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{"do-something"})
 
-	s.mockProctorEngineClient.AssertExpectations(s.T())
+	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdRunProcNotSupported() {
-	s.mockProctorEngineClient.On("ListProcs").Return([]proc.Metadata{}, nil).Once()
+	s.mockProctorDClient.On("ListProcs").Return([]proc.Metadata{}, nil).Once()
 	testProcName := "do-something"
 	s.mockPrinter.On("Println", fmt.Sprintf("Proctor doesn't support Proc `%s`\nRun `proctor list` to view supported Procs", testProcName), color.FgRed).Once()
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{testProcName})
 
-	s.mockProctorEngineClient.AssertExpectations(s.T())
+	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
 }
 

@@ -23,3 +23,8 @@ func (m *MockClient) StreamProcLogs(name string) error {
 	args := m.Called(name)
 	return args.Error(0)
 }
+
+func (m *MockClient) GetDefinitiveProcExecutionStatus(name string) (string, error) {
+	args := m.Called(name)
+	return args.Get(0).(string), args.Error(1)
+}
