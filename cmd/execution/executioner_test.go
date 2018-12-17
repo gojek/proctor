@@ -122,7 +122,11 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDExecutionFailure() {
 
 	s.mockPrinter.On("Println", "Error submitting proc for execution", color.FgRed).Once()
 
-	s.testExecutionCmd.Run(&cobra.Command{}, args)
+	osExitFunc := func(exitCode int) {
+		assert.Equal(s.T(), 1, exitCode)
+	}
+	testExecutionCmdOSExit := NewCmd(s.mockPrinter, s.mockProctorDClient, osExitFunc)
+	testExecutionCmdOSExit.Run(&cobra.Command{}, args)
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -142,7 +146,11 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDLogStreamingFailure()
 	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(errors.New("error")).Once()
 	s.mockPrinter.On("Println", "Error Streaming Logs", color.FgRed).Once()
 
-	s.testExecutionCmd.Run(&cobra.Command{}, args)
+	osExitFunc := func(exitCode int) {
+		assert.Equal(s.T(), 1, exitCode)
+	}
+	testExecutionCmdOSExit := NewCmd(s.mockPrinter, s.mockProctorDClient, osExitFunc)
+	testExecutionCmdOSExit.Run(&cobra.Command{}, args)
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
