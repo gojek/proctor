@@ -77,6 +77,8 @@ func NewCmd(printer io.Printer) *cobra.Command {
 					configFileContent += fmt.Sprintf("%s: %s\n", proctor_config.AccessToken, arg[1])
 				case proctor_config.ConnectionTimeoutSecs:
 					configFileContent += fmt.Sprintf("%s: %s\n", proctor_config.ConnectionTimeoutSecs, arg[1])
+				case proctor_config.ProcExecutionStatusPollCount:
+					configFileContent += fmt.Sprintf("%s: %s\n", proctor_config.ProcExecutionStatusPollCount, arg[1])
 				default:
 					printer.Println(fmt.Sprintf("Proctor doesn't support config key: %s", arg[0]), color.FgYellow)
 				}
