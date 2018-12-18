@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gojektech/proctor/proctord/config"
+	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -148,18 +149,24 @@ func (suite *ClientTestSuite) TestShouldReturnSuccessJobExecutionStatus() {
 	watcher := watch.NewFake()
 	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
 
-	var testJob batchV1.Job
+	var activeJob batchV1.Job
+	var succeededJob batchV1.Job
 	uniqueJobName := "proctor-job-2"
 	label := jobLabel(uniqueJobName)
 	objectMeta := meta_v1.ObjectMeta{
 		Name:   uniqueJobName,
 		Labels: label,
 	}
-	testJob.ObjectMeta = objectMeta
+	activeJob.ObjectMeta = objectMeta
+	succeededJob.ObjectMeta = objectMeta
 
 	go func() {
-		testJob.Status.Succeeded = 1
-		watcher.Modify(&testJob)
+		activeJob.Status.Active = 1
+		watcher.Modify(&activeJob)
+
+		succeededJob.Status.Active = 0
+		succeededJob.Status.Succeeded = 1
+		watcher.Modify(&succeededJob)
 
 		time.Sleep(time.Second * 1)
 		watcher.Stop()
@@ -168,10 +175,44 @@ func (suite *ClientTestSuite) TestShouldReturnSuccessJobExecutionStatus() {
 	jobExecutionStatus, err := suite.testClient.JobExecutionStatus(uniqueJobName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "SUCCEEDED", jobExecutionStatus, "Should return true for job success")
+	assert.Equal(t, utility.JobSucceeded, jobExecutionStatus, "Should return SUCCEEDED")
 }
 
 func (suite *ClientTestSuite) TestShouldReturnFailedJobExecutionStatus() {
+	t := suite.T()
+
+	watcher := watch.NewFake()
+	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
+
+	var activeJob batchV1.Job
+	var failedJob batchV1.Job
+	uniqueJobName := "proctor-job-1"
+	label := jobLabel(uniqueJobName)
+	objectMeta := meta_v1.ObjectMeta{
+		Name:   uniqueJobName,
+		Labels: label,
+	}
+	activeJob.ObjectMeta = objectMeta
+	failedJob.ObjectMeta = objectMeta
+
+	go func() {
+		activeJob.Status.Active = 1
+		watcher.Modify(&activeJob)
+		failedJob.Status.Active = 0
+		failedJob.Status.Failed = 1
+		watcher.Modify(&failedJob)
+
+		time.Sleep(time.Second * 1)
+		watcher.Stop()
+	}()
+
+	jobExecutionStatus, err := suite.testClient.JobExecutionStatus(uniqueJobName)
+	assert.NoError(t, err)
+
+	assert.Equal(t, utility.JobFailed, jobExecutionStatus, "Should return FAILED")
+}
+
+func (suite *ClientTestSuite) TestJobExecutionStatusForNonDefinitiveStatus() {
 	t := suite.T()
 
 	watcher := watch.NewFake()
@@ -189,9 +230,6 @@ func (suite *ClientTestSuite) TestShouldReturnFailedJobExecutionStatus() {
 	go func() {
 		testJob.Status.Active = 1
 		watcher.Modify(&testJob)
-		testJob.Status.Active = 0
-		testJob.Status.Failed = 1
-		watcher.Modify(&testJob)
 
 		time.Sleep(time.Second * 1)
 		watcher.Stop()
@@ -200,10 +238,10 @@ func (suite *ClientTestSuite) TestShouldReturnFailedJobExecutionStatus() {
 	jobExecutionStatus, err := suite.testClient.JobExecutionStatus(uniqueJobName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "FAILED", jobExecutionStatus, "Should return true for job success")
+	assert.Equal(t, utility.NoDefinitiveJobExecutionStatusFound, jobExecutionStatus, "Should return NO_DEFINITIVE_JOB_EXECUTION_STATUS_FOUND")
 }
 
-func (suite *ClientTestSuite) TestShouldReturnErrorJobExecutionStatus() {
+func (suite *ClientTestSuite) TestShouldReturnJobExecutionStatusFetchError() {
 	t := suite.T()
 
 	watcher := watch.NewFake()
@@ -228,7 +266,7 @@ func (suite *ClientTestSuite) TestShouldReturnErrorJobExecutionStatus() {
 	jobExecutionStatus, err := suite.testClient.JobExecutionStatus(uniqueJobName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "FAILED", jobExecutionStatus, "Should return true for job success")
+	assert.Equal(t, utility.JobExecutionStatusFetchError, jobExecutionStatus, "Should return JOB_EXECUTION_STATUS_FETCH_ERROR")
 }
 
 func TestClientTestSuite(t *testing.T) {

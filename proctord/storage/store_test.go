@@ -20,7 +20,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 	jobName := "any-job"
 	imageName := "any-image"
 	userEmail := "mrproctor@example.com"
-	JobNameSubmittedForExecution := "any-submission"
+	jobNameSubmittedForExecution := "any-submission"
 	jobArgs := map[string]string{"key": "value"}
 	jobSubmissionStatus := "any-status"
 	jobExecutionStatus := "any-execution-status"
@@ -30,23 +30,24 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 	err := enc.Encode(jobArgs)
 	assert.NoError(t, err)
 
-	data := postgres.JobsExecutionAuditLog{
-		JobName:                      jobName,
-		UserEmail:                    userEmail,
-		ImageName:                    imageName,
-		JobNameSubmittedForExecution: postgres.StringToSQLString(JobNameSubmittedForExecution),
-		JobArgs:             base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
-		JobSubmissionStatus: jobSubmissionStatus,
-		JobExecutionStatus:  jobExecutionStatus,
-	}
-
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
-		&data).
+		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status, created_at, updated_at) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status, :created_at, :updated_at)",
+		mock.Anything).
+		Run(func(args mock.Arguments) {
+			data := args.Get(1).(*postgres.JobsExecutionAuditLog)
+
+			assert.Equal(t, jobName, data.JobName)
+			assert.Equal(t, userEmail, data.UserEmail)
+			assert.Equal(t, imageName, data.ImageName)
+			assert.Equal(t, postgres.StringToSQLString(jobNameSubmittedForExecution), data.JobNameSubmittedForExecution)
+			assert.Equal(t, base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()), data.JobArgs)
+			assert.Equal(t, jobSubmissionStatus, data.JobSubmissionStatus)
+			assert.Equal(t, jobExecutionStatus, data.JobExecutionStatus)
+		}).
 		Return(nil).
 		Once()
 
-	err = testStore.JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, userEmail, JobNameSubmittedForExecution, imageName, jobArgs)
+	err = testStore.JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, userEmail, jobNameSubmittedForExecution, imageName, jobArgs)
 
 	assert.NoError(t, err)
 	mockPostgresClient.AssertExpectations(t)
@@ -61,19 +62,40 @@ func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
 	err := enc.Encode(map[string]string{})
 	assert.NoError(t, err)
 
-	data := postgres.JobsExecutionAuditLog{
-		JobArgs: base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
-	}
-
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
-		&data).
+		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status, created_at, updated_at) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status, :created_at, :updated_at)",
+		mock.Anything).
 		Return(errors.New("error")).
 		Once()
 
 	err = testStore.JobsExecutionAuditLog("", "", "", "", "", "", map[string]string{})
 
 	assert.Error(t, err)
+	mockPostgresClient.AssertExpectations(t)
+}
+
+func TestUpdateJobsExecutionAuditLog(t *testing.T) {
+	mockPostgresClient := &postgres.ClientMock{}
+	testStore := New(mockPostgresClient)
+
+	jobNameSubmittedForExecution := "any-submission"
+	jobExecutionStatus := "updated-status"
+
+	mockPostgresClient.On("NamedExec",
+		"UPDATE jobs_execution_audit_log SET job_execution_status = :job_execution_status, updated_at = :updated_at where job_name_submitted_for_execution = :job_name_submitted_for_execution",
+		mock.Anything).
+		Run(func(args mock.Arguments) {
+			data := args.Get(1).(*postgres.JobsExecutionAuditLog)
+
+			assert.Equal(t, postgres.StringToSQLString(jobNameSubmittedForExecution), data.JobNameSubmittedForExecution)
+			assert.Equal(t, jobExecutionStatus, data.JobExecutionStatus)
+		}).
+		Return(nil).
+		Once()
+
+	err := testStore.UpdateJobsExecutionAuditLog(jobNameSubmittedForExecution, jobExecutionStatus)
+
+	assert.NoError(t, err)
 	mockPostgresClient.AssertExpectations(t)
 }
 

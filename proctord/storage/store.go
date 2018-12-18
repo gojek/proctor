@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"time"
 
 	"github.com/gojektech/proctor/proctord/storage/postgres"
 )
@@ -40,17 +41,20 @@ func (store *store) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatu
 		JobArgs:             base64.StdEncoding.EncodeToString(encodedJobArgs.Bytes()),
 		JobSubmissionStatus: jobSubmissionStatus,
 		JobExecutionStatus:  jobExecutionStatus,
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
 	}
-	return store.postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", &jobsExecutionAuditLog)
+	return store.postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status, created_at, updated_at) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status, :created_at, :updated_at)", &jobsExecutionAuditLog)
 }
 
-func (store *store) UpdateJobsExecutionAuditLog(JobNameSubmittedForExecution, status string) error {
+func (store *store) UpdateJobsExecutionAuditLog(JobNameSubmittedForExecution, jobExecutionStatus string) error {
 	jobsExecutionAuditLog := postgres.JobsExecutionAuditLog{
-		JobExecutionStatus:           status,
+		JobExecutionStatus:           jobExecutionStatus,
 		JobNameSubmittedForExecution: postgres.StringToSQLString(JobNameSubmittedForExecution),
+		UpdatedAt:                    time.Now(),
 	}
 
-	return store.postgresClient.NamedExec("UPDATE jobs_execution_audit_log SET job_execution_status = :job_execution_status where job_name_submitted_for_execution = :job_name_submitted_for_execution", &jobsExecutionAuditLog)
+	return store.postgresClient.NamedExec("UPDATE jobs_execution_audit_log SET job_execution_status = :job_execution_status, updated_at = :updated_at where job_name_submitted_for_execution = :job_name_submitted_for_execution", &jobsExecutionAuditLog)
 }
 
 func (store *store) GetJobExecutionStatus(JobNameSubmittedForExecution string) (string, error) {

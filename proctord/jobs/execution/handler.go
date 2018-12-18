@@ -59,6 +59,7 @@ func (executioner *executioner) Status() http.HandlerFunc {
 		fmt.Fprintf(w, jobExecutionStatus)
 	}
 }
+
 func (executioner *executioner) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()

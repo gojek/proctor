@@ -25,6 +25,8 @@ const JobSubmissionServerError = "server_error"
 const JobSucceeded = "SUCCEEDED"
 const JobFailed = "FAILED"
 const JobWaiting = "WAITING"
+const JobExecutionStatusFetchError = "JOB_EXECUTION_STATUS_FETCH_ERROR"
+const NoDefinitiveJobExecutionStatusFound = "NO_DEFINITIVE_JOB_EXECUTION_STATUS_FOUND"
 
 const JobNameContextKey = "job_name"
 const UserEmailContextKey = "user_email"
@@ -35,7 +37,7 @@ const JobSubmissionStatusContextKey = "job_sumission_status"
 
 const UserEmailHeaderKey = "Email-Id"
 const AccessTokenHeaderKey = "Access-Token"
-const ClientVersionHeaderKey =  "Client-Version"
+const ClientVersionHeaderKey = "Client-Version"
 
 func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 	result := make(map[string]string)

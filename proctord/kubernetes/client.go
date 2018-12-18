@@ -220,20 +220,24 @@ func (client *client) JobExecutionStatus(JobNameSubmittedForExecution string) (s
 	}
 
 	resultChan := watchJob.ResultChan()
+	defer watchJob.Stop()
 	var event watch.Event
 	var jobEvent *batch_v1.Job
 
 	for event = range resultChan {
 		if event.Type == watch.Error {
-			return utility.JobFailed, nil
+			return utility.JobExecutionStatusFetchError, nil
 		}
+
 		jobEvent = event.Object.(*batch_v1.Job)
 		if jobEvent.Status.Succeeded >= int32(1) {
 			return utility.JobSucceeded, nil
+		} else if jobEvent.Status.Failed >= int32(1) {
+			return utility.JobFailed, nil
 		}
 	}
 
-	return utility.JobFailed, nil
+	return utility.NoDefinitiveJobExecutionStatusFound, nil
 }
 
 func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {
