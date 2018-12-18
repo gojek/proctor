@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [v0.4.0] - 2018-12-18
+### Added
+- Authorized groups for procs
+### Modified
+- CLI exits with non-zero status code on proc execution failure
+### Fixed
+- [Proc execution failure status updation](https://github.com/gojektech/proctor/issues/58)
+
 ## [v0.3.0] - 2018-11-22
 ### Added
 - NewRelic Instrumentation
@@ -30,3 +38,4 @@ All notable changes to this project will be documented in this file.
 
 [v0.2.0]: https://github.com/gojektech/proctor/compare/v0.1.0...v0.2.0
 [v0.3.0]: https://github.com/gojektech/proctor/compare/v0.2.0...v0.3.0
+[v0.4.0]: https://github.com/gojektech/proctor/compare/v0.3.0...v0.4.0

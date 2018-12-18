@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const ClientVersion = "v0.3.0"
+const ClientVersion = "v0.4.0"
 
 func NewCmd(printer io.Printer) *cobra.Command {
 	return &cobra.Command{
