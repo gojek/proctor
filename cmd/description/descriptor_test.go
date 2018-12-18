@@ -9,8 +9,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proc"
-	"github.com/gojektech/proctor/proc/env"
+	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
+	"github.com/gojektech/proctor/proctord/jobs/metadata/env"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -50,7 +50,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 		Description: "secret one description",
 	}
 
-	anyProc := proc.Metadata{
+	anyProc := proc_metadata.Metadata{
 		Name:             "do-something",
 		Description:      "does something",
 		Contributors:     "user@example.com",
@@ -61,7 +61,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 			Secrets: []env.VarMetadata{secret},
 		},
 	}
-	procList := []proc.Metadata{anyProc}
+	procList := []proc_metadata.Metadata{anyProc}
 
 	s.mockProctorDClient.On("ListProcs").Return(procList, nil).Once()
 
@@ -88,7 +88,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdForIncorrectUsage() {
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorDClientFailure() {
-	s.mockProctorDClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("test error")).Once()
+	s.mockProctorDClient.On("ListProcs").Return([]proc_metadata.Metadata{}, errors.New("test error")).Once()
 	s.mockPrinter.On("Println", "test error", color.FgRed).Once()
 
 	s.testDescribeCmd.Run(&cobra.Command{}, []string{"do-something"})
@@ -98,7 +98,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRunProctorDClientFailure() {
 }
 
 func (s *DescribeCmdTestSuite) TestDescribeCmdRunProcNotSupported() {
-	s.mockProctorDClient.On("ListProcs").Return([]proc.Metadata{}, nil).Once()
+	s.mockProctorDClient.On("ListProcs").Return([]proc_metadata.Metadata{}, nil).Once()
 	testProcName := "do-something"
 	s.mockPrinter.On("Println", fmt.Sprintf("Proctor doesn't support Proc `%s`\nRun `proctor list` to view supported Procs", testProcName), color.FgRed).Once()
 

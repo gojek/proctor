@@ -7,7 +7,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proc"
+	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 			}
 
 			userProvidedProcName := args[0]
-			desiredProc := proc.Metadata{}
+			desiredProc := proc_metadata.Metadata{}
 			for _, proc := range procList {
 				if userProvidedProcName == proc.Name {
 					desiredProc = proc

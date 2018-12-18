@@ -14,9 +14,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/thingful/httpmock"
 
-	"github.com/gojektech/proctor/proc/env"
-
-	"github.com/gojektech/proctor/proc"
+	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
+	"github.com/gojektech/proctor/proctord/jobs/metadata/env"
 	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -61,7 +60,14 @@ func (s *ClientTestSuite) TestListProcsReturnsListOfProcsWithDetails() {
 	var args = []env.VarMetadata{env.VarMetadata{Name: "ARG1", Description: "Argument name"}}
 	var secrets = []env.VarMetadata{env.VarMetadata{Name: "SECRET1", Description: "Base64 encoded secret for authentication."}}
 	envVars := env.Vars{Secrets: secrets, Args: args}
-	var expectedProcList = []proc.Metadata{proc.Metadata{Name: "job-1", Description: "job description", EnvVars: envVars}}
+	var expectedProcList = []proc_metadata.Metadata{
+		proc_metadata.Metadata{
+			Name:        "job-1",
+			Description: "job description",
+			ImageName:   "hub.docker.com/job-1:latest",
+			EnvVars:     envVars,
+		},
+	}
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
@@ -116,7 +122,7 @@ func (s *ClientTestSuite) TestListProcsReturnErrorFromResponseBody() {
 
 	procList, err := s.testClient.ListProcs()
 
-	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, []proc_metadata.Metadata{}, procList)
 	assert.Error(t, err)
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
@@ -151,7 +157,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
 	procList, err := s.testClient.ListProcs()
 
 	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
-	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, []proc_metadata.Metadata{}, procList)
 	s.mockConfigLoader.AssertExpectations(t)
 }
 
@@ -184,7 +190,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideConnectionError() {
 	procList, err := s.testClient.ListProcs()
 
 	assert.Equal(t, errors.New("Network Error!!!\nGet http://proctor.example.com/jobs/metadata: Unknown Error"), err)
-	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, []proc_metadata.Metadata{}, procList)
 	s.mockConfigLoader.AssertExpectations(t)
 }
 
@@ -216,7 +222,7 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedUser() {
 
 	procList, err := s.testClient.ListProcs()
 
-	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, []proc_metadata.Metadata{}, procList)
 	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -247,7 +253,7 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedErrorWithConfigMissing() {
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 	procList, err := s.testClient.ListProcs()
 
-	assert.Equal(t, []proc.Metadata{}, procList)
+	assert.Equal(t, []proc_metadata.Metadata{}, procList)
 	assert.Equal(t, "Unauthorized Access!!!\nEMAIL_ID or ACCESS_TOKEN is not present in proctor config file.", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }

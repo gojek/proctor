@@ -19,13 +19,13 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/config"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proc"
+	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/gorilla/websocket"
 )
 
 type Client interface {
-	ListProcs() ([]proc.Metadata, error)
+	ListProcs() ([]proc_metadata.Metadata, error)
 	ExecuteProc(string, map[string]string) (string, error)
 	StreamProcLogs(string) error
 	GetDefinitiveProcExecutionStatus(string) (string, error)
@@ -72,10 +72,10 @@ func (c *client) loadProctorConfig() error {
 	return nil
 }
 
-func (c *client) ListProcs() ([]proc.Metadata, error) {
+func (c *client) ListProcs() ([]proc_metadata.Metadata, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return []proc.Metadata{}, err
+		return []proc_metadata.Metadata{}, err
 	}
 
 	client := &http.Client{
@@ -88,15 +88,15 @@ func (c *client) ListProcs() ([]proc.Metadata, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return []proc.Metadata{}, buildNetworkError(err)
+		return []proc_metadata.Metadata{}, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return []proc.Metadata{}, buildHTTPError(c, resp)
+		return []proc_metadata.Metadata{}, buildHTTPError(c, resp)
 	}
 
-	var procList []proc.Metadata
+	var procList []proc_metadata.Metadata
 	err = json.NewDecoder(resp.Body).Decode(&procList)
 	return procList, err
 }

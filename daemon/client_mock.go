@@ -1,7 +1,7 @@
 package daemon
 
 import (
-	"github.com/gojektech/proctor/proc"
+	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -9,9 +9,9 @@ type MockClient struct {
 	mock.Mock
 }
 
-func (m *MockClient) ListProcs() ([]proc.Metadata, error) {
+func (m *MockClient) ListProcs() ([]proc_metadata.Metadata, error) {
 	args := m.Called()
-	return args.Get(0).([]proc.Metadata), args.Error(1)
+	return args.Get(0).([]proc_metadata.Metadata), args.Error(1)
 }
 
 func (m *MockClient) ExecuteProc(name string, procArgs map[string]string) (string, error) {

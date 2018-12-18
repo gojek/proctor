@@ -8,7 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proc"
+	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -38,15 +38,15 @@ func (s *ListCmdTestSuite) TestListCmdHelp() {
 }
 
 func (s *ListCmdTestSuite) TestListCmdRun() {
-	procOne := proc.Metadata{
+	procOne := proc_metadata.Metadata{
 		Name:        "one",
 		Description: "proc one description",
 	}
-	procTwo := proc.Metadata{
+	procTwo := proc_metadata.Metadata{
 		Name:        "two",
 		Description: "proc two description",
 	}
-	procList := []proc.Metadata{procOne, procTwo}
+	procList := []proc_metadata.Metadata{procOne, procTwo}
 
 	s.mockProctorDClient.On("ListProcs").Return(procList, nil).Once()
 
@@ -62,7 +62,7 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 }
 
 func (s *ListCmdTestSuite) TestListCmdRunProctorDClientFailure() {
-	s.mockProctorDClient.On("ListProcs").Return([]proc.Metadata{}, errors.New("Error!!!\nUnknown Error.")).Once()
+	s.mockProctorDClient.On("ListProcs").Return([]proc_metadata.Metadata{}, errors.New("Error!!!\nUnknown Error.")).Once()
 	s.mockPrinter.On("Println", "Error!!!\nUnknown Error.", color.FgRed).Once()
 
 	s.testListCmd.Run(&cobra.Command{}, []string{})
