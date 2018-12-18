@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	logger.Setup()
 	proctord := cli.NewApp()
 	proctord.Name = "proctord"
 	proctord.Usage = "Handle executing jobs and maintaining their configuration"
