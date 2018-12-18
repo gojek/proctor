@@ -24,7 +24,7 @@
 ### Running tests
 
 * [Setup dev environment](#dev-environment-setup) only uptil `Cloning this repo`
-* Run `make setup-test-teardown`
+* Run `make setup-test`. This command fetches dependency, builds the binary, creates a database, runs migrations, runs specs
 
 #### proctord configuration
 

@@ -26,6 +26,8 @@ db.migrate: $(APP_EXECUTABLE)
 	$(APP_EXECUTABLE) migrate
 
 db.teardown:
-	PGPASSWORD=$(PROCTOR_POSTGRES_PASSWORD) psql -h $(PROCTOR_POSTGRES_HOST) -p $(PROCTOR_POSTGRES_PORT) -c 'drop database $(PROCTOR_POSTGRES_DATABASE);' -U $(PROCTOR_POSTGRES_USER)
+	-PGPASSWORD=$(PROCTOR_POSTGRES_PASSWORD) psql -h $(PROCTOR_POSTGRES_HOST) -p $(PROCTOR_POSTGRES_PORT) -c 'drop database $(PROCTOR_POSTGRES_DATABASE);' -U $(PROCTOR_POSTGRES_USER)
 
-setup-test-teardown: build-deps build db.setup test-verbose db.teardown
+setup-test-teardown: build-deps build db.teardown db.setup test-verbose db.teardown
+
+setup-test: build-deps build db.teardown db.setup test
