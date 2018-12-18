@@ -3,6 +3,7 @@ package description
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/fatih/color"
@@ -50,10 +51,11 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 	}
 
 	anyProc := proc.Metadata{
-		Name:         "do-something",
-		Description:  "does something",
-		Contributors: "user@example.com",
-		Organization: "org",
+		Name:             "do-something",
+		Description:      "does something",
+		Contributors:     "user@example.com",
+		Organization:     "org",
+		AuthorizedGroups: []string{"group_one", "group_two"},
 		EnvVars: env.Vars{
 			Args:    []env.VarMetadata{arg},
 			Secrets: []env.VarMetadata{secret},
@@ -66,6 +68,7 @@ func (s *DescribeCmdTestSuite) TestDescribeCmdRun() {
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Description", anyProc.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Contributors", anyProc.Contributors), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Organization", anyProc.Organization), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s [%s]", "Authorized Groups", strings.Join(anyProc.AuthorizedGroups, ", ")), color.Reset).Once()
 	s.mockPrinter.On("Println", "\nArgs", color.FgMagenta).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", arg.Name, arg.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("\nTo %s, run:\nproctor execute %s ARG_ONE=foo ARG_TWO=bar", anyProc.Name, anyProc.Name), color.FgGreen).Once()

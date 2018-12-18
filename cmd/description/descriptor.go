@@ -2,6 +2,7 @@ package description
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/gojektech/proctor/daemon"
@@ -44,6 +45,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 			printer.Println(fmt.Sprintf("%-40s %-100s", "Description", desiredProc.Description), color.Reset)
 			printer.Println(fmt.Sprintf("%-40s %-100s", "Contributors", desiredProc.Contributors), color.Reset)
 			printer.Println(fmt.Sprintf("%-40s %-100s", "Organization", desiredProc.Organization), color.Reset)
+			printer.Println(fmt.Sprintf("%-40s [%s]", "Authorized Groups", strings.Join(desiredProc.AuthorizedGroups, ", ")), color.Reset)
 
 			printer.Println("\nArgs", color.FgMagenta)
 			for _, arg := range desiredProc.EnvVars.Args {
