@@ -186,14 +186,6 @@ func TestNewRelicLicenceKey(t *testing.T) {
 	assert.Equal(t, "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr", NewRelicLicenceKey())
 }
 
-func TestNewRelicEnabled(t *testing.T) {
-	os.Setenv("PROCTOR_NEW_RELIC_ENABLED", "true")
-
-	viper.AutomaticEnv()
-
-	assert.Equal(t, true, NewRelicEnabled())
-}
-
 func TestMinClientVersion(t *testing.T) {
 	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 

@@ -56,3 +56,5 @@
 * Create database `PROCTOR_POSTGRES_DATABASE`
 * `PROCTOR_POSTGRES_MAX_CONNECTIONS` defines maximum open and idle connections to postgres
 * `PROCTOR_POSTGRES_CONNECTIONS_MAX_LIFETIME` is the lifetime of a connection in minutes
+* `PROCTOR_NEW_RELIC_APP_NAME` and `PROCTOR_NEW_RELIC_LICENCE_KEY` are used to send profiling details to newrelic. Provide dummy values if you don't want profiling
+* `PROCTOR_MIN_CLIENT_VERSION` is minimum client version allowed to communicate with proctord
