@@ -2,18 +2,20 @@ package server
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/gojektech/proctor/proctord/audit"
 	http_client "github.com/gojektech/proctor/proctord/http"
 	"github.com/gojektech/proctor/proctord/jobs/execution"
 	"github.com/gojektech/proctor/proctord/jobs/logs"
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
+	"github.com/gojektech/proctor/proctord/jobs/schedule"
 	"github.com/gojektech/proctor/proctord/jobs/secrets"
 	"github.com/gojektech/proctor/proctord/kubernetes"
 	"github.com/gojektech/proctor/proctord/middleware"
 	"github.com/gojektech/proctor/proctord/redis"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/storage/postgres"
-	"net/http"
 
 	"github.com/gojektech/proctor/proctord/instrumentation"
 	"github.com/gorilla/mux"
@@ -44,6 +46,8 @@ func NewRouter() (*mux.Router, error) {
 	jobMetadataHandler := metadata.NewHandler(metadataStore)
 	jobSecretsHandler := secrets.NewHandler(secretsStore)
 
+	procScheduleHandler := schedule.NewScheduler(store, metadataStore)
+
 	router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "pong")
 	})
@@ -54,6 +58,7 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleSubmission()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleBulkDisplay()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/secrets", middleware.ValidateClientVersion(jobSecretsHandler.HandleSubmission()))).Methods("POST")
+	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(procScheduleHandler.Schedule()))).Methods("POST")
 
 	return router, nil
 }

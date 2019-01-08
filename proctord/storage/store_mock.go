@@ -20,3 +20,8 @@ func (m *MockStore) GetJobExecutionStatus(jobName string) (string, error) {
 	args := m.Called(jobName)
 	return args.String(0), args.Error(1)
 }
+
+func (m *MockStore) InsertScheduledJob(jobName, tags, time, notificationEmails, userEmail string, jobArgs map[string]string) (string, error) {
+	args := m.Called(jobName, tags, time, notificationEmails, userEmail, jobArgs)
+	return args.String(0), args.Error(1)
+}

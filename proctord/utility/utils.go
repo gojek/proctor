@@ -1,6 +1,7 @@
 package utility
 
 const ClientError = "malformed request"
+const NonExistentProcClientError = "proc name non existent"
 const ServerError = "Something went wrong"
 
 const UnauthorizedErrorMissingConfig = "EMAIL_ID or ACCESS_TOKEN is not present in proctor config file."
@@ -34,6 +35,7 @@ const JobArgsContextKey = "job_args"
 const ImageNameContextKey = "image_name"
 const JobNameSubmittedForExecutionContextKey = "job_name_submitted_for_execution"
 const JobSubmissionStatusContextKey = "job_sumission_status"
+const JobSchedulingStatusContextKey = "job_scheduling_status"
 
 const UserEmailHeaderKey = "Email-Id"
 const AccessTokenHeaderKey = "Access-Token"
