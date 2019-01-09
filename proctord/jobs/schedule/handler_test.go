@@ -140,6 +140,29 @@ func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 	assert.Equal(t, utility.ServerError, string(responseBody))
 }
 
+func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
+	t := suite.T()
+
+	scheduledJob := ScheduledJob{
+		Name: "non-existent",
+		Time: "* 2 * * *",
+	}
+	requestBody, err := json.Marshal(scheduledJob)
+	assert.NoError(t, err)
+
+	responseRecorder := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
+
+	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
+	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, "", scheduledJob.Args).Return("", errors.New("pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\""))
+
+	suite.testScheduler.Schedule()(responseRecorder, req)
+
+	assert.Equal(t, http.StatusConflict, responseRecorder.Code)
+	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
+	assert.Equal(t, utility.DuplicateJobNameArgsClientError, string(responseBody))
+}
+
 func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	t := suite.T()
 

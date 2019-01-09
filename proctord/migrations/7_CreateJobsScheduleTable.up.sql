@@ -6,6 +6,7 @@ CREATE TABLE jobs_schedule (
   notification_emails text,
   time text,
   user_email text,
+  enabled bool,
   created_at timestamp default now(),
   updated_at timestamp default now()
 );

@@ -88,6 +88,7 @@ func (store *store) InsertScheduledJob(name, tags, time, notificationEmails, use
 		Time:               time,
 		NotificationEmails: notificationEmails,
 		UserEmail:          userEmail,
+		Enabled:            true,
 	}
-	return jobsSchedule.ID, store.postgresClient.NamedExec("INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args)", &jobsSchedule)
+	return jobsSchedule.ID, store.postgresClient.NamedExec("INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)", &jobsSchedule)
 }

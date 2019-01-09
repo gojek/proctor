@@ -70,12 +70,21 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 
 		scheduledJob.ID, err = scheduler.store.InsertScheduledJob(scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Args)
 		if err != nil {
-			logger.Error("Error persisting scheduled job", err.Error())
+			if err.Error() == "pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\"" {
+				logger.Error("Client provided duplicate combination of scheduled job name and args: ", scheduledJob.Name, scheduledJob.Args)
 
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(utility.ServerError))
+				w.WriteHeader(http.StatusConflict)
+				w.Write([]byte(utility.DuplicateJobNameArgsClientError))
 
-			return
+				return
+			} else {
+				logger.Error("Error persisting scheduled job", err.Error())
+
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(utility.ServerError))
+
+				return
+			}
 		}
 
 		responseBody, err := json.Marshal(scheduledJob)

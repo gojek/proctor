@@ -173,7 +173,7 @@ func TestJobsScheduleInsertionSuccessfull(t *testing.T) {
 	testStore := New(mockPostgresClient)
 
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args)",
+		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
 		mock.Anything).
 		Return(nil).
 		Once()
@@ -193,7 +193,7 @@ func TestJobsScheduleInsertionFailed(t *testing.T) {
 	testStore := New(mockPostgresClient)
 
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args)",
+		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
 		mock.Anything).
 		Return(errors.New("any-error")).
 		Once()
