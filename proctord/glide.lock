@@ -1,5 +1,5 @@
-hash: fe6e5f703f103d1435f5e31c46d38268461714ed7b21489501bd3e9e0acd89ee
-updated: 2018-11-21T15:18:35.009438+05:30
+hash: 7111922efca955fd3372138134411c19c1a1fe38b434eedc5d0287818bf6b410
+updated: 2019-01-09T14:25:10.283469623+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -115,6 +115,8 @@ imports:
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
   - difflib
+- name: github.com/robfig/cron
+  version: b41be1df696709bb6395fe435af20370037c0b4c
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/Sirupsen/logrus

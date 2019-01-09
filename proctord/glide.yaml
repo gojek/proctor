@@ -40,3 +40,5 @@ import:
   version: ~9.0.0
   subpackages:
   - '...'
+- package: github.com/robfig/cron
+  version: v1.1

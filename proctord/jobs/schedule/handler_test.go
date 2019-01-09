@@ -76,11 +76,32 @@ func (suite *SchedulerTestSuite) TestBadRequestWhenRequestBodyIsIncorrectForJobS
 	assert.Equal(t, utility.ClientError, string(responseBody))
 }
 
+func (suite *SchedulerTestSuite) TestInvalidCronExpression() {
+	t := suite.T()
+
+	scheduledJob := ScheduledJob{
+		Name: "non-existent",
+		Time: "2 * invalid *",
+	}
+	requestBody, err := json.Marshal(scheduledJob)
+	assert.NoError(t, err)
+
+	responseRecorder := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
+
+	suite.testScheduler.Schedule()(responseRecorder, req)
+
+	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
+	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
+	assert.Equal(t, utility.InvalidCronExpressionClientError, string(responseBody))
+}
+
 func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
+		Time: "* 2 * * *",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -102,6 +123,7 @@ func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
+		Time: "* 2 * * *",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -123,6 +145,7 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
+		Time: "* 2 * * *",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)

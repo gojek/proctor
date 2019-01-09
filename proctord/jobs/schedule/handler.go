@@ -8,6 +8,7 @@ import (
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/utility"
+	"github.com/robfig/cron"
 )
 
 type scheduler struct {
@@ -38,6 +39,15 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.ClientError))
 
+			return
+		}
+
+		_, err = cron.Parse(scheduledJob.Time)
+		if err != nil {
+			logger.Error("Client provided invalid cron expression: ", scheduledJob.Time)
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(utility.InvalidCronExpressionClientError))
 			return
 		}
 

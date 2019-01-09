@@ -2,6 +2,7 @@ package utility
 
 const ClientError = "malformed request"
 const NonExistentProcClientError = "proc name non existent"
+const InvalidCronExpressionClientError = "cron expression invalid"
 const ServerError = "Something went wrong"
 
 const UnauthorizedErrorMissingConfig = "EMAIL_ID or ACCESS_TOKEN is not present in proctor config file."
