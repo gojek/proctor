@@ -9,6 +9,7 @@ import (
 
 	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
+	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -165,4 +166,41 @@ func TestGetJobsStatusWhenError(t *testing.T) {
 
 	_, err := testStore.GetJobExecutionStatus(jobName)
 	assert.Error(t, err, "error")
+}
+
+func TestJobsScheduleInsertionSuccessfull(t *testing.T) {
+	mockPostgresClient := &postgres.ClientMock{}
+	testStore := New(mockPostgresClient)
+
+	mockPostgresClient.On("NamedExec",
+		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
+		mock.Anything).
+		Return(nil).
+		Once()
+
+	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one,tag-two", "* * 3 * *", "foo@bar.com,bar@foo.com", "ms@proctor.com", map[string]string{})
+
+	assert.NoError(t, err)
+
+	_, err = uuid.FromString(scheduledJobID)
+	assert.NoError(t, err)
+
+	mockPostgresClient.AssertExpectations(t)
+}
+
+func TestJobsScheduleInsertionFailed(t *testing.T) {
+	mockPostgresClient := &postgres.ClientMock{}
+	testStore := New(mockPostgresClient)
+
+	mockPostgresClient.On("NamedExec",
+		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
+		mock.Anything).
+		Return(errors.New("any-error")).
+		Once()
+
+	_, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", map[string]string{})
+
+	assert.Error(t, err)
+
+	mockPostgresClient.AssertExpectations(t)
 }

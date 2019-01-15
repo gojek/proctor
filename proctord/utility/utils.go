@@ -1,6 +1,15 @@
 package utility
 
+import (
+	"bytes"
+	"fmt"
+	"strings"
+)
+
 const ClientError = "malformed request"
+const NonExistentProcClientError = "proc name non existent"
+const InvalidCronExpressionClientError = "cron expression invalid"
+const DuplicateJobNameArgsClientError = "provided duplicate combination of job name and args for scheduling"
 const ServerError = "Something went wrong"
 
 const UnauthorizedErrorMissingConfig = "EMAIL_ID or ACCESS_TOKEN is not present in proctor config file."
@@ -34,10 +43,13 @@ const JobArgsContextKey = "job_args"
 const ImageNameContextKey = "image_name"
 const JobNameSubmittedForExecutionContextKey = "job_name_submitted_for_execution"
 const JobSubmissionStatusContextKey = "job_sumission_status"
+const JobSchedulingStatusContextKey = "job_scheduling_status"
 
 const UserEmailHeaderKey = "Email-Id"
 const AccessTokenHeaderKey = "Access-Token"
 const ClientVersionHeaderKey = "Client-Version"
+
+const WorkerEmail = "worker@proctor"
 
 func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 	result := make(map[string]string)
@@ -49,4 +61,12 @@ func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 		result[k] = v
 	}
 	return result
+}
+
+func MapToString(someMap map[string]string) string {
+	b := new(bytes.Buffer)
+	for key, value := range someMap {
+		fmt.Fprintf(b, "%s=\"%s\",", key, value)
+	}
+	return strings.TrimRight(b.String(), ",")
 }

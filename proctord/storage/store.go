@@ -4,15 +4,19 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"encoding/json"
 	"time"
 
 	"github.com/gojektech/proctor/proctord/storage/postgres"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Store interface {
 	JobsExecutionAuditLog(string, string, string, string, string, string, map[string]string) error
 	UpdateJobsExecutionAuditLog(string, string) error
 	GetJobExecutionStatus(string) (string, error)
+	InsertScheduledJob(string, string, string, string, string, map[string]string) (string, error)
+	GetScheduledJobs() ([]postgres.JobsSchedule, error)
 }
 
 type store struct {
@@ -69,4 +73,29 @@ func (store *store) GetJobExecutionStatus(JobNameSubmittedForExecution string) (
 	}
 
 	return jobsExecutionAuditLogResult[0].JobExecutionStatus, nil
+}
+
+func (store *store) InsertScheduledJob(name, tags, time, notificationEmails, userEmail string, args map[string]string) (string, error) {
+	jsonEncodedArgs, err := json.Marshal(args)
+	if err != nil {
+		return "", err
+	}
+
+	jobsSchedule := postgres.JobsSchedule{
+		ID:                 uuid.NewV4().String(),
+		Name:               name,
+		Args:               base64.StdEncoding.EncodeToString(jsonEncodedArgs),
+		Tags:               tags,
+		Time:               time,
+		NotificationEmails: notificationEmails,
+		UserEmail:          userEmail,
+		Enabled:            true,
+	}
+	return jobsSchedule.ID, store.postgresClient.NamedExec("INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)", &jobsSchedule)
+}
+
+func (store *store) GetScheduledJobs() ([]postgres.JobsSchedule, error) {
+	scheduledJobs := []postgres.JobsSchedule{}
+	err := store.postgresClient.Select(&scheduledJobs, "SELECT id, name, args, time, notification_emails, enabled from jobs_schedule")
+	return scheduledJobs, err
 }

@@ -16,3 +16,16 @@ type JobsExecutionAuditLog struct {
 	CreatedAt                    time.Time      `db:"created_at"`
 	UpdatedAt                    time.Time      `db:"updated_at"`
 }
+
+type JobsSchedule struct {
+	ID                 string    `db:"id"`
+	Name               string    `db:"name"`
+	Args               string    `db:"args"`
+	Tags               string    `db:"tags"`
+	Time               string    `db:"time"`
+	NotificationEmails string    `db:"notification_emails"`
+	UserEmail          string    `db:"user_email"`
+	Enabled            bool      `db:"enabled"`
+	CreatedAt          time.Time `db:"created_at"`
+	UpdatedAt          time.Time `db:"updated_at"`
+}
