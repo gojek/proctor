@@ -16,6 +16,7 @@ type Store interface {
 	UpdateJobsExecutionAuditLog(string, string) error
 	GetJobExecutionStatus(string) (string, error)
 	InsertScheduledJob(string, string, string, string, string, map[string]string) (string, error)
+	GetScheduledJobs() ([]postgres.JobsSchedule, error)
 }
 
 type store struct {
@@ -91,4 +92,10 @@ func (store *store) InsertScheduledJob(name, tags, time, notificationEmails, use
 		Enabled:            true,
 	}
 	return jobsSchedule.ID, store.postgresClient.NamedExec("INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)", &jobsSchedule)
+}
+
+func (store *store) GetScheduledJobs() ([]postgres.JobsSchedule, error) {
+	scheduledJobs := []postgres.JobsSchedule{}
+	err := store.postgresClient.Select(&scheduledJobs, "SELECT id, name, args, time, notification_emails, enabled from jobs_schedule")
+	return scheduledJobs, err
 }

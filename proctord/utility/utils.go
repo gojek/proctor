@@ -1,5 +1,11 @@
 package utility
 
+import (
+	"bytes"
+	"fmt"
+	"strings"
+)
+
 const ClientError = "malformed request"
 const NonExistentProcClientError = "proc name non existent"
 const InvalidCronExpressionClientError = "cron expression invalid"
@@ -43,6 +49,8 @@ const UserEmailHeaderKey = "Email-Id"
 const AccessTokenHeaderKey = "Access-Token"
 const ClientVersionHeaderKey = "Client-Version"
 
+const WorkerEmail = "worker@proctor"
+
 func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 	result := make(map[string]string)
 
@@ -53,4 +61,12 @@ func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 		result[k] = v
 	}
 	return result
+}
+
+func MapToString(someMap map[string]string) string {
+	b := new(bytes.Buffer)
+	for key, value := range someMap {
+		fmt.Fprintf(b, "%s=\"%s\",", key, value)
+	}
+	return strings.TrimRight(b.String(), ",")
 }

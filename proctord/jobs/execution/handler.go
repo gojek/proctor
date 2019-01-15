@@ -7,9 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gojektech/proctor/proctord/audit"
-	"github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/jobs/secrets"
-	"github.com/gojektech/proctor/proctord/kubernetes"
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/utility"
@@ -17,33 +14,29 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type executioner struct {
-	kubeClient    kubernetes.Client
-	metadataStore metadata.Store
-	secretsStore  secrets.Store
-	auditor       audit.Auditor
-	store         storage.Store
+type executionHandler struct {
+	auditor     audit.Auditor
+	store       storage.Store
+	executioner Executioner
 }
 
-type Executioner interface {
+type ExecutionHandler interface {
 	Handle() http.HandlerFunc
 	Status() http.HandlerFunc
 }
 
-func NewExecutioner(kubeClient kubernetes.Client, metadataStore metadata.Store, secretsStore secrets.Store, auditor audit.Auditor, store storage.Store) Executioner {
-	return &executioner{
-		kubeClient:    kubeClient,
-		metadataStore: metadataStore,
-		secretsStore:  secretsStore,
-		auditor:       auditor,
-		store:         store,
+func NewExecutionHandler(auditor audit.Auditor, store storage.Store, executioner Executioner) ExecutionHandler {
+	return &executionHandler{
+		auditor:     auditor,
+		store:       store,
+		executioner: executioner,
 	}
 }
 
-func (executioner *executioner) Status() http.HandlerFunc {
+func (handler *executionHandler) Status() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		JobNameSubmittedForExecution := mux.Vars(req)["name"]
-		jobExecutionStatus, err := executioner.store.GetJobExecutionStatus(JobNameSubmittedForExecution)
+		jobExecutionStatus, err := handler.store.GetJobExecutionStatus(JobNameSubmittedForExecution)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -60,9 +53,11 @@ func (executioner *executioner) Status() http.HandlerFunc {
 	}
 }
 
-func (executioner *executioner) Handle() http.HandlerFunc {
+func (handler *executionHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
+		//TODO: maybe move auditing inside execution itself?
+		defer handler.auditor.AuditJobsExecution(ctx)
 
 		var job Job
 		err := json.NewDecoder(req.Body).Decode(&job)
@@ -74,60 +69,22 @@ func (executioner *executioner) Handle() http.HandlerFunc {
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.ClientError))
-
-			executioner.auditor.AuditJobsExecution(ctx)
 			return
 		}
-		ctx = context.WithValue(ctx, utility.JobNameContextKey, job.Name)
-		ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
-		ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
 
-		jobMetadata, err := executioner.metadataStore.GetJobMetadata(job.Name)
+		jobExecutionID, err := handler.executioner.Execute(ctx, job.Name, userEmail, job.Args)
 		if err != nil {
-			logger.Error("Error finding job to image", job.Name, err.Error())
+			logger.Error("Error executing job: ", err.Error())
 			ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
-
-			executioner.auditor.AuditJobsExecution(ctx)
-			return
-		}
-		imageName := jobMetadata.ImageName
-		ctx = context.WithValue(ctx, utility.ImageNameContextKey, imageName)
-
-		jobSecrets, err := executioner.secretsStore.GetJobSecrets(job.Name)
-		if err != nil {
-			logger.Error("Error retrieving secrets for job", job.Name, err.Error())
-			ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
-
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(utility.ServerError))
-
-			executioner.auditor.AuditJobsExecution(ctx)
 			return
 		}
 
-		envVars := utility.MergeMaps(job.Args, jobSecrets)
-
-		JobNameSubmittedForExecution, err := executioner.kubeClient.ExecuteJob(imageName, envVars)
-		if err != nil {
-			logger.Error("Error executing job:", job, imageName, err.Error())
-			ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
-
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(utility.ServerError))
-
-			executioner.auditor.AuditJobsExecution(ctx)
-			return
-		}
-		ctx = context.WithValue(ctx, utility.JobNameSubmittedForExecutionContextKey, JobNameSubmittedForExecution)
-		ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionSuccess)
-
+		go handler.auditor.AuditJobExecutionStatus(jobExecutionID)
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", JobNameSubmittedForExecution)))
-
-		executioner.auditor.AuditJobsExecution(ctx)
+		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
 		return
 	}
 }

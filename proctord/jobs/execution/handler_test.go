@@ -2,7 +2,6 @@ package execution
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,9 +10,6 @@ import (
 	"testing"
 
 	"github.com/gojektech/proctor/proctord/audit"
-	"github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/jobs/secrets"
-	"github.com/gojektech/proctor/proctord/kubernetes"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/utility"
 
@@ -24,48 +20,38 @@ import (
 	"github.com/urfave/negroni"
 )
 
-type ExecutionerTestSuite struct {
+type ExecutionHandlerTestSuite struct {
 	suite.Suite
-	mockKubeClient    kubernetes.MockClient
-	mockMetadataStore *metadata.MockStore
-	mockSecretsStore  *secrets.MockStore
-	mockAuditor       *audit.MockAuditor
-	mockStore         *storage.MockStore
-	testExecutioner   Executioner
+	mockAuditor          *audit.MockAuditor
+	mockStore            *storage.MockStore
+	mockExecutioner      *MockExecutioner
+	testExecutionHandler ExecutionHandler
 
 	Client     *http.Client
 	TestServer *httptest.Server
 }
 
-func (suite *ExecutionerTestSuite) SetupTest() {
-	suite.mockKubeClient = kubernetes.MockClient{}
-	suite.mockMetadataStore = &metadata.MockStore{}
-	suite.mockSecretsStore = &secrets.MockStore{}
+func (suite *ExecutionHandlerTestSuite) SetupTest() {
 	suite.mockAuditor = &audit.MockAuditor{}
 	suite.mockStore = &storage.MockStore{}
-	suite.testExecutioner = NewExecutioner(&suite.mockKubeClient, suite.mockMetadataStore, suite.mockSecretsStore, suite.mockAuditor, suite.mockStore)
+	suite.mockExecutioner = &MockExecutioner{}
+	suite.testExecutionHandler = NewExecutionHandler(suite.mockAuditor, suite.mockStore, suite.mockExecutioner)
 
 	suite.Client = &http.Client{}
 	router := mux.NewRouter()
-	router.HandleFunc("/jobs/execute/{name}/status", suite.testExecutioner.Status()).Methods("GET")
+	router.HandleFunc("/jobs/execute/{name}/status", suite.testExecutionHandler.Status()).Methods("GET")
 	n := negroni.Classic()
 	n.UseHandler(router)
 	suite.TestServer = httptest.NewServer(n)
-
 }
 
-func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
+func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 	t := suite.T()
 
-	jobName := "sample-job-name"
 	userEmail := "mrproctor@example.com"
-	jobArgs := map[string]string{
-		"argOne": "sample-arg",
-		"argTwo": "another-arg",
-	}
 	job := Job{
-		Name: jobName,
-		Args: jobArgs,
+		Name: "sample-job-name",
+		Args: map[string]string{"argOne": "sample-arg"},
 	}
 
 	requestBody, err := json.Marshal(job)
@@ -75,185 +61,70 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
 	responseRecorder := httptest.NewRecorder()
 
-	jobMetadata := metadata.Metadata{
-		ImageName: "img",
-	}
-	suite.mockMetadataStore.On("GetJobMetadata", jobName).Return(&jobMetadata, nil).Once()
+	jobNameSubmittedForExecution := "proctor-ipsum-lorem"
+	suite.mockExecutioner.On("Execute", mock.Anything, job.Name, userEmail, job.Args).Return(jobNameSubmittedForExecution, nil).Once()
 
-	jobSecrets := map[string]string{
-		"secretOne": "sample-secrets",
-		"secretTwo": "another-secret",
-	}
-	suite.mockSecretsStore.On("GetJobSecrets", jobName).Return(jobSecrets, nil).Once()
+	auditingChan := make(chan bool)
+	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return().Once()
+	suite.mockAuditor.On("AuditJobExecutionStatus", jobNameSubmittedForExecution).Return("", nil).Run(
+		func(args mock.Arguments) { auditingChan <- true },
+	)
 
-	JobNameSubmittedForExecution := "proctor-ipsum-lorem"
-	envVarsForImage := utility.MergeMaps(jobArgs, jobSecrets)
-	suite.mockKubeClient.On("ExecuteJob", jobMetadata.ImageName, envVarsForImage).Return(JobNameSubmittedForExecution, nil).Once()
+	suite.testExecutionHandler.Handle()(responseRecorder, req)
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
-	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
-	ctx = context.WithValue(ctx, utility.JobArgsContextKey, jobArgs)
-	ctx = context.WithValue(ctx, utility.ImageNameContextKey, jobMetadata.ImageName)
-	ctx = context.WithValue(ctx, utility.JobNameSubmittedForExecutionContextKey, JobNameSubmittedForExecution)
-	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionSuccess)
-	suite.mockAuditor.On("AuditJobsExecution", ctx).Return().Once()
-
-	suite.testExecutioner.Handle()(responseRecorder, req)
-
-	suite.mockMetadataStore.AssertExpectations(t)
-	suite.mockSecretsStore.AssertExpectations(t)
-	suite.mockKubeClient.AssertExpectations(t)
+	<-auditingChan
 	suite.mockAuditor.AssertExpectations(t)
+	suite.mockExecutioner.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
-	assert.Equal(t, fmt.Sprintf("{ \"name\":\"%s\" }", JobNameSubmittedForExecution), responseRecorder.Body.String())
+	assert.Equal(t, fmt.Sprintf("{ \"name\":\"%s\" }", jobNameSubmittedForExecution), responseRecorder.Body.String())
 }
 
-func (suite *ExecutionerTestSuite) TestJobExecutionOnMalformedRequest() {
+func (suite *ExecutionHandlerTestSuite) TestJobExecutionOnMalformedRequest() {
 	t := suite.T()
 
 	jobExecutionRequest := fmt.Sprintf("{ some-malformed-request }")
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader([]byte(jobExecutionRequest)))
 	responseRecorder := httptest.NewRecorder()
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionClientError)
+	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return().Once()
 
-	suite.mockAuditor.On("AuditJobsExecution", ctx).Return().Once()
+	suite.testExecutionHandler.Handle()(responseRecorder, req)
 
-	suite.testExecutioner.Handle()(responseRecorder, req)
-
-	suite.mockMetadataStore.AssertNotCalled(t, "GetJobMetadata", mock.Anything)
-	suite.mockSecretsStore.AssertNotCalled(t, "GetJobSecrets", mock.Anything)
-	suite.mockKubeClient.AssertNotCalled(t, "ExecuteJob", mock.Anything, mock.Anything)
 	suite.mockAuditor.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	assert.Equal(t, utility.ClientError, responseRecorder.Body.String())
 }
 
-func (suite *ExecutionerTestSuite) TestJobExecutionOnImageLookupFailuer() {
+func (suite *ExecutionHandlerTestSuite) TestJobExecutionServerFailure() {
 	t := suite.T()
 
-	jobName := "sample-job-name"
-	userEmail := "mrproctor@example.com"
 	job := Job{
-		Name: jobName,
+		Name: "sample-job-name",
+		Args: map[string]string{"argOne": "sample-arg"},
 	}
+
 	requestBody, err := json.Marshal(job)
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
-	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
 	responseRecorder := httptest.NewRecorder()
 
-	suite.mockMetadataStore.On("GetJobMetadata", jobName).Return(&metadata.Metadata{}, errors.New("No image found for job name")).Once()
+	suite.mockExecutioner.On("Execute", mock.Anything, job.Name, mock.Anything, job.Args).Return("", errors.New("error executing job")).Once()
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
-	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
-	ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
-	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
-	suite.mockAuditor.On("AuditJobsExecution", ctx).Return().Once()
+	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return().Once()
 
-	suite.testExecutioner.Handle()(responseRecorder, req)
+	suite.testExecutionHandler.Handle()(responseRecorder, req)
 
-	suite.mockMetadataStore.AssertExpectations(t)
-	suite.mockSecretsStore.AssertNotCalled(t, "GetJobSecrets", mock.Anything)
-	suite.mockKubeClient.AssertNotCalled(t, "ExecuteJob", mock.Anything, mock.Anything)
 	suite.mockAuditor.AssertExpectations(t)
+	suite.mockExecutioner.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	assert.Equal(t, utility.ServerError, responseRecorder.Body.String())
 }
 
-func (suite *ExecutionerTestSuite) TestJobExecutionOnSecretsFetchFailuer() {
-	t := suite.T()
-
-	jobName := "sample-job-name"
-	userEmail := "mrproctor@example.com"
-	job := Job{
-		Name: jobName,
-	}
-	requestBody, err := json.Marshal(job)
-	assert.NoError(t, err)
-
-	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
-	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
-	responseRecorder := httptest.NewRecorder()
-
-	suite.mockMetadataStore.On("GetJobMetadata", jobName).Return(&metadata.Metadata{}, nil).Once()
-
-	emptyMap := make(map[string]string)
-	suite.mockSecretsStore.On("GetJobSecrets", jobName).Return(emptyMap, errors.New("secrets fetch error")).Once()
-
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, utility.JobNameContextKey, jobName)
-	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
-	ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
-	ctx = context.WithValue(ctx, utility.ImageNameContextKey, "")
-	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
-	suite.mockAuditor.On("AuditJobsExecution", ctx).Return().Once()
-
-	suite.testExecutioner.Handle()(responseRecorder, req)
-
-	suite.mockMetadataStore.AssertExpectations(t)
-	suite.mockSecretsStore.AssertExpectations(t)
-	suite.mockKubeClient.AssertNotCalled(t, "ExecuteJob", mock.Anything, mock.Anything, mock.Anything)
-	suite.mockAuditor.AssertExpectations(t)
-
-	assert.Equal(t, http.StatusNotFound, responseRecorder.Code)
-	assert.Equal(t, utility.ServerError, responseRecorder.Body.String())
-}
-
-func (suite *ExecutionerTestSuite) TestJobExecutionOnExecutionFailure() {
-	t := suite.T()
-
-	jobName := "sample-job-name"
-	userEmail := "mrproctor@example.com"
-	emptyMap := make(map[string]string)
-	job := Job{
-		Name: jobName,
-		Args: emptyMap,
-	}
-
-	requestBody, err := json.Marshal(job)
-	assert.NoError(t, err)
-
-	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
-	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
-	responseRecorder := httptest.NewRecorder()
-
-	jobMetadata := metadata.Metadata{
-		ImageName: "img",
-	}
-	suite.mockMetadataStore.On("GetJobMetadata", jobName).Return(&jobMetadata, nil).Once()
-
-	suite.mockSecretsStore.On("GetJobSecrets", jobName).Return(emptyMap, nil).Once()
-
-	suite.mockKubeClient.On("ExecuteJob", jobMetadata.ImageName, emptyMap).Return("", errors.New("Kube client job execution error")).Once()
-
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, utility.JobNameContextKey, job.Name)
-	ctx = context.WithValue(ctx, utility.UserEmailContextKey, userEmail)
-	ctx = context.WithValue(ctx, utility.JobArgsContextKey, job.Args)
-	ctx = context.WithValue(ctx, utility.ImageNameContextKey, jobMetadata.ImageName)
-	ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
-	suite.mockAuditor.On("AuditJobsExecution", ctx).Return().Once()
-
-	suite.testExecutioner.Handle()(responseRecorder, req)
-
-	suite.mockMetadataStore.AssertExpectations(t)
-	suite.mockSecretsStore.AssertExpectations(t)
-	suite.mockKubeClient.AssertExpectations(t)
-	suite.mockAuditor.AssertExpectations(t)
-
-	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
-	assert.Equal(t, utility.ServerError, responseRecorder.Body.String())
-}
-
-func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn200OnSuccess() {
+func (suite *ExecutionHandlerTestSuite) TestJobStatusShouldReturn200OnSuccess() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
@@ -274,7 +145,7 @@ func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn200OnSuccess() {
 	assert.Equal(suite.T(), utility.JobSucceeded, jobStatus)
 }
 
-func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn404IfJobStatusIsNotFound() {
+func (suite *ExecutionHandlerTestSuite) TestJobStatusShouldReturn404IfJobStatusIsNotFound() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
@@ -290,7 +161,7 @@ func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn404IfJobStatusIsNotF
 	assert.Equal(suite.T(), http.StatusNotFound, response.StatusCode)
 }
 
-func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn500OnError() {
+func (suite *ExecutionHandlerTestSuite) TestJobStatusShouldReturn500OnError() {
 	t := suite.T()
 
 	jobName := "sample-job-name"
@@ -306,6 +177,6 @@ func (suite *ExecutionerTestSuite) TestJobStatusShouldReturn500OnError() {
 	assert.Equal(suite.T(), http.StatusInternalServerError, response.StatusCode)
 }
 
-func TestExecutionerTestSuite(t *testing.T) {
-	suite.Run(t, new(ExecutionerTestSuite))
+func TestExecutionHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(ExecutionHandlerTestSuite))
 }

@@ -11,6 +11,7 @@ import (
 
 type Auditor interface {
 	AuditJobsExecution(context.Context)
+	AuditJobExecutionStatus(string) (string, error)
 }
 
 type auditor struct {
@@ -45,18 +46,15 @@ func (auditor *auditor) AuditJobsExecution(ctx context.Context) {
 	if err != nil {
 		logger.Error("Error auditing jobs execution", err)
 	}
-
-	go auditor.auditJobExecutionStatus(JobNameSubmittedForExecution)
 }
 
-func (auditor *auditor) auditJobExecutionStatus(JobNameSubmittedForExecution string) {
-	status, err := auditor.kubeClient.JobExecutionStatus(JobNameSubmittedForExecution)
+func (auditor *auditor) AuditJobExecutionStatus(jobExecutionID string) (string, error) {
+	status, err := auditor.kubeClient.JobExecutionStatus(jobExecutionID)
 	if err != nil {
 		logger.Error("Error getting job execution status", err)
+		return "", err
 	}
 
-	err = auditor.store.UpdateJobsExecutionAuditLog(JobNameSubmittedForExecution, status)
-	if err != nil {
-		logger.Error("Error auditing jobs execution", err)
-	}
+	err = auditor.store.UpdateJobsExecutionAuditLog(jobExecutionID, status)
+	return status, err
 }

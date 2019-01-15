@@ -41,7 +41,8 @@ func NewRouter() (*mux.Router, error) {
 	kubeClient := kubernetes.NewClient(kubeConfig, httpClient)
 
 	auditor := audit.New(store, kubeClient)
-	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore, auditor, store)
+	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore)
+	jobExecutionHandler := execution.NewExecutionHandler(auditor, store, jobExecutioner)
 	jobLogger := logs.NewLogger(kubeClient)
 	jobMetadataHandler := metadata.NewHandler(metadataStore)
 	jobSecretsHandler := secrets.NewHandler(secretsStore)
@@ -52,8 +53,8 @@ func NewRouter() (*mux.Router, error) {
 		fmt.Fprintf(w, "pong")
 	})
 
-	router.HandleFunc(instrumentation.Wrap("/jobs/execute", middleware.ValidateClientVersion(jobExecutioner.Handle()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/jobs/execute/{name}/status", middleware.ValidateClientVersion(jobExecutioner.Status()))).Methods("GET")
+	router.HandleFunc(instrumentation.Wrap("/jobs/execute", middleware.ValidateClientVersion(jobExecutionHandler.Handle()))).Methods("POST")
+	router.HandleFunc(instrumentation.Wrap("/jobs/execute/{name}/status", middleware.ValidateClientVersion(jobExecutionHandler.Status()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/logs", middleware.ValidateClientVersion(jobLogger.Stream()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleSubmission()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleBulkDisplay()))).Methods("GET")

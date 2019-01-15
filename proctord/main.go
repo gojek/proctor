@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/gojektech/proctor/proctord/logger"
+	"github.com/gojektech/proctor/proctord/scheduler"
 	"github.com/gojektech/proctor/proctord/server"
 	"github.com/gojektech/proctor/proctord/storage/postgres"
 
@@ -15,7 +16,7 @@ func main() {
 	proctord := cli.NewApp()
 	proctord.Name = "proctord"
 	proctord.Usage = "Handle executing jobs and maintaining their configuration"
-	proctord.Version = "0.1.0"
+	proctord.Version = "0.2.0"
 	proctord.Commands = []cli.Command{
 		{
 			Name:        "migrate",
@@ -42,9 +43,16 @@ func main() {
 		{
 			Name:    "start",
 			Aliases: []string{"s"},
-			Usage:   "start server",
+			Usage:   "starts server",
 			Action: func(c *cli.Context) error {
 				return server.Start()
+			},
+		},
+		{
+			Name:  "start-scheduler",
+			Usage: "starts scheduler",
+			Action: func(c *cli.Context) error {
+				return scheduler.Start()
 			},
 		},
 	}

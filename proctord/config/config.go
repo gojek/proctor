@@ -104,3 +104,23 @@ func NewRelicLicenceKey() string {
 func MinClientVersion() string {
 	return viper.GetString("MIN_CLIENT_VERSION")
 }
+
+func ScheduledJobsFetchIntervalInMins() int {
+	return viper.GetInt("SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS")
+}
+
+func MailUsername() string {
+	return viper.GetString("MAIL_USERNAME")
+}
+
+func MailPassword() string {
+	return viper.GetString("MAIL_PASSWORD")
+}
+
+func MailServerHost() string {
+	return viper.GetString("MAIL_SERVER_HOST")
+}
+
+func MailServerPort() string {
+	return viper.GetString("MAIL_SERVER_PORT")
+}

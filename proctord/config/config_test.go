@@ -193,3 +193,43 @@ func TestMinClientVersion(t *testing.T) {
 
 	assert.Equal(t, "0.2.0", MinClientVersion())
 }
+
+func TestScheduledJobsFetchIntervalInMins(t *testing.T) {
+	os.Setenv("PROCTOR_SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS", "5")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, 5, ScheduledJobsFetchIntervalInMins())
+}
+
+func TestMailUsername(t *testing.T) {
+	os.Setenv("PROCTOR_MAIL_USERNAME", "foo@bar.com")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "foo@bar.com", MailUsername())
+}
+
+func TestMailPassword(t *testing.T) {
+	os.Setenv("PROCTOR_MAIL_PASSWORD", "password")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "password", MailPassword())
+}
+
+func TestMailServerHost(t *testing.T) {
+	os.Setenv("PROCTOR_MAIL_SERVER_HOST", "127.0.0.1")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "127.0.0.1", MailServerHost())
+}
+
+func TestMailServerPort(t *testing.T) {
+	os.Setenv("PROCTOR_MAIL_SERVER_PORT", "123")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "123", MailServerPort())
+}
