@@ -1,5 +1,5 @@
 #!make
-include .env.test
+include .env
 export $(shell sed 's/=.*//' .env.test)
 
 APP=proctord

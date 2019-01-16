@@ -82,6 +82,8 @@ func (suite *SchedulerTestSuite) TestInvalidCronExpression() {
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
 		Time: "2 * invalid *",
+		NotificationEmails: "foo@bar.com,bar@foo.com",
+		Tags:               "tag-one,tag-two",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -96,12 +98,58 @@ func (suite *SchedulerTestSuite) TestInvalidCronExpression() {
 	assert.Equal(t, utility.InvalidCronExpressionClientError, string(responseBody))
 }
 
+func (suite *SchedulerTestSuite) TestInvalidEmailAddress() {
+	t := suite.T()
+
+	scheduledJob := ScheduledJob{
+		Name: "non-existent",
+		Time: "* 2 * * *",
+		NotificationEmails: "user-test.com",
+		Tags:               "tag-one,tag-two",
+	}
+	requestBody, err := json.Marshal(scheduledJob)
+	assert.NoError(t, err)
+
+	responseRecorder := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
+
+	suite.testScheduler.Schedule()(responseRecorder, req)
+
+	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
+	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
+	assert.Equal(t, utility.InvalidEmailIdClientError, string(responseBody))
+}
+
+func (suite *SchedulerTestSuite) TestInvalidTag() {
+	t := suite.T()
+
+	scheduledJob := ScheduledJob{
+		Name: "non-existent",
+		Time: "* 2 * * *",
+		NotificationEmails: "user@proctor.com",
+		Tags: "",
+	}
+	requestBody, err := json.Marshal(scheduledJob)
+	assert.NoError(t, err)
+
+	responseRecorder := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
+
+	suite.testScheduler.Schedule()(responseRecorder, req)
+
+	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
+	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
+	assert.Equal(t, utility.InvalidTagError, string(responseBody))
+}
+
 func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
 		Time: "* 2 * * *",
+		NotificationEmails: "foo@bar.com,bar@foo.com",
+		Tags:               "tag-one,tag-two",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -124,6 +172,8 @@ func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
 		Time: "* 2 * * *",
+		NotificationEmails: "foo@bar.com,bar@foo.com",
+		Tags:               "tag-one,tag-two",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -146,6 +196,8 @@ func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
 		Time: "* 2 * * *",
+		NotificationEmails: "foo@bar.com,bar@foo.com",
+		Tags:               "tag-one,tag-two",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -169,6 +221,8 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	scheduledJob := ScheduledJob{
 		Name: "non-existent",
 		Time: "* 2 * * *",
+		NotificationEmails: "foo@bar.com,bar@foo.com",
+		Tags:               "tag-one,tag-two",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)

@@ -1,11 +1,13 @@
-hash: 7111922efca955fd3372138134411c19c1a1fe38b434eedc5d0287818bf6b410
-updated: 2019-01-09T14:25:10.283469623+05:30
+hash: 00c70300e22c5af3eba211e10b2d3cd18ed0cff5c4c4e2511d742ec846031bae
+updated: 2019-01-16T17:21:14.589932+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/badoux/checkmail
+  version: 9661bd69e9ad6fce1f7579022bdab0440807722a
 - name: github.com/danverbraganza/varcaser
   version: ce61ec497fbffd4887976757109cb585f6bb29e1
 - name: github.com/davecgh/go-spew
