@@ -8,7 +8,9 @@ import (
 
 const ClientError = "malformed request"
 const NonExistentProcClientError = "proc name non existent"
-const InvalidCronExpressionClientError = "cron expression invalid"
+const InvalidCronExpressionClientError = "Cron expression invalid"
+const InvalidEmailIdClientError = "Provided invalid Email ID"
+const InvalidTagError  = "Tag(s) are missing"
 const DuplicateJobNameArgsClientError = "provided duplicate combination of job name and args for scheduling"
 const ServerError = "Something went wrong"
 

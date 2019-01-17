@@ -2,7 +2,9 @@ package schedule
 
 import (
 	"encoding/json"
+	"github.com/badoux/checkmail"
 	"net/http"
+	"strings"
 
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/gojektech/proctor/proctord/logger"
@@ -48,6 +50,25 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.InvalidCronExpressionClientError))
+			return
+		}
+
+		notificationEmails := strings.Split(scheduledJob.NotificationEmails, ",")
+
+		for _, notificationEmail := range notificationEmails {
+			err = checkmail.ValidateFormat(notificationEmail)
+			if err != nil {
+				logger.Error("Client provided invalid email address: ", notificationEmail)
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(utility.InvalidEmailIdClientError))
+				return
+			}
+		}
+
+		if scheduledJob.Tags == "" {
+			logger.Error("Tag(s) are missing")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(utility.InvalidTagError))
 			return
 		}
 

@@ -28,3 +28,8 @@ func (m *MockClient) GetDefinitiveProcExecutionStatus(name string) (string, erro
 	args := m.Called(name)
 	return args.Get(0).(string), args.Error(1)
 }
+
+func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string,jobArgs map[string]string) (string, error) {
+	args := m.Called(name, tags, time, notificationEmails, jobArgs)
+	return args.Get(0).(string), args.Error(1)
+}

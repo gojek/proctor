@@ -77,7 +77,7 @@ func TestSendMail(t *testing.T) {
 	jobName := "proc-name"
 	jobExecutionID := "some-id"
 	jobExecutionStatus := "SUCCEEDED"
-	jobArgs := map[string]string{"ARG_ONE": "foo", "ARG_TWO": "bar"}
+	jobArgs := map[string]string{"ARG_ONE": "foo"}
 	recipients := []string{"foo@bar.com", "goo@bar.com"}
 	err = mailer.Send(jobName, jobExecutionID, jobExecutionStatus, jobArgs, recipients)
 	if err != nil {

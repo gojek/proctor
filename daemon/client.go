@@ -29,6 +29,7 @@ type Client interface {
 	ExecuteProc(string, map[string]string) (string, error)
 	StreamProcLogs(string) error
 	GetDefinitiveProcExecutionStatus(string) (string, error)
+	ScheduleJob(string, string, string, string, map[string]string) (string, error)
 }
 
 type client struct {
@@ -47,12 +48,64 @@ type ProcToExecute struct {
 	Args map[string]string `json:"args"`
 }
 
+type ScheduleJobPayload struct {
+	ID   string   `json:"id"`
+	Name string `json:"name"`
+	Tags string `json:"tags"`
+	Time string `json:"time"`
+	NotificationEmails string `json:"notification_emails"`
+	Args map[string]string `json:"args"`
+}
+
 func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	return &client{
 		clientVersion:       version.ClientVersion,
 		printer:             printer,
 		proctorConfigLoader: proctorConfigLoader,
 	}
+}
+
+func(c *client) ScheduleJob(name, tags, time, notificationEmails string,jobArgs map[string]string) (string, error){
+	err := c.loadProctorConfig()
+	if err != nil {
+		return "", err
+	}
+	jobPayload := ScheduleJobPayload{
+		Name: name,
+		Tags: tags,
+		Time: time,
+		NotificationEmails: notificationEmails,
+		Args: jobArgs,
+	}
+
+	requestBody, err := json.Marshal(jobPayload)
+	if err != nil {
+		return "", err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", "http://"+c.proctordHost+"/jobs/schedule", bytes.NewReader(requestBody))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return "", buildNetworkError(err)
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := ioutil.ReadAll(resp.Body)
+		bodyString := string(body)
+		return "", errors.New(bodyString)
+	}
+
+	var scheduledJob ScheduleJobPayload
+	err = json.NewDecoder(resp.Body).Decode(&scheduledJob)
+
+	return scheduledJob.ID, err
 }
 
 func (c *client) loadProctorConfig() error {
