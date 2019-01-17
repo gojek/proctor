@@ -61,12 +61,11 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
 	responseRecorder := httptest.NewRecorder()
 
-	jobNameSubmittedForExecution := "proctor-ipsum-lorem"
-	suite.mockExecutioner.On("Execute", mock.Anything, job.Name, userEmail, job.Args).Return(jobNameSubmittedForExecution, nil).Once()
+	jobExecutionID := "proctor-ipsum-lorem"
+	suite.mockExecutioner.On("Execute", mock.Anything, job.Name, job.Args).Return(jobExecutionID, nil).Once()
 
 	auditingChan := make(chan bool)
-	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return().Once()
-	suite.mockAuditor.On("AuditJobExecutionStatus", jobNameSubmittedForExecution).Return("", nil).Run(
+	suite.mockAuditor.On("JobsExecutionAndStatus", mock.Anything).Return("", nil).Run(
 		func(args mock.Arguments) { auditingChan <- true },
 	)
 
@@ -77,7 +76,7 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 	suite.mockExecutioner.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
-	assert.Equal(t, fmt.Sprintf("{ \"name\":\"%s\" }", jobNameSubmittedForExecution), responseRecorder.Body.String())
+	assert.Equal(t, fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID), responseRecorder.Body.String())
 }
 
 func (suite *ExecutionHandlerTestSuite) TestJobExecutionOnMalformedRequest() {
@@ -87,10 +86,14 @@ func (suite *ExecutionHandlerTestSuite) TestJobExecutionOnMalformedRequest() {
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader([]byte(jobExecutionRequest)))
 	responseRecorder := httptest.NewRecorder()
 
-	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return().Once()
+	auditingChan := make(chan bool)
+	suite.mockAuditor.On("JobsExecutionAndStatus", mock.Anything).Return("", nil).Run(
+		func(args mock.Arguments) { auditingChan <- true },
+	)
 
 	suite.testExecutionHandler.Handle()(responseRecorder, req)
 
+	<-auditingChan
 	suite.mockAuditor.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
@@ -111,12 +114,16 @@ func (suite *ExecutionHandlerTestSuite) TestJobExecutionServerFailure() {
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))
 	responseRecorder := httptest.NewRecorder()
 
-	suite.mockExecutioner.On("Execute", mock.Anything, job.Name, mock.Anything, job.Args).Return("", errors.New("error executing job")).Once()
+	suite.mockExecutioner.On("Execute", mock.Anything, job.Name, job.Args).Return("", errors.New("error executing job")).Once()
 
-	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return().Once()
+	auditingChan := make(chan bool)
+	suite.mockAuditor.On("JobsExecutionAndStatus", mock.Anything).Return("", nil).Run(
+		func(args mock.Arguments) { auditingChan <- true },
+	)
 
 	suite.testExecutionHandler.Handle()(responseRecorder, req)
 
+	<-auditingChan
 	suite.mockAuditor.AssertExpectations(t)
 	suite.mockExecutioner.AssertExpectations(t)
 

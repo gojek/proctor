@@ -74,11 +74,11 @@ func (suite *WorkerTestSuite) TestCronEnablingForScheduledJobs() {
 	suite.mockStore.On("GetScheduledJobs").Return(scheduledJobs, nil)
 
 	jobExecutionID := "job-execution-id"
-	suite.mockExecutioner.On("Execute", mock.Anything, enabledJob, utility.WorkerEmail, jobArgs).Return(jobExecutionID, nil)
+	suite.mockExecutioner.On("Execute", mock.Anything, enabledJob, jobArgs).Return(jobExecutionID, nil)
 
 	jobExecutionStatus := utility.JobSucceeded
-	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return()
-	suite.mockAuditor.On("AuditJobExecutionStatus", jobExecutionID).Return(jobExecutionStatus, nil)
+	suite.mockAuditor.On("JobsExecution", mock.Anything).Return()
+	suite.mockAuditor.On("JobsExecutionStatus", jobExecutionID).Return(jobExecutionStatus, nil)
 
 	expectedRecipients := strings.Split(notificationEmails, ",")
 	suite.mockMailer.On("Send", enabledJob, jobExecutionID, jobExecutionStatus, jobArgs, expectedRecipients).Return(nil).Run(
@@ -141,11 +141,11 @@ func (suite *WorkerTestSuite) TestCronForDisablingEnabledScheduledJobs() {
 	)
 
 	jobExecutionID := "job-execution-id"
-	suite.mockExecutioner.On("Execute", mock.Anything, jobName, utility.WorkerEmail, jobArgs).Return(jobExecutionID, nil)
+	suite.mockExecutioner.On("Execute", mock.Anything, jobName, jobArgs).Return(jobExecutionID, nil)
 
-	suite.mockAuditor.On("AuditJobsExecution", mock.Anything).Return()
+	suite.mockAuditor.On("JobsExecution", mock.Anything).Return()
 	jobExecutionStatus := utility.JobSucceeded
-	suite.mockAuditor.On("AuditJobExecutionStatus", jobExecutionID).Return(jobExecutionStatus, nil)
+	suite.mockAuditor.On("JobsExecutionStatus", jobExecutionID).Return(jobExecutionStatus, nil)
 
 	expectedRecipients := strings.Split(notificationEmails, ",")
 	suite.mockMailer.On("Send", jobName, jobExecutionID, jobExecutionStatus, jobArgs, expectedRecipients).Return(nil).Run(

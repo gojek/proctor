@@ -206,12 +206,12 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 	}
 }
 
-func (client *client) JobExecutionStatus(JobNameSubmittedForExecution string) (string, error) {
+func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) {
 	batchV1 := client.clientSet.BatchV1()
 	kubernetesJobs := batchV1.Jobs(namespace)
 	listOptions := meta_v1.ListOptions{
 		TypeMeta:      typeMeta,
-		LabelSelector: jobLabelSelector(JobNameSubmittedForExecution),
+		LabelSelector: jobLabelSelector(jobExecutionID),
 	}
 
 	watchJob, err := kubernetesJobs.Watch(listOptions)

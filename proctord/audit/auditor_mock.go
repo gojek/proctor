@@ -1,8 +1,7 @@
 package audit
 
 import (
-	"context"
-
+	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -10,11 +9,15 @@ type MockAuditor struct {
 	mock.Mock
 }
 
-func (m *MockAuditor) AuditJobsExecution(ctx context.Context) {
-	m.Called(ctx)
+func (m *MockAuditor) JobsExecution(JobsExecutionAuditLog *postgres.JobsExecutionAuditLog) {
+	m.Called(JobsExecutionAuditLog)
 }
 
-func (m *MockAuditor) AuditJobExecutionStatus(jobExecutionID string) (string, error) {
+func (m *MockAuditor) JobsExecutionAndStatus(JobsExecutionAuditLog *postgres.JobsExecutionAuditLog) {
+	m.Called(JobsExecutionAuditLog)
+}
+
+func (m *MockAuditor) JobsExecutionStatus(jobExecutionID string) (string, error) {
 	args := m.Called(jobExecutionID)
 	return args.String(0), args.Error(1)
 }

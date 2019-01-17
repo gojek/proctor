@@ -1,9 +1,9 @@
 package schedule
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -57,16 +57,22 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 
 		cronJob := cron.New()
 		err = cronJob.AddFunc(scheduledJob.Time, func() {
-			ctx := context.Background()
-			jobExecutionID, err := worker.executioner.Execute(ctx, scheduledJob.Name, utility.WorkerEmail, jobArgs)
+			jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{}
+			jobsExecutionAuditLog.UserEmail = utility.WorkerEmail
+
+			jobExecutionID, err := worker.executioner.Execute(jobsExecutionAuditLog, scheduledJob.Name, jobArgs)
 			if err != nil {
 				logger.Error("Error submitting job: ", scheduledJob.Name, " for execution: ", err.Error())
+
+				jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
+				jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
+				worker.auditor.JobsExecution(jobsExecutionAuditLog)
 				return
 			}
 
-			worker.auditor.AuditJobsExecution(ctx)
+			worker.auditor.JobsExecution(jobsExecutionAuditLog)
 
-			jobExecutionStatus, err := worker.auditor.AuditJobExecutionStatus(jobExecutionID)
+			jobExecutionStatus, err := worker.auditor.JobsExecutionStatus(jobExecutionID)
 			if err != nil {
 				logger.Error("Error fetching execution status for job: ", jobExecutionID, ". Error: ", err.Error())
 				return

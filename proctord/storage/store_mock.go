@@ -9,8 +9,8 @@ type MockStore struct {
 	mock.Mock
 }
 
-func (m *MockStore) JobsExecutionAuditLog(jobSubmissionStatus, jobExecutionStatus, jobName, userEmail, jobExecutedName, imageName string, jobArgs map[string]string) error {
-	args := m.Called(jobSubmissionStatus, jobExecutionStatus, jobName, userEmail, jobExecutedName, imageName, jobArgs)
+func (m *MockStore) AuditJobsExecution(jobsExecutionAuditLog *postgres.JobsExecutionAuditLog) error {
+	args := m.Called(jobsExecutionAuditLog)
 	return args.Error(0)
 }
 

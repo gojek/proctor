@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"github.com/gojektech/proctor/proctord/audit"
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/storage"
+	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
 
 	"github.com/gorilla/mux"
@@ -35,8 +35,8 @@ func NewExecutionHandler(auditor audit.Auditor, store storage.Store, executioner
 
 func (handler *executionHandler) Status() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		JobNameSubmittedForExecution := mux.Vars(req)["name"]
-		jobExecutionStatus, err := handler.store.GetJobExecutionStatus(JobNameSubmittedForExecution)
+		jobExecutionID := mux.Vars(req)["name"]
+		jobExecutionStatus, err := handler.store.GetJobExecutionStatus(jobExecutionID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -55,34 +55,36 @@ func (handler *executionHandler) Status() http.HandlerFunc {
 
 func (handler *executionHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		ctx := req.Context()
-		//TODO: maybe move auditing inside execution itself?
-		defer handler.auditor.AuditJobsExecution(ctx)
+		jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{}
+		defer func() { go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog) }()
+
+		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
+		jobsExecutionAuditLog.UserEmail = userEmail
 
 		var job Job
 		err := json.NewDecoder(req.Body).Decode(&job)
-		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
 		defer req.Body.Close()
 		if err != nil {
 			logger.Error("Error parsing request body", err.Error())
-			ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionClientError)
+			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error parsing request body: %s", err.Error())
+			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionClientError
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.ClientError))
 			return
 		}
 
-		jobExecutionID, err := handler.executioner.Execute(ctx, job.Name, userEmail, job.Args)
+		jobExecutionID, err := handler.executioner.Execute(jobsExecutionAuditLog, job.Name, job.Args)
 		if err != nil {
 			logger.Error("Error executing job: ", err.Error())
-			ctx = context.WithValue(ctx, utility.JobSubmissionStatusContextKey, utility.JobSubmissionServerError)
+			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
+			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
 			return
 		}
 
-		go handler.auditor.AuditJobExecutionStatus(jobExecutionID)
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
 		return

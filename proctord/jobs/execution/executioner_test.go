@@ -1,13 +1,13 @@
 package execution
 
 import (
-	"context"
 	"errors"
 	"testing"
 
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/gojektech/proctor/proctord/jobs/secrets"
 	"github.com/gojektech/proctor/proctord/kubernetes"
+	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -32,8 +32,8 @@ func (suite *ExecutionerTestSuite) SetupTest() {
 func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	t := suite.T()
 
+	jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{}
 	jobName := "sample-job-name"
-	userEmail := "mrproctor@example.com"
 	jobArgs := map[string]string{
 		"argOne": "sample-arg",
 	}
@@ -48,27 +48,28 @@ func (suite *ExecutionerTestSuite) TestSuccessfulJobExecution() {
 	}
 	suite.mockSecretsStore.On("GetJobSecrets", jobName).Return(jobSecrets, nil).Once()
 
-	jobNameSubmittedForExecution := "proctor-ipsum-lorem"
+	jobExecutionID := "proctor-ipsum-lorem"
 	envVarsForJob := utility.MergeMaps(jobArgs, jobSecrets)
-	suite.mockKubeClient.On("ExecuteJob", jobMetadata.ImageName, envVarsForJob).Return(jobNameSubmittedForExecution, nil).Once()
+	suite.mockKubeClient.On("ExecuteJob", jobMetadata.ImageName, envVarsForJob).Return(jobExecutionID, nil).Once()
 
-	executedJobName, err := suite.testExecutioner.Execute(context.Background(), jobName, userEmail, jobArgs)
+	executedJobName, err := suite.testExecutioner.Execute(jobsExecutionAuditLog, jobName, jobArgs)
 	assert.NoError(t, err)
 
 	suite.mockMetadataStore.AssertExpectations(t)
 	suite.mockSecretsStore.AssertExpectations(t)
 	suite.mockKubeClient.AssertExpectations(t)
 
-	assert.Equal(t, jobNameSubmittedForExecution, executedJobName)
+	assert.Equal(t, jobExecutionID, executedJobName)
+	assert.Equal(t, jobsExecutionAuditLog.JobName, jobName)
 }
 
 func (suite *ExecutionerTestSuite) TestJobExecutionOnImageLookupFailure() {
 	t := suite.T()
 
-	suite.mockMetadataStore.On("GetJobMetadata", mock.Anything).Return(&metadata.Metadata{}, errors.New("No image found for job name")).Once()
+	suite.mockMetadataStore.On("GetJobMetadata", mock.Anything).Return(&metadata.Metadata{}, errors.New("image-fetch-error")).Once()
 
-	_, err := suite.testExecutioner.Execute(context.Background(), "any-job", "foo@bar.com", map[string]string{})
-	assert.EqualError(t, err, "No image found for job name")
+	_, err := suite.testExecutioner.Execute(&postgres.JobsExecutionAuditLog{}, "any-job", map[string]string{})
+	assert.EqualError(t, err, "Error finding image for job: any-job. Error: image-fetch-error")
 }
 
 func (suite *ExecutionerTestSuite) TestJobExecutionOnSecretsFetchFailure() {
@@ -77,10 +78,10 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnSecretsFetchFailure() {
 	jobMetadata := metadata.Metadata{ImageName: "img"}
 	suite.mockMetadataStore.On("GetJobMetadata", mock.Anything).Return(&jobMetadata, nil).Once()
 
-	suite.mockSecretsStore.On("GetJobSecrets", mock.Anything).Return(map[string]string{}, errors.New("secrets fetch error")).Once()
+	suite.mockSecretsStore.On("GetJobSecrets", mock.Anything).Return(map[string]string{}, errors.New("secret-store-error")).Once()
 
-	_, err := suite.testExecutioner.Execute(context.Background(), "any-job", "foo@bar.com", map[string]string{})
-	assert.EqualError(t, err, "secrets fetch error")
+	_, err := suite.testExecutioner.Execute(&postgres.JobsExecutionAuditLog{}, "any-job", map[string]string{})
+	assert.EqualError(t, err, "Error retrieving secrets for job: any-job. Error: secret-store-error")
 }
 
 func (suite *ExecutionerTestSuite) TestJobExecutionOnKubernetesJobExecutionFailure() {
@@ -90,11 +91,11 @@ func (suite *ExecutionerTestSuite) TestJobExecutionOnKubernetesJobExecutionFailu
 	suite.mockMetadataStore.On("GetJobMetadata", mock.Anything).Return(&jobMetadata, nil).Once()
 
 	suite.mockSecretsStore.On("GetJobSecrets", mock.Anything).Return(map[string]string{}, nil).Once()
-	suite.mockKubeClient.On("ExecuteJob", mock.Anything, mock.Anything).Return("", errors.New("Kube client job execution error")).Once()
+	suite.mockKubeClient.On("ExecuteJob", mock.Anything, mock.Anything).Return("", errors.New("kube-client-error")).Once()
 
-	_, err := suite.testExecutioner.Execute(context.Background(), "any-job", "foo@bar.com", map[string]string{})
+	_, err := suite.testExecutioner.Execute(&postgres.JobsExecutionAuditLog{}, "any-job", map[string]string{})
 
-	assert.EqualError(t, err, "Kube client job execution error")
+	assert.EqualError(t, err, "Error submitting job to kube: any-job. Error: kube-client-error")
 }
 
 func TestExecutionerTestSuite(t *testing.T) {
