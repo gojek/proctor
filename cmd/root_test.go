@@ -35,5 +35,5 @@ func TestRootCmdSubCommands(t *testing.T) {
 	assert.True(t, contains(rootCmd.Commands(), "list"))
 	assert.True(t, contains(rootCmd.Commands(), "config"))
 	assert.True(t, contains(rootCmd.Commands(), "version"))
-	assert.True(t,contains(rootCmd.Commands(), "schedule"))
+	assert.True(t, contains(rootCmd.Commands(), "schedule"))
 }
