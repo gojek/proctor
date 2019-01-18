@@ -2,16 +2,18 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/gojektech/proctor/cmd/config"
 	"github.com/gojektech/proctor/cmd/config/view"
 	"github.com/gojektech/proctor/cmd/description"
 	"github.com/gojektech/proctor/cmd/execution"
 	"github.com/gojektech/proctor/cmd/list"
 	"github.com/gojektech/proctor/cmd/schedule"
+	schedule_list "github.com/gojektech/proctor/cmd/schedule/list"
 	"github.com/gojektech/proctor/cmd/version"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -45,6 +47,9 @@ func Execute(printer io.Printer, proctorDClient daemon.Client) {
 
 	scheduleCmd := schedule.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(scheduleCmd)
+
+	scheduleListCmd := schedule_list.NewCmd(printer, proctorDClient)
+	scheduleCmd.AddCommand(scheduleListCmd)
 
 	var Time, NotifyEmails, Tags string
 

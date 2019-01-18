@@ -1,8 +1,6 @@
 package schedule
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -49,7 +47,7 @@ func (worker *worker) disableScheduledJobIfItExists(scheduledJobID string) {
 
 func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.JobsSchedule) {
 	if _, ok := worker.inMemoryScheduledJobs[scheduledJob.ID]; !ok {
-		jobArgs, err := deserializeJobArgs(scheduledJob.Args)
+		jobArgs, err := utility.DeserializeMap(scheduledJob.Args)
 		if err != nil {
 			logger.Error("Error deserializing job args: ", err.Error())
 			return
@@ -122,14 +120,4 @@ func (worker *worker) Run(tickerChan <-chan time.Time, signalsChan <-chan os.Sig
 			return
 		}
 	}
-}
-
-func deserializeJobArgs(encodedJobArgs string) (map[string]string, error) {
-	var jobArgs map[string]string
-	decodedJobArgs, err := base64.StdEncoding.DecodeString(encodedJobArgs)
-	if err != nil {
-		return jobArgs, err
-	}
-	err = json.Unmarshal(decodedJobArgs, &jobArgs)
-	return jobArgs, err
 }

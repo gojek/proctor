@@ -2,6 +2,8 @@ package utility
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -10,7 +12,7 @@ const ClientError = "malformed request"
 const NonExistentProcClientError = "proc name non existent"
 const InvalidCronExpressionClientError = "Cron expression invalid"
 const InvalidEmailIdClientError = "Provided invalid Email ID"
-const InvalidTagError  = "Tag(s) are missing"
+const InvalidTagError = "Tag(s) are missing"
 const DuplicateJobNameArgsClientError = "provided duplicate combination of job name and args for scheduling"
 const ServerError = "Something went wrong"
 
@@ -71,4 +73,19 @@ func MapToString(someMap map[string]string) string {
 		fmt.Fprintf(b, "%s=\"%s\",", key, value)
 	}
 	return strings.TrimRight(b.String(), ",")
+}
+
+func DeserializeMap(encodedMap string) (map[string]string, error) {
+	var mapStringToString map[string]string
+	if encodedMap == "" {
+		return mapStringToString, nil
+	}
+
+	decodedMap, err := base64.StdEncoding.DecodeString(encodedMap)
+	if err != nil {
+		return mapStringToString, err
+	}
+
+	err = json.Unmarshal(decodedMap, &mapStringToString)
+	return mapStringToString, err
 }

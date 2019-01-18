@@ -11,6 +11,7 @@ import (
 
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/gojektech/proctor/proctord/storage"
+	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -80,8 +81,8 @@ func (suite *SchedulerTestSuite) TestInvalidCronExpression() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
-		Name: "non-existent",
-		Time: "2 * invalid *",
+		Name:               "non-existent",
+		Time:               "2 * invalid *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
 	}
@@ -102,8 +103,8 @@ func (suite *SchedulerTestSuite) TestInvalidEmailAddress() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
-		Name: "non-existent",
-		Time: "* 2 * * *",
+		Name:               "non-existent",
+		Time:               "* 2 * * *",
 		NotificationEmails: "user-test.com",
 		Tags:               "tag-one,tag-two",
 	}
@@ -124,10 +125,10 @@ func (suite *SchedulerTestSuite) TestInvalidTag() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
-		Name: "non-existent",
-		Time: "* 2 * * *",
+		Name:               "non-existent",
+		Time:               "* 2 * * *",
 		NotificationEmails: "user@proctor.com",
-		Tags: "",
+		Tags:               "",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -146,8 +147,8 @@ func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
-		Name: "non-existent",
-		Time: "* 2 * * *",
+		Name:               "non-existent",
+		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
 	}
@@ -170,8 +171,8 @@ func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
-		Name: "non-existent",
-		Time: "* 2 * * *",
+		Name:               "non-existent",
+		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
 	}
@@ -194,8 +195,8 @@ func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
-		Name: "non-existent",
-		Time: "* 2 * * *",
+		Name:               "non-existent",
+		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
 	}
@@ -219,8 +220,8 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	t := suite.T()
 
 	scheduledJob := ScheduledJob{
-		Name: "non-existent",
-		Time: "* 2 * * *",
+		Name:               "non-existent",
+		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
 	}
@@ -238,6 +239,48 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
 	assert.Equal(t, utility.ServerError, string(responseBody))
+}
+
+func (s *SchedulerTestSuite) TestGetScheduledJobs() {
+	t := s.T()
+
+	req := httptest.NewRequest("GET", "/jobs/schedule", bytes.NewReader([]byte{}))
+	responseRecorder := httptest.NewRecorder()
+
+	scheduledJobsStoreFormat := []postgres.JobsSchedule{
+		postgres.JobsSchedule{
+			ID: "some-id",
+		},
+	}
+	s.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobsStoreFormat, nil).Once()
+
+	s.testScheduler.GetScheduledJobs()(responseRecorder, req)
+
+	s.mockStore.AssertExpectations(t)
+
+	assert.Equal(t, http.StatusOK, responseRecorder.Code)
+
+	var scheduledJobs []ScheduledJob
+	err := json.Unmarshal(responseRecorder.Body.Bytes(), &scheduledJobs)
+	assert.NoError(t, err)
+	assert.Equal(t, scheduledJobsStoreFormat[0].ID, scheduledJobs[0].ID)
+}
+
+func (s *SchedulerTestSuite) TestGetScheduledJobsFailure() {
+	t := s.T()
+
+	req := httptest.NewRequest("GET", "/jobs/schedule", bytes.NewReader([]byte{}))
+	responseRecorder := httptest.NewRecorder()
+
+	scheduledJobs := []postgres.JobsSchedule{}
+	s.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobs, errors.New("error")).Once()
+
+	s.testScheduler.GetScheduledJobs()(responseRecorder, req)
+
+	s.mockStore.AssertExpectations(t)
+
+	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
+	assert.Equal(t, utility.ServerError, responseRecorder.Body.String())
 }
 
 func TestScheduleTestSuite(t *testing.T) {

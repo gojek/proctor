@@ -15,6 +15,7 @@ type Store interface {
 	GetJobExecutionStatus(string) (string, error)
 	InsertScheduledJob(string, string, string, string, string, map[string]string) (string, error)
 	GetScheduledJobs() ([]postgres.JobsSchedule, error)
+	GetEnabledScheduledJobs() ([]postgres.JobsSchedule, error)
 }
 
 type store struct {
@@ -77,5 +78,11 @@ func (store *store) InsertScheduledJob(name, tags, time, notificationEmails, use
 func (store *store) GetScheduledJobs() ([]postgres.JobsSchedule, error) {
 	scheduledJobs := []postgres.JobsSchedule{}
 	err := store.postgresClient.Select(&scheduledJobs, "SELECT id, name, args, time, notification_emails, enabled from jobs_schedule")
+	return scheduledJobs, err
+}
+
+func (store *store) GetEnabledScheduledJobs() ([]postgres.JobsSchedule, error) {
+	scheduledJobs := []postgres.JobsSchedule{}
+	err := store.postgresClient.Select(&scheduledJobs, "SELECT id, name, args, time, tags, notification_emails from jobs_schedule where enabled = 't'")
 	return scheduledJobs, err
 }

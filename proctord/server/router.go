@@ -47,8 +47,7 @@ func NewRouter() (*mux.Router, error) {
 	jobMetadataHandler := metadata.NewHandler(metadataStore)
 	jobSecretsHandler := secrets.NewHandler(secretsStore)
 
-	executeScheduledJobsHandler := schedule.NewScheduler(store, metadataStore)
-	getScheduledJobsHandler  := schedule.NewGetHandler(store)
+	scheduledJobsHandler := schedule.NewScheduler(store, metadataStore)
 
 	router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "pong")
@@ -60,7 +59,7 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleSubmission()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.HandleBulkDisplay()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/secrets", middleware.ValidateClientVersion(jobSecretsHandler.HandleSubmission()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(executeScheduledJobsHandler.Schedule()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(getScheduledJobsHandler.GetScheduledJobs()))).Methods("GET")
+	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(scheduledJobsHandler.Schedule()))).Methods("POST")
+	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(scheduledJobsHandler.GetScheduledJobs()))).Methods("GET")
 	return router, nil
 }

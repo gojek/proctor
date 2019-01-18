@@ -2,9 +2,10 @@ package schedule
 
 import (
 	"encoding/json"
-	"github.com/badoux/checkmail"
 	"net/http"
 	"strings"
+
+	"github.com/badoux/checkmail"
 
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/gojektech/proctor/proctord/logger"
@@ -20,6 +21,7 @@ type scheduler struct {
 
 type Scheduler interface {
 	Schedule() http.HandlerFunc
+	GetScheduledJobs() http.HandlerFunc
 }
 
 func NewScheduler(store storage.Store, metadataStore metadata.Store) Scheduler {
@@ -121,5 +123,31 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 		w.WriteHeader(http.StatusCreated)
 		w.Write(responseBody)
 		return
+	}
+}
+
+func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		scheduledJobsStoreFormat, err := scheduler.store.GetEnabledScheduledJobs()
+		if err != nil {
+			logger.Error("Error fetching scheduled jobs", err.Error())
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			return
+		}
+
+		scheduledJobs := FromStoreToHandler(scheduledJobsStoreFormat)
+
+		scheduledJobsJson, err := json.Marshal(scheduledJobs)
+		if err != nil {
+			logger.Error("Error marshalling scheduled jobs", err.Error())
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			return
+		}
+
+		w.Write(scheduledJobsJson)
 	}
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/gojektech/proctor/config"
 	"github.com/gojektech/proctor/io"
 	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
+	"github.com/gojektech/proctor/proctord/jobs/schedule"
 	"github.com/gojektech/proctor/proctord/utility"
 	"github.com/gorilla/websocket"
 )
@@ -30,6 +31,7 @@ type Client interface {
 	StreamProcLogs(string) error
 	GetDefinitiveProcExecutionStatus(string) (string, error)
 	ScheduleJob(string, string, string, string, map[string]string) (string, error)
+	ListScheduledProcs() ([]schedule.ScheduledJob, error)
 }
 
 type client struct {
@@ -49,12 +51,12 @@ type ProcToExecute struct {
 }
 
 type ScheduleJobPayload struct {
-	ID   string   `json:"id"`
-	Name string `json:"name"`
-	Tags string `json:"tags"`
-	Time string `json:"time"`
-	NotificationEmails string `json:"notification_emails"`
-	Args map[string]string `json:"args"`
+	ID                 string            `json:"id"`
+	Name               string            `json:"name"`
+	Tags               string            `json:"tags"`
+	Time               string            `json:"time"`
+	NotificationEmails string            `json:"notification_emails"`
+	Args               map[string]string `json:"args"`
 }
 
 func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
@@ -65,17 +67,17 @@ func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	}
 }
 
-func(c *client) ScheduleJob(name, tags, time, notificationEmails string,jobArgs map[string]string) (string, error){
+func (c *client) ScheduleJob(name, tags, time, notificationEmails string, jobArgs map[string]string) (string, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return "", err
 	}
 	jobPayload := ScheduleJobPayload{
-		Name: name,
-		Tags: tags,
-		Time: time,
+		Name:               name,
+		Tags:               tags,
+		Time:               time,
 		NotificationEmails: notificationEmails,
-		Args: jobArgs,
+		Args:               jobArgs,
 	}
 
 	requestBody, err := json.Marshal(jobPayload)
@@ -152,6 +154,35 @@ func (c *client) ListProcs() ([]proc_metadata.Metadata, error) {
 	var procList []proc_metadata.Metadata
 	err = json.NewDecoder(resp.Body).Decode(&procList)
 	return procList, err
+}
+
+func (c *client) ListScheduledProcs() ([]schedule.ScheduledJob, error) {
+	err := c.loadProctorConfig()
+	if err != nil {
+		return []schedule.ScheduledJob{}, err
+	}
+
+	client := &http.Client{
+		Timeout: c.connectionTimeoutSecs,
+	}
+	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/schedule", nil)
+	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return []schedule.ScheduledJob{}, buildNetworkError(err)
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return []schedule.ScheduledJob{}, buildHTTPError(c, resp)
+	}
+
+	var scheduledProcsList []schedule.ScheduledJob
+	err = json.NewDecoder(resp.Body).Decode(&scheduledProcsList)
+	return scheduledProcsList, err
 }
 
 func (c *client) ExecuteProc(name string, args map[string]string) (string, error) {
