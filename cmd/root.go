@@ -2,17 +2,16 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gojektech/proctor/cmd/schedule"
-	"github.com/gojektech/proctor/cmd/schedule/create"
-	"os"
 	"github.com/gojektech/proctor/cmd/config"
 	"github.com/gojektech/proctor/cmd/config/view"
 	"github.com/gojektech/proctor/cmd/description"
 	"github.com/gojektech/proctor/cmd/execution"
 	"github.com/gojektech/proctor/cmd/list"
+	"github.com/gojektech/proctor/cmd/schedule"
 	"github.com/gojektech/proctor/cmd/version"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -44,19 +43,17 @@ func Execute(printer io.Printer, proctorDClient daemon.Client) {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configShowCmd)
 
-	scheduleCmd := schedule.NewCmd(printer)
+	scheduleCmd := schedule.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(scheduleCmd)
-	scheduleCreateCmd := create.NewCmd(printer, proctorDClient)
-	scheduleCmd.AddCommand(scheduleCreateCmd)
 
 	var Time, NotifyEmails, Tags string
 
-	scheduleCreateCmd.PersistentFlags().StringVarP(&Time, "time", "t", "", "Schedule time")
-	scheduleCreateCmd.MarkFlagRequired("time")
-	scheduleCreateCmd.PersistentFlags().StringVarP(&NotifyEmails, "notify", "n", "", "Notifier Email ID's")
-	scheduleCreateCmd.MarkFlagRequired("notify")
-	scheduleCreateCmd.PersistentFlags().StringVarP(&Tags, "tags", "T", "", "Tags")
-	scheduleCreateCmd.MarkFlagRequired("tags")
+	scheduleCmd.PersistentFlags().StringVarP(&Time, "time", "t", "", "Schedule time")
+	scheduleCmd.MarkFlagRequired("time")
+	scheduleCmd.PersistentFlags().StringVarP(&NotifyEmails, "notify", "n", "", "Notifier Email ID's")
+	scheduleCmd.MarkFlagRequired("notify")
+	scheduleCmd.PersistentFlags().StringVarP(&Tags, "tags", "T", "", "Tags")
+	scheduleCmd.MarkFlagRequired("tags")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
