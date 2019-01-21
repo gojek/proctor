@@ -34,7 +34,7 @@ const ClientOutdatedErrorMessage = "Your Proctor client is using an outdated ver
 const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"
 const JobSubmissionServerError = "server_error"
-
+const JobNotFoundError  = "Job not found"
 const JobSucceeded = "SUCCEEDED"
 const JobFailed = "FAILED"
 const JobWaiting = "WAITING"

@@ -38,3 +38,13 @@ func (m *MockStore) GetEnabledScheduledJobs() ([]postgres.JobsSchedule, error) {
 	args := m.Called()
 	return args.Get(0).([]postgres.JobsSchedule), args.Error(1)
 }
+
+func (m *MockStore) GetScheduledJob(jobID string) ([]postgres.JobsSchedule, error) {
+	args := m.Called(jobID)
+	return args.Get(0).([]postgres.JobsSchedule), args.Error(1)
+}
+
+func (m *MockStore) RemoveScheduledJob(jobID string) (int64, error) {
+	args := m.Called(jobID)
+	return args.Get(0).(int64), args.Error(1)
+}

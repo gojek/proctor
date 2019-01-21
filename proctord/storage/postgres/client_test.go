@@ -27,7 +27,7 @@ func TestNamedExec(t *testing.T) {
 		JobExecutionStatus:  "test-job-execution-status",
 	}
 
-	err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
+	_, err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
 	assert.NoError(t, err)
 
 	var persistedJobsExecutionAuditLog JobsExecutionAuditLog
@@ -64,7 +64,7 @@ func TestSelect(t *testing.T) {
 		JobExecutionStatus:  "test-job-execution-status",
 	}
 
-	err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
+	_, err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
 	assert.NoError(t, err)
 
 	jobsExecutionAuditLogResult := []JobsExecutionAuditLog{}

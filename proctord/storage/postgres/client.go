@@ -12,9 +12,10 @@ import (
 )
 
 type Client interface {
-	NamedExec(string, interface{}) error
+	NamedExec(string, interface{}) (int64, error)
 	Select(interface{}, string, ...interface{}) error
 	Close() error
+	GetDB() *sqlx.DB
 }
 
 type client struct {
@@ -38,9 +39,10 @@ func NewClient() Client {
 	}
 }
 
-func (client *client) NamedExec(query string, data interface{}) error {
-	_, err := client.db.NamedExec(query, data)
-	return err
+func (client *client) NamedExec(query string, data interface{}) (int64, error) {
+	result, err := client.db.NamedExec(query, data)
+	rowsAffected, err := result.RowsAffected()
+	return rowsAffected, err
 }
 
 func (client *client) Select(destination interface{}, query string, args ...interface{}) error {
@@ -50,4 +52,8 @@ func (client *client) Select(destination interface{}, query string, args ...inte
 func (client *client) Close() error {
 	logger.Info("Closing connections to db")
 	return client.db.Close()
+}
+
+func (client *client) GetDB() *sqlx.DB {
+	return client.db
 }

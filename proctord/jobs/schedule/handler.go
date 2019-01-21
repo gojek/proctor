@@ -2,6 +2,8 @@ package schedule
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
 
@@ -22,6 +24,8 @@ type scheduler struct {
 type Scheduler interface {
 	Schedule() http.HandlerFunc
 	GetScheduledJobs() http.HandlerFunc
+	GetScheduledJob() http.HandlerFunc
+	RemoveScheduledJob() http.HandlerFunc
 }
 
 func NewScheduler(store storage.Store, metadataStore metadata.Store) Scheduler {
@@ -137,6 +141,13 @@ func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
 			return
 		}
 
+		if len(scheduledJobsStoreFormat) == 0 {
+			logger.Error("No scheduled jobs found on proctord", nil)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("No scheduled jobs found on proctord"))
+			return
+		}
+
 		scheduledJobs := FromStoreToHandler(scheduledJobsStoreFormat)
 
 		scheduledJobsJson, err := json.Marshal(scheduledJobs)
@@ -151,3 +162,76 @@ func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
 		w.Write(scheduledJobsJson)
 	}
 }
+
+func (scheduler *scheduler) GetScheduledJob() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		jobID := mux.Vars(req)["id"]
+		scheduledJob, err := scheduler.store.GetScheduledJob(jobID)
+		if err != nil {
+			if err.Error() == fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID) {
+				logger.Error(err.Error())
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Invalid Job ID"))
+				return
+			}
+			logger.Error("Error fetching scheduled job", err.Error())
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			return
+		}
+
+		if len(scheduledJob) == 0 {
+			logger.Error(utility.JobNotFoundError, nil)
+
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(utility.JobNotFoundError))
+			return
+		}
+
+		job := FromStoreToHandler(scheduledJob)
+
+		scheduledJobJson, err := json.Marshal(job)
+		if err != nil {
+			logger.Error("Error marshalling scheduled job", err.Error())
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			return
+		}
+
+		w.Write(scheduledJobJson)
+	}
+}
+
+func (scheduler *scheduler) RemoveScheduledJob() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		jobID := mux.Vars(req)["id"]
+		removedJobsCount, err := scheduler.store.RemoveScheduledJob(jobID)
+		if err != nil {
+			if err.Error() == fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID) {
+				logger.Error(err.Error())
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Invalid Job ID"))
+				return
+			}
+			logger.Error("Error fetching scheduled job", err.Error())
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			return
+		}
+
+		if removedJobsCount == 0 {
+			logger.Error(utility.JobNotFoundError, nil)
+
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(utility.JobNotFoundError))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf("Successfully unscheduled Job ID: %s", jobID)))
+	}
+}
+
