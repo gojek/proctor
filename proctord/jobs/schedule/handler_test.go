@@ -292,13 +292,7 @@ func (s *SchedulerTestSuite) TestGetScheduledJobsWhenNoJobsFound() {
 
 	s.mockStore.AssertExpectations(t)
 
-	assert.Equal(t, http.StatusOK, responseRecorder.Code)
-
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(responseRecorder.Body)
-	responseBody := buf.String()
-	assert.Equal(t, "No scheduled jobs found on proctord", responseBody)
-
+	assert.Equal(t, http.StatusNoContent, responseRecorder.Code)
 }
 
 func (s *SchedulerTestSuite) TestGetScheduledJobsFailure() {
@@ -337,10 +331,10 @@ func (s *SchedulerTestSuite) TestGetScheduledJobByID() {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 
-	var scheduledJobs []ScheduledJob
-	err = json.NewDecoder(response.Body).Decode(&scheduledJobs)
+	var scheduledJob ScheduledJob
+	err = json.NewDecoder(response.Body).Decode(&scheduledJob)
 	assert.NoError(t, err)
-	assert.Equal(t, jobID, scheduledJobs[0].ID)
+	assert.Equal(t, jobID, scheduledJob.ID)
 
 	s.mockStore.AssertExpectations(t)
 }

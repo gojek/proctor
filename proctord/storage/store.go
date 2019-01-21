@@ -98,7 +98,7 @@ func (store *store) GetEnabledScheduledJobs() ([]postgres.JobsSchedule, error) {
 
 func (store *store) GetScheduledJob(jobID string) ([]postgres.JobsSchedule, error) {
 	scheduledJob := []postgres.JobsSchedule{}
-	err := store.postgresClient.Select(&scheduledJob, "SELECT id, name, args, time, tags, notification_emails from jobs_schedule where id = $1", jobID)
+	err := store.postgresClient.Select(&scheduledJob, "SELECT id, name, args, time, tags, notification_emails from jobs_schedule where id = $1 and enabled = 't'", jobID)
 	return scheduledJob, err
 }
 

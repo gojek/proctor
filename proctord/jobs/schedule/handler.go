@@ -142,9 +142,8 @@ func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
 		}
 
 		if len(scheduledJobsStoreFormat) == 0 {
-			logger.Error("No scheduled jobs found on proctord", nil)
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("No scheduled jobs found on proctord"))
+			logger.Error(utility.NoScheduledJobsError, nil)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
@@ -189,7 +188,7 @@ func (scheduler *scheduler) GetScheduledJob() http.HandlerFunc {
 			return
 		}
 
-		job := FromStoreToHandler(scheduledJob)
+		job := GetScheduledJob(scheduledJob[0])
 
 		scheduledJobJson, err := json.Marshal(job)
 		if err != nil {
@@ -234,4 +233,3 @@ func (scheduler *scheduler) RemoveScheduledJob() http.HandlerFunc {
 		w.Write([]byte(fmt.Sprintf("Successfully unscheduled Job ID: %s", jobID)))
 	}
 }
-

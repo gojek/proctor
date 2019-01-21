@@ -18,19 +18,26 @@ type ScheduledJob struct {
 func FromStoreToHandler(scheduledJobsStoreFormat []postgres.JobsSchedule) []ScheduledJob {
 	var scheduledJobs []ScheduledJob
 	for _, scheduledJobStoreFormat := range scheduledJobsStoreFormat {
-		args, err := utility.DeserializeMap(scheduledJobStoreFormat.Args)
-		if err != nil {
-			logger.Error("Error deserializing scheduled job args to map: ", err.Error())
-		}
-		scheduledJob := ScheduledJob{
-			ID:                 scheduledJobStoreFormat.ID,
-			Name:               scheduledJobStoreFormat.Name,
-			Args:               args,
-			Tags:               scheduledJobStoreFormat.Tags,
-			Time:               scheduledJobStoreFormat.Time,
-			NotificationEmails: scheduledJobStoreFormat.NotificationEmails,
-		}
+		scheduledJob := GetScheduledJob(scheduledJobStoreFormat)
 		scheduledJobs = append(scheduledJobs, scheduledJob)
 	}
 	return scheduledJobs
 }
+
+
+func GetScheduledJob(scheduledJobStoreFormat postgres.JobsSchedule) ScheduledJob {
+	args, err := utility.DeserializeMap(scheduledJobStoreFormat.Args)
+	if err != nil {
+		logger.Error("Error deserializing scheduled job args to map: ", err.Error())
+	}
+	scheduledJob := ScheduledJob{
+		ID:                 scheduledJobStoreFormat.ID,
+		Name:               scheduledJobStoreFormat.Name,
+		Args:               args,
+		Tags:               scheduledJobStoreFormat.Tags,
+		Time:               scheduledJobStoreFormat.Time,
+		NotificationEmails: scheduledJobStoreFormat.NotificationEmails,
+	}
+	return scheduledJob
+}
+
