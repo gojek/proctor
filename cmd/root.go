@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gojektech/proctor/cmd/schedule/remove"
 	"os"
 
 	"github.com/gojektech/proctor/cmd/config"
@@ -11,6 +12,7 @@ import (
 	"github.com/gojektech/proctor/cmd/list"
 	"github.com/gojektech/proctor/cmd/schedule"
 	schedule_list "github.com/gojektech/proctor/cmd/schedule/list"
+	schedule_describe "github.com/gojektech/proctor/cmd/schedule/describe"
 	"github.com/gojektech/proctor/cmd/version"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
@@ -47,9 +49,12 @@ func Execute(printer io.Printer, proctorDClient daemon.Client) {
 
 	scheduleCmd := schedule.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(scheduleCmd)
-
 	scheduleListCmd := schedule_list.NewCmd(printer, proctorDClient)
 	scheduleCmd.AddCommand(scheduleListCmd)
+	scheduleDescribeCmd := schedule_describe.NewCmd(printer, proctorDClient)
+	scheduleCmd.AddCommand(scheduleDescribeCmd)
+	scheduleRemoveCmd := remove.NewCmd(printer, proctorDClient)
+	scheduleCmd.AddCommand(scheduleRemoveCmd)
 
 	var Time, NotifyEmails, Tags string
 

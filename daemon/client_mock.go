@@ -39,3 +39,13 @@ func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string,job
 	args := m.Called(name, tags, time, notificationEmails, jobArgs)
 	return args.Get(0).(string), args.Error(1)
 }
+
+func (m *MockClient) DescribeScheduledProc(jobID string) (schedule.ScheduledJob, error) {
+	args := m.Called(jobID)
+	return args.Get(0).(schedule.ScheduledJob), args.Error(1)
+}
+
+func (m *MockClient) RemoveScheduledProc(jobID string) error {
+	args := m.Called(jobID)
+	return args.Error(0)
+}

@@ -41,6 +41,10 @@ func NewClient() Client {
 
 func (client *client) NamedExec(query string, data interface{}) (int64, error) {
 	result, err := client.db.NamedExec(query, data)
+	if result == nil {
+		return int64(0), err
+	}
+
 	rowsAffected, err := result.RowsAffected()
 	return rowsAffected, err
 }

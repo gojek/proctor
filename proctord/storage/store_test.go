@@ -241,3 +241,13 @@ func TestRemoveScheduledJobByIDReturnErrorIfIDnotFound(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(0), removedJobsCount)
 }
+
+func TestRemoveScheduledJobByIDReturnErrorIfIDIsInvalid(t *testing.T) {
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
+
+	removedJobsCount, err := testStore.RemoveScheduledJob("86A7963B")
+	assert.Error(t, err)
+	assert.EqualError(t, err, "pq: invalid input syntax for type uuid: \"86A7963B\"")
+	assert.Equal(t, int64(0), removedJobsCount)
+}
