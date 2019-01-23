@@ -25,7 +25,7 @@ func (s *ScheduleCreateCmdTestSuite) SetupTest() {
 func (s *ScheduleCreateCmdTestSuite) TestScheduleCreateCmdHelp() {
 	assert.Equal(s.T(), "Create scheduled jobs", s.testScheduleCreateCmd.Short)
 	assert.Equal(s.T(), "This command helps to create scheduled jobs", s.testScheduleCreateCmd.Long)
-	assert.Equal(s.T(), "proctor schedule run-sample -t '0 2 * * *'  -n 'username@mail.com' -T 'sample,proctor' ARG_ONE1=foobar", s.testScheduleCreateCmd.Example)
+	assert.Equal(s.T(), "proctor schedule run-sample -g my-group -t '0 2 * * *'  -n 'username@mail.com' -T 'sample,proctor' ARG_ONE1=foobar", s.testScheduleCreateCmd.Example)
 }
 
 func TestScheduleCreateCmdTestSuite(t *testing.T) {

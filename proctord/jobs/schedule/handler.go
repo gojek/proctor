@@ -78,6 +78,13 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
+		if scheduledJob.Group == "" {
+			logger.Error("Group Name is missing")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(utility.GroupNameMissingError))
+			return
+		}
+
 		_, err = scheduler.metadataStore.GetJobMetadata(scheduledJob.Name)
 		if err != nil {
 			if err.Error() == "redigo: nil returned" {
@@ -95,7 +102,7 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
-		scheduledJob.ID, err = scheduler.store.InsertScheduledJob(scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Args)
+		scheduledJob.ID, err = scheduler.store.InsertScheduledJob(scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Group,scheduledJob.Args)
 		if err != nil {
 			if err.Error() == "pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\"" {
 				logger.Error("Client provided duplicate combination of scheduled job name and args: ", scheduledJob.Name, scheduledJob.Args)

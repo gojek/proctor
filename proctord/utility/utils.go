@@ -41,7 +41,7 @@ const JobFailed = "FAILED"
 const JobWaiting = "WAITING"
 const JobExecutionStatusFetchError = "JOB_EXECUTION_STATUS_FETCH_ERROR"
 const NoDefinitiveJobExecutionStatusFound = "NO_DEFINITIVE_JOB_EXECUTION_STATUS_FOUND"
-
+const GroupNameMissingError  = "Group Name is missing"
 const JobNameContextKey = "job_name"
 const UserEmailContextKey = "user_email"
 const JobArgsContextKey = "job_args"

@@ -44,6 +44,7 @@ type JobsSchedule struct {
 	Time               string    `db:"time"`
 	NotificationEmails string    `db:"notification_emails"`
 	UserEmail          string    `db:"user_email"`
+	Group              string    `db:"group_name"`
 	Enabled            bool      `db:"enabled"`
 	CreatedAt          time.Time `db:"created_at"`
 	UpdatedAt          time.Time `db:"updated_at"`

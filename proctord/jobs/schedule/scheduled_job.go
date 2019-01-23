@@ -13,6 +13,7 @@ type ScheduledJob struct {
 	NotificationEmails string            `json:"notification_emails"`
 	Time               string            `json:"time"`
 	Tags               string            `json:"tags"`
+	Group              string            `json:"group_name"`
 }
 
 func FromStoreToHandler(scheduledJobsStoreFormat []postgres.JobsSchedule) []ScheduledJob {
@@ -36,6 +37,7 @@ func GetScheduledJob(scheduledJobStoreFormat postgres.JobsSchedule) ScheduledJob
 		Args:               args,
 		Tags:               scheduledJobStoreFormat.Tags,
 		Time:               scheduledJobStoreFormat.Time,
+		Group:              scheduledJobStoreFormat.Group,
 		NotificationEmails: scheduledJobStoreFormat.NotificationEmails,
 	}
 	return scheduledJob

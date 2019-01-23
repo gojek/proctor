@@ -56,10 +56,12 @@ func Execute(printer io.Printer, proctorDClient daemon.Client) {
 	scheduleRemoveCmd := remove.NewCmd(printer, proctorDClient)
 	scheduleCmd.AddCommand(scheduleRemoveCmd)
 
-	var Time, NotifyEmails, Tags string
+	var Time, NotifyEmails, Tags, Group string
 
 	scheduleCmd.PersistentFlags().StringVarP(&Time, "time", "t", "", "Schedule time")
 	scheduleCmd.MarkFlagRequired("time")
+	scheduleCmd.PersistentFlags().StringVarP(&Group, "group", "g", "", "Group Name")
+	scheduleCmd.MarkFlagRequired("group")
 	scheduleCmd.PersistentFlags().StringVarP(&NotifyEmails, "notify", "n", "", "Notifier Email ID's")
 	scheduleCmd.MarkFlagRequired("notify")
 	scheduleCmd.PersistentFlags().StringVarP(&Tags, "tags", "T", "", "Tags")

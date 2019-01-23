@@ -156,36 +156,37 @@ func TestGetJobsStatusWhenError(t *testing.T) {
 }
 
 func TestJobsScheduleInsertionSuccessfull(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
-	testStore := New(mockPostgresClient)
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
 
-	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
-		mock.Anything).
-		Return(int64(1), nil).
-		Once()
-
-	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one,tag-two", "* * 3 * *", "foo@bar.com,bar@foo.com", "ms@proctor.com", map[string]string{})
-
+	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
 	assert.NoError(t, err)
-
 	_, err = uuid.FromString(scheduledJobID)
 	assert.NoError(t, err)
 
-	mockPostgresClient.AssertExpectations(t)
+	_, err = postgresClient.GetDB().Exec("truncate table jobs_schedule;")
+	assert.NoError(t, err)
 }
 
 func TestJobsScheduleInsertionFailed(t *testing.T) {
 	mockPostgresClient := &postgres.ClientMock{}
 	testStore := New(mockPostgresClient)
 
+	jobName := "job-name"
+	tag := "tag-one1"
+	time := "* * 3 * *"
+	notificationEmail := "foo@bar.com"
+	userEmail := "ms@proctor.com"
+	groupName := "group1"
+
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
-		mock.Anything).
-		Return(int64(0), errors.New("any-error")).
+		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, group_name, args, enabled) "+
+	"VALUES (:id, :name, :tags, :time, :notification_emails, :user_email,  :group_name, :args, :enabled)",
+		mock.AnythingOfType("*postgres.JobsSchedule")).Run(func(args mock.Arguments) {
+	}).Return(int64(0), errors.New("any-error")).
 		Once()
 
-	_, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", map[string]string{})
+	_, err := testStore.InsertScheduledJob(jobName, tag, time, notificationEmail, userEmail,groupName, map[string]string{})
 
 	assert.Error(t, err)
 
@@ -196,7 +197,7 @@ func TestGetScheduledJobByID(t *testing.T) {
 	postgresClient := postgres.NewClient()
 	testStore := New(postgresClient)
 
-	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", map[string]string{})
+	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
 	assert.NoError(t, err)
 
 	resultJob, err := testStore.GetScheduledJob(jobID)
@@ -222,7 +223,7 @@ func TestRemoveScheduledJobByID(t *testing.T) {
 	postgresClient := postgres.NewClient()
 	testStore := New(postgresClient)
 
-	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", map[string]string{})
+	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
 	assert.NoError(t, err)
 
 	removedJobsCount, err := testStore.RemoveScheduledJob(jobID)

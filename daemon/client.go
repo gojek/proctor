@@ -31,7 +31,7 @@ type Client interface {
 	ExecuteProc(string, map[string]string) (string, error)
 	StreamProcLogs(string) error
 	GetDefinitiveProcExecutionStatus(string) (string, error)
-	ScheduleJob(string, string, string, string, map[string]string) (string, error)
+	ScheduleJob(string, string, string, string,string, map[string]string) (string, error)
 	ListScheduledProcs() ([]schedule.ScheduledJob, error)
 	DescribeScheduledProc(string) (schedule.ScheduledJob, error)
 	RemoveScheduledProc(string) error
@@ -59,6 +59,7 @@ type ScheduleJobPayload struct {
 	Tags               string            `json:"tags"`
 	Time               string            `json:"time"`
 	NotificationEmails string            `json:"notification_emails"`
+	Group              string            `json:"group_name"`
 	Args               map[string]string `json:"args"`
 }
 
@@ -70,7 +71,7 @@ func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	}
 }
 
-func (c *client) ScheduleJob(name, tags, time, notificationEmails string, jobArgs map[string]string) (string, error) {
+func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string, jobArgs map[string]string) (string, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return "", err
@@ -81,6 +82,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails string, jobArg
 		Time:               time,
 		NotificationEmails: notificationEmails,
 		Args:               jobArgs,
+		Group:              group,
 	}
 
 	requestBody, err := json.Marshal(jobPayload)

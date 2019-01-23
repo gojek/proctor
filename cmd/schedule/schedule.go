@@ -14,7 +14,7 @@ func NewCmd(printer io.Printer,proctorDClient daemon.Client) *cobra.Command {
 		Use:     "schedule",
 		Short:   "Create scheduled jobs",
 		Long:    "This command helps to create scheduled jobs",
-		Example:  fmt.Sprintf("proctor schedule run-sample -t '0 2 * * *'  -n 'username@mail.com' -T 'sample,proctor' ARG_ONE1=foobar"),
+		Example:  fmt.Sprintf("proctor schedule run-sample -g my-group -t '0 2 * * *'  -n 'username@mail.com' -T 'sample,proctor' ARG_ONE1=foobar"),
 		Args:     cobra.MinimumNArgs(1),
 
 		Run: func(cmd *cobra.Command, args []string) {
@@ -31,6 +31,11 @@ func NewCmd(printer io.Printer,proctorDClient daemon.Client) *cobra.Command {
 			}
 
 			tags, err := cmd.Flags().GetString("tags")
+			if err != nil {
+				printer.Println(err.Error(),color.FgRed)
+			}
+
+			group, err := cmd.Flags().GetString("group")
 			if err != nil {
 				printer.Println(err.Error(),color.FgRed)
 			}
@@ -55,7 +60,7 @@ func NewCmd(printer io.Printer,proctorDClient daemon.Client) *cobra.Command {
 				printer.Println("With No Variables", color.FgRed)
 			}
 
-			scheduledJobID, err := proctorDClient.ScheduleJob(procName, tags, time, notificationEmails, jobArgs)
+			scheduledJobID, err := proctorDClient.ScheduleJob(procName, tags, time, notificationEmails, group, jobArgs)
 			if err != nil {
 				printer.Println(err.Error(), color.FgRed)
 				print()

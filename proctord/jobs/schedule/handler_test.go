@@ -55,6 +55,7 @@ func (suite *SchedulerTestSuite) TestSuccessfulJobScheduling() {
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
+		Group:              "some-group",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -65,7 +66,7 @@ func (suite *SchedulerTestSuite) TestSuccessfulJobScheduling() {
 
 	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
 	insertedScheduledJobID := "123"
-	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Args).Return(insertedScheduledJobID, nil)
+	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail,scheduledJob.Group, scheduledJob.Args).Return(insertedScheduledJobID, nil)
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
@@ -98,6 +99,7 @@ func (suite *SchedulerTestSuite) TestInvalidCronExpression() {
 		Time:               "2 * invalid *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
+		Group:              "some-group",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -119,6 +121,7 @@ func (suite *SchedulerTestSuite) TestInvalidEmailAddress() {
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "user-test.com",
+		Group:              "some-group",
 		Tags:               "tag-one,tag-two",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
@@ -140,6 +143,7 @@ func (suite *SchedulerTestSuite) TestInvalidTag() {
 	scheduledJob := ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
+		Group:              "some-group",
 		NotificationEmails: "user@proctor.com",
 		Tags:               "",
 	}
@@ -156,6 +160,29 @@ func (suite *SchedulerTestSuite) TestInvalidTag() {
 	assert.Equal(t, utility.InvalidTagError, string(responseBody))
 }
 
+func (suite *SchedulerTestSuite) TestInvalidGroupName() {
+	t := suite.T()
+
+	scheduledJob := ScheduledJob{
+		Name:               "non-existent",
+		Time:               "* 2 * * *",
+		NotificationEmails: "user@proctor.com",
+		Tags:               "backup",
+		Group:              "",
+	}
+	requestBody, err := json.Marshal(scheduledJob)
+	assert.NoError(t, err)
+
+	responseRecorder := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
+
+	suite.testScheduler.Schedule()(responseRecorder, req)
+
+	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
+	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
+	assert.Equal(t, utility.GroupNameMissingError, string(responseBody))
+}
+
 func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 	t := suite.T()
 
@@ -164,6 +191,7 @@ func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
+		Group:              "some-group",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -187,6 +215,7 @@ func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
+		Group:              "some-group",
 		Tags:               "tag-one,tag-two",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
@@ -212,6 +241,7 @@ func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
+		Group:              "group1",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -220,7 +250,7 @@ func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
 	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
-	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, "", scheduledJob.Args).Return("", errors.New("pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\""))
+	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, "",scheduledJob.Group, scheduledJob.Args).Return("", errors.New("pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\""))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
@@ -237,6 +267,7 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
 		Tags:               "tag-one,tag-two",
+		Group:              "group",
 	}
 	requestBody, err := json.Marshal(scheduledJob)
 	assert.NoError(t, err)
@@ -245,7 +276,7 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
 	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
-	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, "", scheduledJob.Args).Return("", errors.New("any-error"))
+	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, "",scheduledJob.Group, scheduledJob.Args).Return("", errors.New("any-error"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 

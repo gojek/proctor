@@ -305,9 +305,10 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 	time := "*/1 * * * *"
 	notificationEmails := "user@mail.com"
 	tags := "db,backup"
+	group := "test"
 	procArgs := map[string]string{"ARG_ONE": "sample-value"}
 
-	body := `{"id":"8965fce9-5025-43b3-b21c-920c5ff41cd9","name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup"}`
+	body := `{"id":"8965fce9-5025-43b3-b21c-920c5ff41cd9","name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup", "group":"test"}`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -330,7 +331,7 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	executeProcResponse, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, procArgs)
+	executeProcResponse, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
@@ -346,6 +347,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 	notificationEmails := "user@mail.com"
 	tags := "db,backup"
 	procArgs := map[string]string{"ARG_ONE": "sample-value"}
+	group := "testgroup"
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -368,7 +370,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	_, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, procArgs)
+	_, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
 	assert.Equal(t, "provided duplicate combination of job name and args for scheduling", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
