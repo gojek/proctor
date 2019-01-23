@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"testing"
-
 	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 func TestJobsExecutionAuditLog(t *testing.T) {
@@ -30,7 +29,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 
 	mockPostgresClient.On("NamedExec",
 		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", mock.Anything).Run(func(args mock.Arguments) {
-	}).Return(nil).Once()
+	}).Return(int64(1), nil).Once()
 
 	err = testStore.AuditJobsExecution(jobExecutionAuditLog)
 
@@ -54,7 +53,7 @@ func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
 	mockPostgresClient.On("NamedExec",
 		"INSERT INTO jobs_execution_audit_log (job_name, user_email, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :user_email, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)",
 		mock.Anything).
-		Return(errors.New("error")).
+		Return(int64(0), errors.New("error")).
 		Once()
 
 	err = testStore.AuditJobsExecution(jobExecutionAuditLog)
@@ -79,7 +78,7 @@ func TestUpdateJobsExecutionAuditLog(t *testing.T) {
 			assert.Equal(t, postgres.StringToSQLString(executionID), data.ExecutionID)
 			assert.Equal(t, jobExecutionStatus, data.JobExecutionStatus)
 		}).
-		Return(nil).
+		Return(int64(1), nil).
 		Once()
 
 	err := testStore.UpdateJobsExecutionAuditLog(executionID, jobExecutionStatus)
@@ -157,38 +156,99 @@ func TestGetJobsStatusWhenError(t *testing.T) {
 }
 
 func TestJobsScheduleInsertionSuccessfull(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
-	testStore := New(mockPostgresClient)
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
 
-	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
-		mock.Anything).
-		Return(nil).
-		Once()
-
-	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one,tag-two", "* * 3 * *", "foo@bar.com,bar@foo.com", "ms@proctor.com", map[string]string{})
-
+	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
 	assert.NoError(t, err)
-
 	_, err = uuid.FromString(scheduledJobID)
 	assert.NoError(t, err)
 
-	mockPostgresClient.AssertExpectations(t)
+	_, err = postgresClient.GetDB().Exec("truncate table jobs_schedule;")
+	assert.NoError(t, err)
 }
 
 func TestJobsScheduleInsertionFailed(t *testing.T) {
 	mockPostgresClient := &postgres.ClientMock{}
 	testStore := New(mockPostgresClient)
 
+	jobName := "job-name"
+	tag := "tag-one1"
+	time := "* * 3 * *"
+	notificationEmail := "foo@bar.com"
+	userEmail := "ms@proctor.com"
+	groupName := "group1"
+
 	mockPostgresClient.On("NamedExec",
-		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, args, enabled) VALUES (:id, :name, :tags, :time, :notification_emails, :user_email, :args, :enabled)",
-		mock.Anything).
-		Return(errors.New("any-error")).
+		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, group_name, args, enabled) "+
+	"VALUES (:id, :name, :tags, :time, :notification_emails, :user_email,  :group_name, :args, :enabled)",
+		mock.AnythingOfType("*postgres.JobsSchedule")).Run(func(args mock.Arguments) {
+	}).Return(int64(0), errors.New("any-error")).
 		Once()
 
-	_, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", map[string]string{})
+	_, err := testStore.InsertScheduledJob(jobName, tag, time, notificationEmail, userEmail,groupName, map[string]string{})
 
 	assert.Error(t, err)
 
 	mockPostgresClient.AssertExpectations(t)
+}
+
+func TestGetScheduledJobByID(t *testing.T) {
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
+
+	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
+	assert.NoError(t, err)
+
+	resultJob, err := testStore.GetScheduledJob(jobID)
+	assert.NoError(t, err)
+	assert.Equal(t, "job-name", resultJob[0].Name)
+	assert.Equal(t, "tag-one", resultJob[0].Tags)
+	assert.Equal(t, "* * 3 * *", resultJob[0].Time)
+
+	_, err = postgresClient.GetDB().Exec("truncate table jobs_schedule;")
+	assert.NoError(t, err)
+}
+
+func TestGetScheduledJobByIDReturnErrorIfIDnotFound(t *testing.T) {
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
+
+	resultJob, err := testStore.GetScheduledJob("86A7963B-3621-492D-8D6C-33076242256B")
+	assert.NoError(t, err)
+	assert.Equal(t, []postgres.JobsSchedule{}, resultJob)
+}
+
+func TestRemoveScheduledJobByID(t *testing.T) {
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
+
+	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
+	assert.NoError(t, err)
+
+	removedJobsCount, err := testStore.RemoveScheduledJob(jobID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), removedJobsCount)
+
+	_, err = postgresClient.GetDB().Exec("truncate table jobs_schedule;")
+	assert.NoError(t, err)
+}
+
+func TestRemoveScheduledJobByIDReturnErrorIfIDnotFound(t *testing.T) {
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
+
+	removedJobsCount, err := testStore.RemoveScheduledJob("86A7963B-3621-492D-8D6C-33076242256B")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), removedJobsCount)
+}
+
+func TestRemoveScheduledJobByIDReturnErrorIfIDIsInvalid(t *testing.T) {
+	postgresClient := postgres.NewClient()
+	testStore := New(postgresClient)
+
+	removedJobsCount, err := testStore.RemoveScheduledJob("86A7963B")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid input syntax")
+	assert.Equal(t, int64(0), removedJobsCount)
 }

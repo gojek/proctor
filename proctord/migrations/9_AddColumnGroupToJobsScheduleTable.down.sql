@@ -1,0 +1,1 @@
+alter table jobs_schedule drop column if exists group_name;

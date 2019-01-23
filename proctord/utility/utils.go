@@ -2,6 +2,8 @@ package utility
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -10,9 +12,10 @@ const ClientError = "malformed request"
 const NonExistentProcClientError = "proc name non existent"
 const InvalidCronExpressionClientError = "Cron expression invalid"
 const InvalidEmailIdClientError = "Provided invalid Email ID"
-const InvalidTagError  = "Tag(s) are missing"
+const InvalidTagError = "Tag(s) are missing"
 const DuplicateJobNameArgsClientError = "provided duplicate combination of job name and args for scheduling"
 const ServerError = "Something went wrong"
+const NoScheduledJobsError = "No scheduled jobs found"
 
 const UnauthorizedErrorMissingConfig = "EMAIL_ID or ACCESS_TOKEN is not present in proctor config file."
 const UnauthorizedErrorInvalidConfig = "Please check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file."
@@ -32,13 +35,13 @@ const ClientOutdatedErrorMessage = "Your Proctor client is using an outdated ver
 const JobSubmissionSuccess = "success"
 const JobSubmissionClientError = "client_error"
 const JobSubmissionServerError = "server_error"
-
+const JobNotFoundError = "Job not found"
 const JobSucceeded = "SUCCEEDED"
 const JobFailed = "FAILED"
 const JobWaiting = "WAITING"
 const JobExecutionStatusFetchError = "JOB_EXECUTION_STATUS_FETCH_ERROR"
 const NoDefinitiveJobExecutionStatusFound = "NO_DEFINITIVE_JOB_EXECUTION_STATUS_FOUND"
-
+const GroupNameMissingError  = "Group Name is missing"
 const JobNameContextKey = "job_name"
 const UserEmailContextKey = "user_email"
 const JobArgsContextKey = "job_args"
@@ -71,4 +74,19 @@ func MapToString(someMap map[string]string) string {
 		fmt.Fprintf(b, "%s=\"%s\",", key, value)
 	}
 	return strings.TrimRight(b.String(), ",")
+}
+
+func DeserializeMap(encodedMap string) (map[string]string, error) {
+	var mapStringToString map[string]string
+	if encodedMap == "" {
+		return mapStringToString, nil
+	}
+
+	decodedMap, err := base64.StdEncoding.DecodeString(encodedMap)
+	if err != nil {
+		return mapStringToString, err
+	}
+
+	err = json.Unmarshal(decodedMap, &mapStringToString)
+	return mapStringToString, err
 }

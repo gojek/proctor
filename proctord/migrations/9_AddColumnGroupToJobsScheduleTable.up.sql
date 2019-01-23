@@ -1,0 +1,1 @@
+alter table jobs_schedule add column group_name text default NULL;

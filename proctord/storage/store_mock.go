@@ -24,12 +24,27 @@ func (m *MockStore) GetJobExecutionStatus(jobName string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockStore) InsertScheduledJob(jobName, tags, time, notificationEmails, userEmail string, jobArgs map[string]string) (string, error) {
-	args := m.Called(jobName, tags, time, notificationEmails, userEmail, jobArgs)
+func (m *MockStore) InsertScheduledJob(jobName, tags, time, notificationEmails, userEmail, groupName string, jobArgs map[string]string) (string, error) {
+	args := m.Called(jobName, tags, time, notificationEmails, userEmail, groupName, jobArgs)
 	return args.String(0), args.Error(1)
 }
 
 func (m *MockStore) GetScheduledJobs() ([]postgres.JobsSchedule, error) {
 	args := m.Called()
 	return args.Get(0).([]postgres.JobsSchedule), args.Error(1)
+}
+
+func (m *MockStore) GetEnabledScheduledJobs() ([]postgres.JobsSchedule, error) {
+	args := m.Called()
+	return args.Get(0).([]postgres.JobsSchedule), args.Error(1)
+}
+
+func (m *MockStore) GetScheduledJob(jobID string) ([]postgres.JobsSchedule, error) {
+	args := m.Called(jobID)
+	return args.Get(0).([]postgres.JobsSchedule), args.Error(1)
+}
+
+func (m *MockStore) RemoveScheduledJob(jobID string) (int64, error) {
+	args := m.Called(jobID)
+	return args.Get(0).(int64), args.Error(1)
 }

@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -304,9 +305,10 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 	time := "*/1 * * * *"
 	notificationEmails := "user@mail.com"
 	tags := "db,backup"
+	group := "test"
 	procArgs := map[string]string{"ARG_ONE": "sample-value"}
 
-	body := `{"id":"8965fce9-5025-43b3-b21c-920c5ff41cd9","name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup"}`
+	body := `{"id":"8965fce9-5025-43b3-b21c-920c5ff41cd9","name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup", "group":"test"}`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -329,7 +331,7 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	executeProcResponse, err := s.testClient.ScheduleJob(procName,tags,time,notificationEmails,procArgs)
+	executeProcResponse, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
@@ -345,6 +347,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 	notificationEmails := "user@mail.com"
 	tags := "db,backup"
 	procArgs := map[string]string{"ARG_ONE": "sample-value"}
+	group := "testgroup"
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -367,8 +370,8 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	_, err := s.testClient.ScheduleJob(procName,tags,time,notificationEmails,procArgs)
-	assert.Equal(t,"provided duplicate combination of job name and args for scheduling", err.Error())
+	_, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
+	assert.Equal(t, "provided duplicate combination of job name and args for scheduling", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
 
@@ -741,4 +744,374 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, expectedRequestsToProctorDCount, requestsToProctorDCount)
 	assert.Equal(t, "", procExecutionStatus)
+}
+
+func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "8965fce9-5025-43b3-b21c-920c5ff41cd9"
+	body := `{"id":"8965fce9-5025-43b3-b21c-920c5ff41cd9","name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup"}`
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(200, body), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	describeScheduledJob, err := s.testClient.DescribeScheduledProc(jobID)
+
+	assert.NoError(t, err)
+	assert.Equal(t, jobID, describeScheduledJob.ID)
+	assert.Equal(t, "run-sample", describeScheduledJob.Name)
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestDescribeScheduledJobWithInvalidJobID() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "invalid-job-id"
+	body := "Invalid Job ID"
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(400, body), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	_, err := s.testClient.DescribeScheduledProc(jobID)
+
+	assert.Equal(t, "Invalid Job ID", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestDescribeScheduledJobWhenJobIDNotFound() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "invalid-job-id"
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(404, "Job not found"), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	_, err := s.testClient.DescribeScheduledProc(jobID)
+
+	assert.Equal(t, "Job not found", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestDescribeScheduledJobWitInternalServerError() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "invalid-job-id"
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(500, ""), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	_, err := s.testClient.DescribeScheduledProc(jobID)
+
+	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestSuccessListOfScheduledJobs() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "c3e040b1-c2b8-4d23-bebd-246c8b7c6f87"
+	body := `[{"id":"c3e040b1-c2b8-4d23-bebd-246c8b7c6f87","name":"run-sample","args":{"ARG2":"bar","ARG3":"test","ARG_ONE1":"foobar"},"notification_emails":"username@mail.com","time":"0 2 * * *","tags":"sample,proctor"}]`
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule"),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(200, body), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	listScheduledJobs, err := s.testClient.ListScheduledProcs()
+
+	assert.NoError(t, err)
+	assert.Equal(t, jobID, listScheduledJobs[0].ID)
+	assert.Equal(t, "run-sample", listScheduledJobs[0].Name)
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenNoJobsScheduled() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	body := "No scheduled jobs found"
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule"),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(204, body), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	_, err := s.testClient.ListScheduledProcs()
+
+	assert.Equal(t, "No scheduled jobs found", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenServerReturnInternalServerError() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule"),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(500, ""), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	_, err := s.testClient.ListScheduledProcs()
+
+	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestSuccessRemoveScheduledJob() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "8965fce9-5025-43b3-b21c-920c5ff41cd9"
+	body := fmt.Sprintf("Sucessfully removed the scheduled job ID: %s", jobID)
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"DELETE",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(200, body), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	err := s.testClient.RemoveScheduledProc(jobID)
+
+	assert.NoError(t, err)
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestRemoveScheduledJobWithInvalidJobID() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "invalid-job-id"
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"DELETE",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(400, "Invalid Job ID"), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	err := s.testClient.RemoveScheduledProc(jobID)
+
+	assert.Equal(t, "Invalid Job ID", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestRemoveScheduledJobWhenJobIDNotFound() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "invalid-job-id"
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"DELETE",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(404, "Job not found"), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	err := s.testClient.RemoveScheduledProc(jobID)
+
+	assert.Equal(t, "Job not found", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
+	jobID := "invalid-job-id"
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"DELETE",
+			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return httpmock.NewStringResponse(500, ""), nil
+			},
+		).WithHeader(
+			&http.Header{
+				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				utility.AccessTokenHeaderKey:   []string{"access-token"},
+				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+
+	err := s.testClient.RemoveScheduledProc(jobID)
+
+	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	s.mockConfigLoader.AssertExpectations(t)
 }

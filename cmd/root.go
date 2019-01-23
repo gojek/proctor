@@ -2,14 +2,17 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gojektech/proctor/cmd/schedule"
-	"github.com/gojektech/proctor/cmd/schedule/create"
+	"github.com/gojektech/proctor/cmd/schedule/remove"
 	"os"
+
 	"github.com/gojektech/proctor/cmd/config"
 	"github.com/gojektech/proctor/cmd/config/view"
 	"github.com/gojektech/proctor/cmd/description"
 	"github.com/gojektech/proctor/cmd/execution"
 	"github.com/gojektech/proctor/cmd/list"
+	"github.com/gojektech/proctor/cmd/schedule"
+	schedule_list "github.com/gojektech/proctor/cmd/schedule/list"
+	schedule_describe "github.com/gojektech/proctor/cmd/schedule/describe"
 	"github.com/gojektech/proctor/cmd/version"
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
@@ -44,19 +47,25 @@ func Execute(printer io.Printer, proctorDClient daemon.Client) {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configShowCmd)
 
-	scheduleCmd := schedule.NewCmd(printer)
+	scheduleCmd := schedule.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(scheduleCmd)
-	scheduleCreateCmd := create.NewCmd(printer, proctorDClient)
-	scheduleCmd.AddCommand(scheduleCreateCmd)
+	scheduleListCmd := schedule_list.NewCmd(printer, proctorDClient)
+	scheduleCmd.AddCommand(scheduleListCmd)
+	scheduleDescribeCmd := schedule_describe.NewCmd(printer, proctorDClient)
+	scheduleCmd.AddCommand(scheduleDescribeCmd)
+	scheduleRemoveCmd := remove.NewCmd(printer, proctorDClient)
+	scheduleCmd.AddCommand(scheduleRemoveCmd)
 
-	var Time, NotifyEmails, Tags string
+	var Time, NotifyEmails, Tags, Group string
 
-	scheduleCreateCmd.PersistentFlags().StringVarP(&Time, "time", "t", "", "Schedule time")
-	scheduleCreateCmd.MarkFlagRequired("time")
-	scheduleCreateCmd.PersistentFlags().StringVarP(&NotifyEmails, "notify", "n", "", "Notifier Email ID's")
-	scheduleCreateCmd.MarkFlagRequired("notify")
-	scheduleCreateCmd.PersistentFlags().StringVarP(&Tags, "tags", "T", "", "Tags")
-	scheduleCreateCmd.MarkFlagRequired("tags")
+	scheduleCmd.PersistentFlags().StringVarP(&Time, "time", "t", "", "Schedule time")
+	scheduleCmd.MarkFlagRequired("time")
+	scheduleCmd.PersistentFlags().StringVarP(&Group, "group", "g", "", "Group Name")
+	scheduleCmd.MarkFlagRequired("group")
+	scheduleCmd.PersistentFlags().StringVarP(&NotifyEmails, "notify", "n", "", "Notifier Email ID's")
+	scheduleCmd.MarkFlagRequired("notify")
+	scheduleCmd.PersistentFlags().StringVarP(&Tags, "tags", "T", "", "Tags")
+	scheduleCmd.MarkFlagRequired("tags")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
