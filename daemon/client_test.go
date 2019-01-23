@@ -357,7 +357,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 			"POST",
 			"http://"+proctorConfig.Host+"/jobs/schedule",
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(409, "provided duplicate combination of job name and args for scheduling"), nil
+				return httpmock.NewStringResponse(409, "Server Error!!!\nStatus Code: 409, Conflict"), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -371,7 +371,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
 	_, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
-	assert.Equal(t, "provided duplicate combination of job name and args for scheduling", err.Error())
+	assert.Equal(t, "Server Error!!!\nStatus Code: 409, Conflict", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
 

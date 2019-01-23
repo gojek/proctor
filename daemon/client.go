@@ -104,8 +104,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
-		err := getHttpResponseError(resp.Body)
-		return "", err
+		return "",  buildHTTPError(c, resp)
 	}
 
 	var scheduledJob ScheduleJobPayload
@@ -403,15 +402,21 @@ func buildHTTPError(c *client, resp *http.Response) error {
 			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
 		}
 		return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
-	} else if resp.StatusCode == http.StatusBadRequest {
+	} 
+	
+	if resp.StatusCode == http.StatusBadRequest {
 		return getHttpResponseError(resp.Body)
-	} else if resp.StatusCode == http.StatusNoContent {
+	} 
+
+	if resp.StatusCode == http.StatusNoContent {
 		return fmt.Errorf(utility.NoScheduledJobsError)
-	} else if resp.StatusCode == http.StatusNotFound {
+	}  
+
+	if resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf(utility.JobNotFoundError)
-	} else {
-		return fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
-	}
+	}  
+	
+	return fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
 
 func getHttpResponseError(response io_reader.ReadCloser) error {
