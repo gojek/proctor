@@ -249,6 +249,6 @@ func TestRemoveScheduledJobByIDReturnErrorIfIDIsInvalid(t *testing.T) {
 
 	removedJobsCount, err := testStore.RemoveScheduledJob("86A7963B")
 	assert.Error(t, err)
-	assert.EqualError(t, err, "pq: invalid input syntax for type uuid: \"86A7963B\"")
+	assert.Contains(t, err.Error(), "invalid input syntax")
 	assert.Equal(t, int64(0), removedJobsCount)
 }

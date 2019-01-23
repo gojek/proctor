@@ -102,9 +102,9 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
-		scheduledJob.ID, err = scheduler.store.InsertScheduledJob(scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Group,scheduledJob.Args)
+		scheduledJob.ID, err = scheduler.store.InsertScheduledJob(scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Group, scheduledJob.Args)
 		if err != nil {
-			if err.Error() == "pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\"" {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 				logger.Error("Client provided duplicate combination of scheduled job name and args: ", scheduledJob.Name, scheduledJob.Args)
 
 				w.WriteHeader(http.StatusConflict)
@@ -174,7 +174,7 @@ func (scheduler *scheduler) GetScheduledJob() http.HandlerFunc {
 		jobID := mux.Vars(req)["id"]
 		scheduledJob, err := scheduler.store.GetScheduledJob(jobID)
 		if err != nil {
-			if err.Error() == fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID) {
+			if strings.Contains(err.Error(), "invalid input syntax") {
 				logger.Error(err.Error())
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte("Invalid Job ID"))
@@ -215,7 +215,7 @@ func (scheduler *scheduler) RemoveScheduledJob() http.HandlerFunc {
 		jobID := mux.Vars(req)["id"]
 		removedJobsCount, err := scheduler.store.RemoveScheduledJob(jobID)
 		if err != nil {
-			if err.Error() == fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID) {
+			if strings.Contains(err.Error(), "invalid input syntax") {
 				logger.Error(err.Error())
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte("Invalid Job ID"))
