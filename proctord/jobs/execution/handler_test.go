@@ -168,6 +168,27 @@ func (suite *ExecutionHandlerTestSuite) TestJobStatusShouldReturn404IfJobStatusI
 	assert.Equal(suite.T(), http.StatusNotFound, response.StatusCode)
 }
 
+func (suite *ExecutionHandlerTestSuite) TestJobStatusShouldReturn200IfJobStatusIsWaiting() {
+	t := suite.T()
+
+	jobName := "sample-job-name"
+
+	url := fmt.Sprintf("%s/jobs/execute/%s/status", suite.TestServer.URL, jobName)
+
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return("WAITING", nil).Once()
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	response, _ := suite.Client.Do(req)
+	suite.mockStore.AssertExpectations(t)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	jobStatus := buf.String()
+	assert.Equal(suite.T(), utility.JobWaiting, jobStatus)
+}
+
 func (suite *ExecutionHandlerTestSuite) TestJobStatusShouldReturn500OnError() {
 	t := suite.T()
 
