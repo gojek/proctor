@@ -107,6 +107,7 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 	objectMeta := meta_v1.ObjectMeta{
 		Name:   uniqueJobName,
 		Labels: label,
+		Annotations: config.JobPodAnnotations(),
 	}
 
 	template := v1.PodTemplateSpec{

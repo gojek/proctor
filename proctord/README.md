@@ -59,5 +59,5 @@
 * `PROCTOR_NEW_RELIC_APP_NAME` and `PROCTOR_NEW_RELIC_LICENCE_KEY` are used to send profiling details to newrelic. Provide dummy values if you don't want profiling
 * `PROCTOR_MIN_CLIENT_VERSION` is minimum client version allowed to communicate with proctord
 * `PROCTOR_SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS` is the interval at which the scheduler fetches updated jobs from database
-* `PROCTOR_MAIL_USERNAME`, 'PROCTOR_MAIL_PASSWORD`, `PROCTOR_MAIL_SERVER_HOST`, `PROCTOR_MAIL_SERVER_PORT` are the creds required to send notification to users on scheduled jobs execution
-
+* `PROCTOR_MAIL_USERNAME`, `PROCTOR_MAIL_PASSWORD`, `PROCTOR_MAIL_SERVER_HOST`, `PROCTOR_MAIL_SERVER_PORT` are the creds required to send notification to users on scheduled jobs execution
+* `PROCTOR_JOB_POD_ANNOTATIONS` is used to set any kubernetes pod specific annotations.

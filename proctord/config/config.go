@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/spf13/viper"
+)
 
 func init() {
 	viper.AutomaticEnv()
@@ -123,4 +127,16 @@ func MailServerHost() string {
 
 func MailServerPort() string {
 	return viper.GetString("MAIL_SERVER_PORT")
+}
+
+func JobPodAnnotations() map[string]string {
+	var jsonStr = []byte(viper.GetString("JOB_POD_ANNOTATIONS"))
+	var annotations map[string]string
+
+	err := json.Unmarshal(jsonStr, &annotations)
+	if err != nil {
+		fmt.Errorf(err.Error(), "Invalid value for key PROCTOR_JOB_POD_ANNOTATIONS")
+	}
+
+	return annotations
 }

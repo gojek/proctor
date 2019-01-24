@@ -233,3 +233,11 @@ func TestMailServerPort(t *testing.T) {
 
 	assert.Equal(t, "123", MailServerPort())
 }
+
+func TestJobPodAnnotations(t *testing.T) {
+	os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, map[string]string{"key.one": "true"}, JobPodAnnotations())
+}
