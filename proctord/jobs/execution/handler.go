@@ -55,7 +55,9 @@ func (handler *executionHandler) Status() http.HandlerFunc {
 
 func (handler *executionHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{}
+		jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
+			JobExecutionStatus: "WAITING",
+		}
 		defer func() { go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog) }()
 
 		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
