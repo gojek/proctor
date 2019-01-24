@@ -102,6 +102,7 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
+		scheduledJob.Time = fmt.Sprintf("0 %s", scheduledJob.Time) 
 		scheduledJob.ID, err = scheduler.store.InsertScheduledJob(scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Group, scheduledJob.Args)
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
