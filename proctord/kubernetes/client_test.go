@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"bufio"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -68,7 +69,7 @@ func (suite *ClientTestSuite) SetupTest() {
 
 func (suite *ClientTestSuite) TestJobExecution() {
 	t := suite.T()
-
+	os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
 	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
 	sampleImageName := "img1"
 
@@ -97,6 +98,7 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	expectedLabel := jobLabel(executedJobname)
 	assert.Equal(t, expectedLabel, executedJob.ObjectMeta.Labels)
 	assert.Equal(t, expectedLabel, executedJob.Spec.Template.ObjectMeta.Labels)
+	assert.Equal(t, map[string]string{"key.one":"true"}, executedJob.Spec.Template.Annotations)
 
 	assert.Equal(t, config.KubeJobActiveDeadlineSeconds(), executedJob.Spec.ActiveDeadlineSeconds)
 	assert.Equal(t, config.KubeJobRetries(), executedJob.Spec.BackoffLimit)
