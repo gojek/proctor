@@ -40,7 +40,7 @@ func (handler *executionHandler) Status() http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
-			logger.Error("Error getting job status", err.Error())
+			logger.Error(fmt.Sprintf("Error getting job status for job_id: %s", jobExecutionID), err.Error())
 			return
 		}
 
@@ -67,7 +67,7 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 		err := json.NewDecoder(req.Body).Decode(&job)
 		defer req.Body.Close()
 		if err != nil {
-			logger.Error("Error parsing request body", err.Error())
+			logger.Error(fmt.Sprintf("User: %s: Error parsing request body", userEmail), err.Error())
 			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error parsing request body: %s", err.Error())
 			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionClientError
 
@@ -78,7 +78,7 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 
 		jobExecutionID, err := handler.executioner.Execute(jobsExecutionAuditLog, job.Name, job.Args)
 		if err != nil {
-			logger.Error("Error executing job: ", err.Error())
+			logger.Error(fmt.Sprintf("%s: User %s: Error executing job: ", job.Name, userEmail), err.Error())
 			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
 			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
 
