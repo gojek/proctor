@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/getsentry/raven-go"
+	"github.com/gojektech/proctor/proctord/config"
 	"os"
 
 	"github.com/gojektech/proctor/proctord/logger"
@@ -13,6 +15,8 @@ import (
 
 func main() {
 	logger.Setup()
+	raven.SetDSN(config.SentryDSN())
+
 	proctord := cli.NewApp()
 	proctord.Name = "proctord"
 	proctord.Usage = "Handle executing jobs and maintaining their configuration"

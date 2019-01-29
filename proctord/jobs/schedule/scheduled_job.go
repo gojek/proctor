@@ -1,7 +1,6 @@
 package schedule
 
 import (
-	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
 )
@@ -16,20 +15,22 @@ type ScheduledJob struct {
 	Group              string            `json:"group_name"`
 }
 
-func FromStoreToHandler(scheduledJobsStoreFormat []postgres.JobsSchedule) []ScheduledJob {
+func FromStoreToHandler(scheduledJobsStoreFormat []postgres.JobsSchedule) ([]ScheduledJob, error) {
 	var scheduledJobs []ScheduledJob
 	for _, scheduledJobStoreFormat := range scheduledJobsStoreFormat {
-		scheduledJob := GetScheduledJob(scheduledJobStoreFormat)
+		scheduledJob, err := GetScheduledJob(scheduledJobStoreFormat)
+		if err != nil {
+			return nil, err
+		}
 		scheduledJobs = append(scheduledJobs, scheduledJob)
 	}
-	return scheduledJobs
+	return scheduledJobs, nil
 }
 
-
-func GetScheduledJob(scheduledJobStoreFormat postgres.JobsSchedule) ScheduledJob {
+func GetScheduledJob(scheduledJobStoreFormat postgres.JobsSchedule) (ScheduledJob, error) {
 	args, err := utility.DeserializeMap(scheduledJobStoreFormat.Args)
 	if err != nil {
-		logger.Error("Error deserializing scheduled job args to map: ", err.Error())
+		return ScheduledJob{}, err
 	}
 	scheduledJob := ScheduledJob{
 		ID:                 scheduledJobStoreFormat.ID,
@@ -40,6 +41,6 @@ func GetScheduledJob(scheduledJobStoreFormat postgres.JobsSchedule) ScheduledJob
 		Group:              scheduledJobStoreFormat.Group,
 		NotificationEmails: scheduledJobStoreFormat.NotificationEmails,
 	}
-	return scheduledJob
-}
+	return scheduledJob, nil
 
+}

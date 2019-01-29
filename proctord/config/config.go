@@ -140,3 +140,7 @@ func JobPodAnnotations() map[string]string {
 
 	return annotations
 }
+
+func SentryDSN() string {
+	return viper.GetString("SENTRY_DSN")
+}

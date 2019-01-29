@@ -1,5 +1,5 @@
-hash: 00c70300e22c5af3eba211e10b2d3cd18ed0cff5c4c4e2511d742ec846031bae
-updated: 2019-01-16T17:21:14.589932+05:30
+hash: 15c87eb2a42f88f7c03c606e99f2a361a15f36f4beb6e10fbc0329b736c6d819
+updated: 2019-01-28T15:19:36.102782+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -8,12 +8,16 @@ imports:
   - internal
 - name: github.com/badoux/checkmail
   version: 9661bd69e9ad6fce1f7579022bdab0440807722a
+- name: github.com/certifi/gocertifi
+  version: abcd5707844888d7088866f25df3a7a2ac337dc4
 - name: github.com/danverbraganza/varcaser
   version: ce61ec497fbffd4887976757109cb585f6bb29e1
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
   - spew
+- name: github.com/evalphobia/logrus_sentry
+  version: 4034fb124d4e039c84e66e70f40ee32343f0ea19
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/garyburd/redigo
@@ -21,6 +25,8 @@ imports:
   subpackages:
   - internal
   - redis
+- name: github.com/getsentry/raven-go
+  version: 238ebd86338d2e91cb5c84663d695877dd5d0ff4
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gogo/protobuf
@@ -82,6 +88,8 @@ imports:
   - reflectx
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
+- name: github.com/konsorten/go-windows-terminal-sequences
+  version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
 - name: github.com/lib/pq
   version: 88edab0803230a3898347e77b474f8c1820a1f20
   subpackages:
@@ -121,8 +129,8 @@ imports:
   version: b41be1df696709bb6395fe435af20370037c0b4c
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
-- name: github.com/Sirupsen/logrus
-  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
+- name: github.com/sirupsen/logrus
+  version: 7d8d63893b994a654b3bc8d16ffd7fb6b9f884a4
 - name: github.com/spf13/afero
   version: 8d919cbe7e2627e417f3e45c3c0e489a5b7e2536
   subpackages:

@@ -241,3 +241,11 @@ func TestJobPodAnnotations(t *testing.T) {
 
 	assert.Equal(t, map[string]string{"key.one": "true"}, JobPodAnnotations())
 }
+
+func TestSentryDSN(t *testing.T) {
+	os.Setenv("PROCTOR_SENTRY_DSN", "domain")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "domain", SentryDSN())
+}
