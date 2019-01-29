@@ -1,6 +1,5 @@
 package: github.com/gojektech/proctor/proctord
 import:
-- package: github.com/Sirupsen/logrus
 - package: github.com/davecgh/go-spew
   subpackages:
   - spew
@@ -43,3 +42,5 @@ import:
 - package: github.com/robfig/cron
   version: v1.1
 - package: github.com/badoux/checkmail
+- package: github.com/getsentry/raven-go
+- package: github.com/sirupsen/logrus

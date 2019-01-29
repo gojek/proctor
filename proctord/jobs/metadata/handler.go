@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"encoding/json"
+	"github.com/getsentry/raven-go"
 	"net/http"
 
 	"github.com/gojektech/proctor/proctord/logger"
@@ -40,6 +41,7 @@ func (handler *handler) HandleSubmission() http.HandlerFunc {
 			err = handler.store.CreateOrUpdateJobMetadata(metadata)
 			if err != nil {
 				logger.Error("Error updating metadata", err.Error())
+				raven.CaptureError(err, nil)
 
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(utility.ServerError))
@@ -57,6 +59,7 @@ func (handler *handler) HandleBulkDisplay() http.HandlerFunc {
 		jobMetadata, err := handler.store.GetAllJobsMetadata()
 		if err != nil {
 			logger.Error("Error fetching metadata", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -66,6 +69,7 @@ func (handler *handler) HandleBulkDisplay() http.HandlerFunc {
 		jobsMetadataInJSON, err := json.Marshal(jobMetadata)
 		if err != nil {
 			logger.Error("Error marshalling jobs metadata in json", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))

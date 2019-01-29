@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"encoding/json"
+	"github.com/getsentry/raven-go"
 	"net/http"
 
 	"github.com/gojektech/proctor/proctord/logger"
@@ -38,6 +39,7 @@ func (handler *handler) HandleSubmission() http.HandlerFunc {
 		err = handler.secretsStore.CreateOrUpdateJobSecret(secret)
 		if err != nil {
 			logger.Error("Error updating secrets", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))

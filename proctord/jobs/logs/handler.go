@@ -2,6 +2,7 @@ package logs
 
 import (
 	"bufio"
+	"github.com/getsentry/raven-go"
 	"io"
 	"net/http"
 	"strings"
@@ -37,6 +38,7 @@ func CloseWebSocket(message string, conn *websocket.Conn) {
 	err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, message))
 	if err != nil {
 		_logger.Error("Error closing connection with client after logs are read")
+		raven.CaptureError(err, nil)
 	}
 	return
 }
@@ -46,6 +48,8 @@ func (l *logger) Stream() http.HandlerFunc {
 		conn, err := upgrader.Upgrade(w, req, nil)
 		if err != nil {
 			_logger.Error("Error upgrading connection to websocket protocol: ", err)
+			raven.CaptureError(err, nil)
+
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.ClientError))
 			return
@@ -62,6 +66,8 @@ func (l *logger) Stream() http.HandlerFunc {
 		logStream, err := l.kubeClient.StreamJobLogs(jobName)
 		if err != nil {
 			_logger.Error("Error streaming logs from kube client: ", err)
+			raven.CaptureError(err, map[string]string{"job_name": jobName})
+
 			CloseWebSocket("Something went wrong", conn)
 			return
 		}
@@ -79,6 +85,8 @@ func (l *logger) Stream() http.HandlerFunc {
 				}
 
 				_logger.Error("Error reading from reader: ", err.Error())
+				raven.CaptureError(err, nil)
+
 				CloseWebSocket("Something went wrong", conn)
 				return
 			}
@@ -87,6 +95,8 @@ func (l *logger) Stream() http.HandlerFunc {
 			err = conn.WriteMessage(websocket.TextMessage, jobLogSingleLine[:])
 			if err != nil {
 				_logger.Error("Error writing logs to client: ", err)
+				raven.CaptureError(err, nil)
+
 				CloseWebSocket("Something went wrong", conn)
 				return
 			}
