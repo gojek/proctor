@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"fmt"
+	"github.com/getsentry/raven-go"
 	"os"
 	"strings"
 	"time"
@@ -49,7 +50,8 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 	if _, ok := worker.inMemoryScheduledJobs[scheduledJob.ID]; !ok {
 		jobArgs, err := utility.DeserializeMap(scheduledJob.Args)
 		if err != nil {
-			logger.Error("Error deserializing job args: ", err.Error())
+			logger.Error(fmt.Sprintf("Error deserializing job args: %s ", scheduledJob.Tags), scheduledJob.Name, err.Error())
+			raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
 			return
 		}
 
@@ -60,7 +62,8 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 
 			jobExecutionID, err := worker.executioner.Execute(jobsExecutionAuditLog, scheduledJob.Name, jobArgs)
 			if err != nil {
-				logger.Error("Error submitting job: ", scheduledJob.Name, " for execution: ", err.Error())
+				logger.Error(fmt.Sprintf("Error submitting job: %s ", scheduledJob.Tags), scheduledJob.Name, " for execution: ", err.Error())
+				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
 
 				jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
 				jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
@@ -72,7 +75,9 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 
 			jobExecutionStatus, err := worker.auditor.JobsExecutionStatus(jobExecutionID)
 			if err != nil {
-				logger.Error("Error fetching execution status for job: ", jobExecutionID, ". Error: ", err.Error())
+				logger.Error(fmt.Sprintf("Error fetching execution status for job: %s ", scheduledJob.Tags), jobExecutionID, ". Error: ", err.Error())
+				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
+
 				return
 			}
 
@@ -80,13 +85,15 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 			err = worker.mailer.Send(scheduledJob.Name, jobExecutionID, jobExecutionStatus, jobArgs, recipients)
 
 			if err != nil {
-				logger.Error("Error notifying job: `", scheduledJob.Name, "` ID: `", jobExecutionID, "` execution status: `", jobExecutionStatus, "` to users: ", err.Error())
+				logger.Error(fmt.Sprintf("Error notifying job: %s `", scheduledJob.Tags), scheduledJob.Name, "` ID: `", jobExecutionID, "` execution status: `", jobExecutionStatus, "` to users: ", err.Error())
+				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name,"job_id":jobExecutionID, "job_execution_status": jobExecutionStatus})
 				return
 			}
 		})
 
 		if err != nil {
-			logger.Error("Error adding cron job: ", err.Error())
+			logger.Error(fmt.Sprintf("Error adding cron job: %s", scheduledJob.Tags), err.Error())
+			raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags})
 			return
 		}
 
@@ -102,6 +109,7 @@ func (worker *worker) Run(tickerChan <-chan time.Time, signalsChan <-chan os.Sig
 			scheduledJobs, err := worker.store.GetScheduledJobs()
 			if err != nil {
 				logger.Error("Error getting scheduled jobs from store: ", err.Error())
+				raven.CaptureError(err,nil)
 				continue
 			}
 

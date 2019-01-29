@@ -5,10 +5,16 @@ import (
 
 	"github.com/gojektech/proctor/proctord/config"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
+var logger *log.Logger
+
 func Setup() {
+	if logger != nil {
+		return
+	}
+
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 
@@ -17,6 +23,19 @@ func Setup() {
 		log.Panic(err)
 	}
 	log.SetLevel(logLevel)
+
+	logger = &log.Logger{
+		Out:       os.Stdout,
+		Formatter: &log.JSONFormatter{},
+		Hooks:     make(log.LevelHooks),
+		Level:     logLevel,
+	}
+
+	return
+}
+
+func AddHook(hook log.Hook) {
+	logger.Hooks.Add(hook)
 }
 
 func Debug(args ...interface{}) {

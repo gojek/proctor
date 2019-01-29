@@ -3,6 +3,7 @@ package schedule
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/getsentry/raven-go"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strings"
@@ -43,6 +44,7 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 		defer req.Body.Close()
 		if err != nil {
 			logger.Error("Error parsing request body for scheduling jobs: ", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.ClientError))
@@ -50,9 +52,16 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
+		if scheduledJob.Tags == "" {
+			logger.Error("Tag(s) are missing")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(utility.InvalidTagError))
+			return
+		}
+
 		_, err = cron.Parse(scheduledJob.Time)
 		if err != nil {
-			logger.Error("Client provided invalid cron expression: ", scheduledJob.Time)
+			logger.Error(fmt.Sprintf("Client provided invalid cron expression: %s ", scheduledJob.Tags), scheduledJob.Name, scheduledJob.Time)
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.InvalidCronExpressionClientError))
@@ -64,22 +73,15 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 		for _, notificationEmail := range notificationEmails {
 			err = checkmail.ValidateFormat(notificationEmail)
 			if err != nil {
-				logger.Error("Client provided invalid email address: ", notificationEmail)
+				logger.Error(fmt.Sprintf("Client provided invalid email address: %s: ", scheduledJob.Tags), scheduledJob.Name, notificationEmail)
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte(utility.InvalidEmailIdClientError))
 				return
 			}
 		}
 
-		if scheduledJob.Tags == "" {
-			logger.Error("Tag(s) are missing")
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(utility.InvalidTagError))
-			return
-		}
-
 		if scheduledJob.Group == "" {
-			logger.Error("Group Name is missing")
+			logger.Error(fmt.Sprintf("Group Name is missing %s: ", scheduledJob.Tags), scheduledJob.Name)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.GroupNameMissingError))
 			return
@@ -88,12 +90,13 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 		_, err = scheduler.metadataStore.GetJobMetadata(scheduledJob.Name)
 		if err != nil {
 			if err.Error() == "redigo: nil returned" {
-				logger.Error("Client provided non existent proc name: ", scheduledJob.Name)
+				logger.Error(fmt.Sprintf("Client provided non existent proc name: %s ", scheduledJob.Tags), scheduledJob.Name, )
 
 				w.WriteHeader(http.StatusNotFound)
 				w.Write([]byte(utility.NonExistentProcClientError))
 			} else {
-				logger.Error("Error fetching metadata for proc", err.Error())
+				logger.Error(fmt.Sprintf("Error fetching metadata for proc %s ", scheduledJob.Tags), scheduledJob.Name, err.Error())
+				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
 
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(utility.ServerError))
@@ -102,18 +105,20 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
-		scheduledJob.Time = fmt.Sprintf("0 %s", scheduledJob.Time) 
+		scheduledJob.Time = fmt.Sprintf("0 %s", scheduledJob.Time)
 		scheduledJob.ID, err = scheduler.store.InsertScheduledJob(scheduledJob.Name, scheduledJob.Tags, scheduledJob.Time, scheduledJob.NotificationEmails, userEmail, scheduledJob.Group, scheduledJob.Args)
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-				logger.Error("Client provided duplicate combination of scheduled job name and args: ", scheduledJob.Name, scheduledJob.Args)
+				logger.Error(fmt.Sprintf("Client provided duplicate combination of scheduled job name and args: %s ", scheduledJob.Tags), scheduledJob.Name, scheduledJob.Args)
+				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
 
 				w.WriteHeader(http.StatusConflict)
 				w.Write([]byte(utility.DuplicateJobNameArgsClientError))
 
 				return
 			} else {
-				logger.Error("Error persisting scheduled job", err.Error())
+				logger.Error(fmt.Sprintf("Error persisting scheduled job %s ", scheduledJob.Tags), scheduledJob.Name, err.Error())
+				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
 
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(utility.ServerError))
@@ -124,7 +129,8 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 
 		responseBody, err := json.Marshal(scheduledJob)
 		if err != nil {
-			logger.Error("Error marshaling response body", err.Error())
+			logger.Error(fmt.Sprintf("Error marshaling response body %s ", scheduledJob.Tags), scheduledJob.Name, err.Error())
+			raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -143,6 +149,7 @@ func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
 		scheduledJobsStoreFormat, err := scheduler.store.GetEnabledScheduledJobs()
 		if err != nil {
 			logger.Error("Error fetching scheduled jobs", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -151,15 +158,25 @@ func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
 
 		if len(scheduledJobsStoreFormat) == 0 {
 			logger.Error(utility.NoScheduledJobsError, nil)
+
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		scheduledJobs := FromStoreToHandler(scheduledJobsStoreFormat)
+		scheduledJobs, err := FromStoreToHandler(scheduledJobsStoreFormat)
+		if err != nil {
+			logger.Error("Error deserializing scheduled job args to map: ", err.Error())
+			raven.CaptureError(err, nil)
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			return
+		}
 
 		scheduledJobsJson, err := json.Marshal(scheduledJobs)
 		if err != nil {
 			logger.Error("Error marshalling scheduled jobs", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -182,6 +199,7 @@ func (scheduler *scheduler) GetScheduledJob() http.HandlerFunc {
 				return
 			}
 			logger.Error("Error fetching scheduled job", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -196,11 +214,20 @@ func (scheduler *scheduler) GetScheduledJob() http.HandlerFunc {
 			return
 		}
 
-		job := GetScheduledJob(scheduledJob[0])
+		job, err := GetScheduledJob(scheduledJob[0])
+		if err != nil {
+			logger.Error("Error deserializing scheduled job args to map: ", err.Error())
+			raven.CaptureError(err, nil)
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(utility.ServerError))
+			return
+		}
 
 		scheduledJobJson, err := json.Marshal(job)
 		if err != nil {
 			logger.Error("Error marshalling scheduled job", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
@@ -218,11 +245,13 @@ func (scheduler *scheduler) RemoveScheduledJob() http.HandlerFunc {
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid input syntax") {
 				logger.Error(err.Error())
+
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte("Invalid Job ID"))
 				return
 			}
 			logger.Error("Error fetching scheduled job", err.Error())
+			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))

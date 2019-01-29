@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"github.com/getsentry/raven-go"
 	"github.com/gojektech/proctor/proctord/kubernetes"
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/storage"
@@ -39,6 +40,7 @@ func (auditor *auditor) JobsExecution(jobsExecutionAuditLog *postgres.JobsExecut
 	err := auditor.store.AuditJobsExecution(jobsExecutionAuditLog)
 	if err != nil {
 		logger.Error("Error auditing jobs execution", err)
+		raven.CaptureError(err, nil)
 	}
 }
 
@@ -46,9 +48,16 @@ func (auditor *auditor) JobsExecutionStatus(jobExecutionID string) (string, erro
 	status, err := auditor.kubeClient.JobExecutionStatus(jobExecutionID)
 	if err != nil {
 		logger.Error("Error getting job execution status", err)
+		raven.CaptureError(err, nil)
 		return "", err
 	}
 
 	err = auditor.store.UpdateJobsExecutionAuditLog(jobExecutionID, status)
+	if err != nil {
+		logger.Error("Error updating job status", err)
+		raven.CaptureError(err, nil)
+		return "", err
+	}
+
 	return status, err
 }
