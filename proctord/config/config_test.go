@@ -249,3 +249,11 @@ func TestSentryDSN(t *testing.T) {
 
 	assert.Equal(t, "domain", SentryDSN())
 }
+
+func TestDocsPath(t *testing.T) {
+	os.Setenv("PROCTOR_DOCS_PATH", "path1")
+
+	viper.AutomaticEnv()
+
+	assert.Equal(t, "path1", DocsPath())
+}
