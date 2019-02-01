@@ -1,0 +1,173 @@
+consumes:
+  - application/json
+info:
+  description: Issues and validates OTP
+  title: Proctor-Service
+  version: 1.0.0
+basePath: /
+produces:
+  - application/json
+schemes:
+  - http
+swagger: '2.0'
+paths:
+
+  '/jobs/schedule':
+    post:
+      tags:
+        - proctor
+      summary: "Call this API for scheduling a job"
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/JobScheduleRequest'
+      responses:
+        '201':
+          description: successful scheduling job
+          schema:
+            $ref: '#/definitions/JobDescribeSuccessResponse'
+        '400':
+          description: Bad Request - Error parsing request body for scheduling jobs, Client provided invalid cron expression, Tag(s) are missing,
+            Client provided invalid email address, Group Name is missing
+        '404':
+          description: Client provided non existent proc name
+        '409':
+          description: Client provided duplicate combination of scheduled job name and args
+        '500':
+          description: Internal server error
+    get:
+      tags:
+        - proctor
+      summary: "Call this API for listing all scheduled jobs"
+      responses:
+        '200':
+          description: successful list of all scheduled jobs
+          schema:
+            $ref: '#/definitions/JobListSuccessResponse'
+        '204':
+          description: No scheduled jobs found
+        '500':
+          description: Internal server error
+
+  '/jobs/schedule/{id}':
+    get:
+      tags:
+        - proctor
+      summary: "Call this API for describing a scheduled job"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Job ID
+      responses:
+        '200':
+          description: successful description of scheduled job
+          schema:
+            $ref: '#/definitions/JobDescribeSuccessResponse'
+        '400':
+          description: Bad Request - Invalid Job ID
+        '404':
+          description: Job not found
+        '500':
+          description: Internal server error
+    delete:
+      tags:
+        - proctor
+      summary: "Call this API for removing a scheduled job"
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Job ID
+      responses:
+        '200':
+          description: successful removal of scheduled job
+        '400':
+          description: Bad Request - Invalid Job ID
+        '404':
+          description: Job not found
+        '500':
+          description: Internal server error
+
+
+
+
+definitions:
+  JobDescribeSuccessResponse:
+    type: object
+    required:
+      - id
+      - name
+      - args
+      - notification_emails
+      - time
+      - tags
+      - group_name
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      args:
+        type: string
+      notification_emails:
+        type: string
+      time:
+        type: string
+      tags:
+        type: string
+      group_name:
+        type: string
+
+  JobListSuccessResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        args:
+          type: string
+        notification_emails:
+          type: string
+        time:
+          type: string
+        tags:
+          type: string
+        group_name:
+          type: string
+
+  JobScheduleRequest:
+    type: object
+    required:
+      - name
+      - notification_emails
+      - time
+      - tags
+      - group_name
+      - args
+    properties:
+      name:
+        type: string
+      notification_emails:
+        type: string
+      time:
+        type: string
+      tags:
+        type: string
+      group_name:
+        type: string
+      args:
+        type: object
+        properties:
+          arg1:
+            type: string
+          arg2:
+            type: string
