@@ -144,3 +144,7 @@ func JobPodAnnotations() map[string]string {
 func SentryDSN() string {
 	return viper.GetString("SENTRY_DSN")
 }
+
+func DocsPath() string {
+	return viper.GetString("DOCS_PATH")
+}

@@ -2,9 +2,9 @@ package server
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/gojektech/proctor/proctord/audit"
+	"github.com/gojektech/proctor/proctord/config"
+	"github.com/gojektech/proctor/proctord/docs"
 	http_client "github.com/gojektech/proctor/proctord/http"
 	"github.com/gojektech/proctor/proctord/jobs/execution"
 	"github.com/gojektech/proctor/proctord/jobs/logs"
@@ -16,6 +16,8 @@ import (
 	"github.com/gojektech/proctor/proctord/redis"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/storage/postgres"
+	"net/http"
+	"path"
 
 	"github.com/gojektech/proctor/proctord/instrumentation"
 	"github.com/gorilla/mux"
@@ -53,6 +55,13 @@ func NewRouter() (*mux.Router, error) {
 		fmt.Fprintf(w, "pong")
 	})
 
+
+	router.HandleFunc("/docs", docs.APIDocHandler)
+	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.DocsPath()))))
+	router.HandleFunc("/swagger.yml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path.Join(config.DocsPath(), "swagger.yml"))
+	})
+
 	router.HandleFunc(instrumentation.Wrap("/jobs/execute", middleware.ValidateClientVersion(jobExecutionHandler.Handle()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/execute/{name}/status", middleware.ValidateClientVersion(jobExecutionHandler.Status()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/logs", middleware.ValidateClientVersion(jobLogger.Stream()))).Methods("GET")
@@ -63,5 +72,6 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(scheduledJobsHandler.GetScheduledJobs()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/schedule/{id}", middleware.ValidateClientVersion(scheduledJobsHandler.GetScheduledJob()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/schedule/{id}", middleware.ValidateClientVersion(scheduledJobsHandler.RemoveScheduledJob()))).Methods("DELETE")
+
 	return router, nil
 }
