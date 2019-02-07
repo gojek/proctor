@@ -18,6 +18,7 @@ import (
 	"github.com/gojektech/proctor/io"
 
 	"github.com/spf13/cobra"
+	"github.com/gojektech/proctor/utility/sort"
 )
 
 var (
@@ -28,7 +29,7 @@ var (
 	}
 )
 
-func Execute(printer io.Printer, proctorDClient daemon.Client) {
+func Execute(printer io.Printer, proctorDClient daemon.Client, sorter sort.Sorter) {
 	versionCmd := version.NewCmd(printer)
 	rootCmd.AddCommand(versionCmd)
 
@@ -39,7 +40,7 @@ func Execute(printer io.Printer, proctorDClient daemon.Client) {
 	executionCmd := execution.NewCmd(printer, proctorDClient, os.Exit)
 	rootCmd.AddCommand(executionCmd)
 
-	listCmd := list.NewCmd(printer, proctorDClient)
+	listCmd := list.NewCmd(printer, proctorDClient, sorter)
 	rootCmd.AddCommand(listCmd)
 
 	configCmd := config.NewCmd(printer)

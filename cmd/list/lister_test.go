@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/gojektech/proctor/utility/sort"
 )
 
 type ListCmdTestSuite struct {
@@ -19,12 +20,14 @@ type ListCmdTestSuite struct {
 	mockPrinter        *io.MockPrinter
 	mockProctorDClient *daemon.MockClient
 	testListCmd        *cobra.Command
+	sorter             *sort.MockSorter
 }
 
 func (s *ListCmdTestSuite) SetupTest() {
 	s.mockPrinter = &io.MockPrinter{}
 	s.mockProctorDClient = &daemon.MockClient{}
-	s.testListCmd = NewCmd(s.mockPrinter, s.mockProctorDClient)
+	s.sorter = &sort.MockSorter{}
+	s.testListCmd = NewCmd(s.mockPrinter, s.mockProctorDClient, s.sorter)
 }
 
 func (s *ListCmdTestSuite) TestListCmdUsage() {
@@ -54,11 +57,12 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procOne.Name, procOne.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procTwo.Name, procTwo.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", "\nFor detailed information of any proc, run:\nproctor describe <proc_name>", color.FgGreen).Once()
-
+	s.sorter.On("Sort",procList).Once()
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
+	s.sorter.AssertExpectations(s.T())
 }
 
 func (s *ListCmdTestSuite) TestListCmdRunProctorDClientFailure() {
