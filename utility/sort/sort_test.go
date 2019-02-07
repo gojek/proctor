@@ -1,40 +1,25 @@
 package sort
 
-import "github.com/stretchr/testify/suite"
 import (
 	"github.com/gojektech/proctor/proctord/jobs/metadata"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-type SortTestSuite struct {
-	suite.Suite
-	sorter *commandSorter
-}
-
-func (s *SortTestSuite) setupTest() {
-	s.sorter = new(commandSorter)
-}
-
-func (s *SortTestSuite) TestSorting() {
+func TestSorting(t *testing.T) {
 	procOne := metadata.Metadata{
-		Name:        "one",
-		Description: "proc one description",
-	}
+		Name: "one"}
 
 	procTwo := metadata.Metadata{
-		Name:        "two",
-		Description: "proc two description",
-	}
+		Name: "two"}
 
-	procList := []metadata.Metadata{procTwo, procOne}
-	expectedProcList := []metadata.Metadata{procOne, procTwo}
+	procThree := metadata.Metadata{
+		Name: "three"}
 
-	s.sorter.Sort(procList)
+	procList := []metadata.Metadata{procThree, procTwo, procOne}
+	expectedProcList := []metadata.Metadata{procOne, procThree, procTwo}
 
-	assert.Equal(s.T(), expectedProcList, procList)
-}
+	Procs(procList)
 
-func TestSortTestSuite(t *testing.T) {
-	suite.Run(t, new(SortTestSuite))
+	assert.Equal(t, expectedProcList, procList)
 }
