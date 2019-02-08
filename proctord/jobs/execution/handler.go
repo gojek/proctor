@@ -1,18 +1,18 @@
 package execution
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/getsentry/raven-go"
-	"net/http"
-
 	"github.com/gojektech/proctor/proctord/audit"
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
-
 	"github.com/gorilla/mux"
+	"net/http"
+	"time"
 )
 
 type executionHandler struct {
@@ -24,6 +24,7 @@ type executionHandler struct {
 type ExecutionHandler interface {
 	Handle() http.HandlerFunc
 	Status() http.HandlerFunc
+	sendStatusToCaller(remoteCallerURL, jobExecutionID string)
 }
 
 func NewExecutionHandler(auditor audit.Auditor, store storage.Store, executioner Executioner) ExecutionHandler {
@@ -96,6 +97,48 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
+
+		remoteCallerURL := job.CallbackApi
+		go handler.sendStatusToCaller(remoteCallerURL, jobExecutionID)
+
 		return
 	}
+}
+
+func (handler *executionHandler) sendStatusToCaller(remoteCallerURL, jobExecutionID string) {
+	status := utility.JobWaiting
+
+	for {
+		jobExecutionStatus, _ := handler.store.GetJobExecutionStatus(jobExecutionID)
+		if jobExecutionStatus == "" {
+			status = utility.JobNotFound
+			break
+		}
+
+		if jobExecutionStatus == utility.JobSucceeded || jobExecutionStatus == utility.JobFailed {
+			status = jobExecutionStatus
+			break
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	value := map[string]string{"name": jobExecutionID, "status": status}
+	jsonValue, err := json.Marshal(value)
+	if err != nil {
+		logger.Error(fmt.Sprintf("StatusCallback: Error parsing %#v", value), err.Error())
+		raven.CaptureError(err, nil)
+
+		return
+	}
+
+	_, err = http.Post(remoteCallerURL, "application/json", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		logger.Error("StatusCallback: Error sending request to callback api", err.Error())
+		raven.CaptureError(err, nil)
+
+		return
+	}
+
+	return
 }

@@ -5,19 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
 	"github.com/gojektech/proctor/proctord/audit"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/utility"
-
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/urfave/negroni"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 type ExecutionHandlerTestSuite struct {
@@ -69,6 +67,13 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 		func(args mock.Arguments) { auditingChan <- true },
 	)
 
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+
+	suite.mockStore.On("GetJobExecutionStatus", jobExecutionID).Return(utility.JobSucceeded, nil).Once()
+
 	suite.testExecutionHandler.Handle()(responseRecorder, req)
 
 	<-auditingChan
@@ -117,6 +122,9 @@ func (suite *ExecutionHandlerTestSuite) TestJobExecutionServerFailure() {
 	suite.mockExecutioner.On("Execute", mock.Anything, job.Name, job.Args).Return("", errors.New("error executing job")).Once()
 
 	auditingChan := make(chan bool)
+	suite.mockAuditor.On("JobsExecutionAndStatus", mock.Anything).Return("", nil).Run(
+		func(args mock.Arguments) { auditingChan <- true },
+	)
 	suite.mockAuditor.On("JobsExecutionAndStatus", mock.Anything).Return("", nil).Run(
 		func(args mock.Arguments) { auditingChan <- true },
 	)
@@ -203,6 +211,93 @@ func (suite *ExecutionHandlerTestSuite) TestJobStatusShouldReturn500OnError() {
 	response, _ := suite.Client.Do(req)
 	suite.mockStore.AssertExpectations(t)
 	assert.Equal(suite.T(), http.StatusInternalServerError, response.StatusCode)
+}
+
+func (suite *ExecutionHandlerTestSuite) TestSendStatusToCallerOnSuccess() {
+	t := suite.T()
+
+	jobName := "sample-job-name"
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer req.Body.Close()
+
+		var value map[string]string
+		err := json.NewDecoder(req.Body).Decode(&value)
+		assert.NoError(t, err)
+
+		w.WriteHeader(http.StatusOK)
+
+		assert.Equal(t, jobName, value["name"])
+		assert.Equal(t, utility.JobSucceeded, value["status"])
+	}))
+	defer ts.Close()
+
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobWaiting, nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobWaiting, nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobWaiting, nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobSucceeded, nil).Once()
+
+	remoteCallerURL := fmt.Sprintf("%s/status", ts.URL)
+
+	suite.testExecutionHandler.sendStatusToCaller(remoteCallerURL, jobName)
+	suite.mockStore.AssertExpectations(t)
+}
+
+func (suite *ExecutionHandlerTestSuite) TestSendStatusToCallerOnFailure() {
+	t := suite.T()
+
+	jobName := "sample-job-name"
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer req.Body.Close()
+
+		var value map[string]string
+		err := json.NewDecoder(req.Body).Decode(&value)
+		assert.NoError(t, err)
+
+		w.WriteHeader(http.StatusOK)
+
+		assert.Equal(t, jobName, value["name"])
+		assert.Equal(t, utility.JobFailed, value["status"])
+	}))
+	defer ts.Close()
+
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobWaiting, nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobWaiting, nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobWaiting, nil).Once()
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return(utility.JobFailed, nil).Once()
+
+	remoteCallerURL := fmt.Sprintf("%s/status", ts.URL)
+
+	suite.testExecutionHandler.sendStatusToCaller(remoteCallerURL, jobName)
+	suite.mockStore.AssertExpectations(t)
+}
+
+func (suite *ExecutionHandlerTestSuite) TestSendStatusToCallerOnJobNotFound() {
+	t := suite.T()
+
+	jobName := "sample-job-name"
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer req.Body.Close()
+
+		var value map[string]string
+		err := json.NewDecoder(req.Body).Decode(&value)
+		assert.NoError(t, err)
+
+		w.WriteHeader(http.StatusOK)
+
+		assert.Equal(t, jobName, value["name"])
+		assert.Equal(t, utility.JobNotFound, value["status"])
+	}))
+	defer ts.Close()
+
+	suite.mockStore.On("GetJobExecutionStatus", jobName).Return("", nil).Once()
+
+	remoteCallerURL := fmt.Sprintf("%s/status", ts.URL)
+
+	suite.testExecutionHandler.sendStatusToCaller(remoteCallerURL, jobName)
+	suite.mockStore.AssertExpectations(t)
 }
 
 func TestExecutionHandlerTestSuite(t *testing.T) {
