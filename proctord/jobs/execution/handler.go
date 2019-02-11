@@ -1,18 +1,18 @@
 package execution
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/getsentry/raven-go"
-	"net/http"
-
 	"github.com/gojektech/proctor/proctord/audit"
 	"github.com/gojektech/proctor/proctord/logger"
 	"github.com/gojektech/proctor/proctord/storage"
 	"github.com/gojektech/proctor/proctord/storage/postgres"
 	"github.com/gojektech/proctor/proctord/utility"
-
 	"github.com/gorilla/mux"
+	"net/http"
+	"time"
 )
 
 type executionHandler struct {
@@ -24,6 +24,7 @@ type executionHandler struct {
 type ExecutionHandler interface {
 	Handle() http.HandlerFunc
 	Status() http.HandlerFunc
+	sendStatusToCaller(remoteCallerURL, jobExecutionID string)
 }
 
 func NewExecutionHandler(auditor audit.Auditor, store storage.Store, executioner Executioner) ExecutionHandler {
@@ -61,7 +62,6 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 		jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
 			JobExecutionStatus: "WAITING",
 		}
-		defer func() { go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog) }()
 
 		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
 		jobsExecutionAuditLog.UserEmail = userEmail
@@ -78,9 +78,10 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.ClientError))
+			go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
+
 			return
 		}
-
 		jobExecutionID, err := handler.executioner.Execute(jobsExecutionAuditLog, job.Name, job.Args)
 		if err != nil {
 			logger.Error(fmt.Sprintf("%s: User %s: Error executing job: ", job.Name, userEmail), err.Error())
@@ -88,14 +89,64 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 
 			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
 			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
+			go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
+
 			return
 		}
 
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
+
+		remoteCallerURL := job.CallbackURL
+		go handler.postJobExecute(jobsExecutionAuditLog, remoteCallerURL, jobExecutionID)
 		return
 	}
+}
+
+func (handler *executionHandler) postJobExecute(jobsExecutionAuditLog *postgres.JobsExecutionAuditLog, remoteCallerURL, jobExecutionID string) {
+	handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
+	if remoteCallerURL != "" {
+		handler.sendStatusToCaller(remoteCallerURL, jobExecutionID)
+	}
+}
+
+func (handler *executionHandler) sendStatusToCaller(remoteCallerURL, jobExecutionID string) {
+	status := utility.JobWaiting
+
+	for {
+		jobExecutionStatus, _ := handler.store.GetJobExecutionStatus(jobExecutionID)
+		if jobExecutionStatus == "" {
+			status = utility.JobNotFound
+			break
+		}
+
+		if jobExecutionStatus == utility.JobSucceeded || jobExecutionStatus == utility.JobFailed {
+			status = jobExecutionStatus
+			break
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	value := map[string]string{"name": jobExecutionID, "status": status}
+	jsonValue, err := json.Marshal(value)
+	if err != nil {
+		logger.Error(fmt.Sprintf("StatusCallback: Error parsing %#v", value), err.Error())
+		raven.CaptureError(err, nil)
+
+		return
+	}
+
+	_, err = http.Post(remoteCallerURL, "application/json", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		logger.Error("StatusCallback: Error sending request to callback url", err.Error())
+		raven.CaptureError(err, nil)
+
+		return
+	}
+
+	return
 }
