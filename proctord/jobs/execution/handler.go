@@ -62,7 +62,6 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 		jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
 			JobExecutionStatus: "WAITING",
 		}
-		defer func() { go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog) }()
 
 		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
 		jobsExecutionAuditLog.UserEmail = userEmail
@@ -79,9 +78,10 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(utility.ClientError))
+			go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
+
 			return
 		}
-
 		jobExecutionID, err := handler.executioner.Execute(jobsExecutionAuditLog, job.Name, job.Args)
 		if err != nil {
 			logger.Error(fmt.Sprintf("%s: User %s: Error executing job: ", job.Name, userEmail), err.Error())
@@ -89,9 +89,11 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 
 			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
 			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
+			go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(utility.ServerError))
+
 			return
 		}
 
@@ -99,9 +101,15 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
 
 		remoteCallerURL := job.CallbackApi
-		go handler.sendStatusToCaller(remoteCallerURL, jobExecutionID)
-
+		go handler.postJobExecute(jobsExecutionAuditLog, remoteCallerURL, jobExecutionID)
 		return
+	}
+}
+
+func (handler *executionHandler) postJobExecute(jobsExecutionAuditLog *postgres.JobsExecutionAuditLog, remoteCallerURL, jobExecutionID string) {
+	handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
+	if remoteCallerURL != "" {
+		handler.sendStatusToCaller(remoteCallerURL, jobExecutionID)
 	}
 }
 
