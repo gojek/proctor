@@ -67,11 +67,6 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 		func(args mock.Arguments) { auditingChan <- true },
 	)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer ts.Close()
-
 	suite.mockStore.On("GetJobExecutionStatus", jobExecutionID).Return(utility.JobSucceeded, nil).Once()
 
 	suite.testExecutionHandler.Handle()(responseRecorder, req)
@@ -111,6 +106,7 @@ func (suite *ExecutionHandlerTestSuite) TestJobExecutionServerFailure() {
 	job := Job{
 		Name: "sample-job-name",
 		Args: map[string]string{"argOne": "sample-arg"},
+
 	}
 
 	requestBody, err := json.Marshal(job)
