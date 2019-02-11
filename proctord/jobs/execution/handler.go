@@ -100,7 +100,7 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
 
-		remoteCallerURL := job.CallbackApi
+		remoteCallerURL := job.CallbackURL
 		go handler.postJobExecute(jobsExecutionAuditLog, remoteCallerURL, jobExecutionID)
 		return
 	}
@@ -142,7 +142,7 @@ func (handler *executionHandler) sendStatusToCaller(remoteCallerURL, jobExecutio
 
 	_, err = http.Post(remoteCallerURL, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
-		logger.Error("StatusCallback: Error sending request to callback api", err.Error())
+		logger.Error("StatusCallback: Error sending request to callback url", err.Error())
 		raven.CaptureError(err, nil)
 
 		return

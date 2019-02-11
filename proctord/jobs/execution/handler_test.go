@@ -71,7 +71,7 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 	job := Job{
 		Name:        "sample-job-name",
 		Args:        map[string]string{"argOne": "sample-arg"},
-		CallbackApi: remoteCallerURL,
+		CallbackURL: remoteCallerURL,
 	}
 
 	requestBody, err := json.Marshal(job)
@@ -101,7 +101,7 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 	assert.Equal(t, fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID), responseRecorder.Body.String())
 }
 
-func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandlerWithoutCallbackAPI() {
+func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandlerWithoutCallbackURL() {
 	t := suite.T()
 
 	jobExecutionID := "proctor-ipsum-lorem"
