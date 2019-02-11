@@ -7,15 +7,9 @@ import (
 )
 
 func TestSorting(t *testing.T) {
-	procOne := metadata.Metadata{
-		Name: "one"}
-
-	procTwo := metadata.Metadata{
-		Name: "two"}
-
-	procThree := metadata.Metadata{
-		Name: "three"}
-
+	procOne := metadata.Metadata{Name: "one"}
+	procTwo := metadata.Metadata{Name: "two"}
+	procThree := metadata.Metadata{Name: "three"}
 	procList := []metadata.Metadata{procThree, procTwo, procOne}
 	expectedProcList := []metadata.Metadata{procOne, procThree, procTwo}
 
