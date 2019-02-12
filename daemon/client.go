@@ -269,7 +269,6 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
 	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
 	resp, err := client.Do(req)
-
 	if err != nil {
 		return "", buildNetworkError(err)
 	}
@@ -415,7 +414,11 @@ func buildHTTPError(c *client, resp *http.Response) error {
 	if resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf(utility.JobNotFoundError)
 	}  
-	
+
+	if resp.StatusCode == http.StatusForbidden {
+		return fmt.Errorf(utility.JobForbiddenErrorHeader)
+	}
+
 	return fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
 
