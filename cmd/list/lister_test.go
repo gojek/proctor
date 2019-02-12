@@ -54,7 +54,6 @@ func (s *ListCmdTestSuite) TestListCmdRun() {
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procOne.Name, procOne.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", procTwo.Name, procTwo.Description), color.Reset).Once()
 	s.mockPrinter.On("Println", "\nFor detailed information of any proc, run:\nproctor describe <proc_name>", color.FgGreen).Once()
-
 	s.testListCmd.Run(&cobra.Command{}, []string{})
 
 	s.mockProctorDClient.AssertExpectations(s.T())

@@ -7,6 +7,7 @@ import (
 	"github.com/gojektech/proctor/daemon"
 	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
+	"github.com/gojektech/proctor/utility/sort"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
@@ -21,8 +22,8 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 				printer.Println(err.Error(), color.FgRed)
 				return
 			}
-
 			printer.Println("List of Procs:\n", color.FgGreen)
+			sort.Procs(procList)
 
 			for _, proc := range procList {
 				printer.Println(fmt.Sprintf("%-40s %-100s", proc.Name, proc.Description), color.Reset)
