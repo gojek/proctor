@@ -22,6 +22,7 @@ const UnauthorizedErrorInvalidConfig = "Please check the EMAIL_ID and ACCESS_TOK
 const GenericListCmdError = "Error fetching list of procs. Please check configuration and network connectivity"
 const GenericProcCmdError = "Error executing proc. Please check configuration and network connectivity"
 const GenericDescribeCmdError = "Error fetching description of proc. Please check configuration and network connectivity"
+const JobForbiddenErrorHeader = "Access Denied : You are Not Authorized to Perform this action."
 
 const UnauthorizedErrorHeader = "Unauthorized Access!!!"
 const GenericTimeoutErrorHeader = "Connection Timeout!!!"

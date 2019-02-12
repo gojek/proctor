@@ -3,6 +3,7 @@ package execution
 import (
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/mock"
 	"testing"
 
 	"github.com/fatih/color"
@@ -120,7 +121,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDExecutionFailure() {
 	procArgs := make(map[string]string)
 	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("", errors.New("test error")).Once()
 
-	s.mockPrinter.On("Println", "Error submitting proc for execution", color.FgRed).Once()
+	s.mockPrinter.On("Println", mock.Anything, color.FgRed).Once()
 
 	osExitFunc := func(exitCode int) {
 		assert.Equal(s.T(), 1, exitCode)
