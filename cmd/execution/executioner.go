@@ -50,7 +50,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 				osExitFunc(1)
 				return
 			}
-
+			
 			printer.Println("Proc submitted for execution. \nStreaming logs:", color.FgGreen)
 			err = proctorDClient.StreamProcLogs(executedProcName)
 			if err != nil {
