@@ -1,13 +1,17 @@
-hash: 99d5240e2827968d8fea8861618d19371699d856ce4634572dfab614345e80c7
-updated: 2018-11-21T15:16:40.295388+05:30
+hash: 19b9d4912ddf0523c6e59bb0df99744c09ffc76e9864340ad2c8764b11715583
+updated: 2019-02-18T11:00:01.471006+05:30
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/badoux/checkmail
+  version: 9661bd69e9ad6fce1f7579022bdab0440807722a
 - name: github.com/briandowns/spinner
   version: 48dbb65d7bd5c74ab50d53d04c949f20e3d14944
+- name: github.com/certifi/gocertifi
+  version: 3fd9e1adb12b72d2f3f82191d49be9b93c69f67c
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
@@ -21,6 +25,8 @@ imports:
   subpackages:
   - internal
   - redis
+- name: github.com/getsentry/raven-go
+  version: 3f7439d3e74d88e21d196ba20eb61a5a958bc118
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gogo/protobuf
@@ -40,6 +46,14 @@ imports:
   - ptypes/timestamp
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
+- name: github.com/google/go-github
+  version: 1c3f0aaee1ce742b655f1ba8f33740103e904c5c
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 44c6ddd0a2342c386950e880b658017258da92fc
+  subpackages:
+  - query
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/googleapis/gnostic
@@ -123,9 +137,11 @@ imports:
   version: 792786c7400a136282c1664665ae0a8db921c6c2
   subpackages:
   - difflib
+- name: github.com/robfig/cron
+  version: b41be1df696709bb6395fe435af20370037c0b4c
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
-- name: github.com/Sirupsen/logrus
+- name: github.com/sirupsen/logrus
   version: 44067abb194b1bc8b342e1f2120f8d3ea691b834
 - name: github.com/spf13/afero
   version: d40851caa0d747393da1ffb28f7f9d8b4eeffebd
