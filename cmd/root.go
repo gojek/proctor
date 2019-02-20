@@ -18,6 +18,7 @@ import (
 	"github.com/gojektech/proctor/io"
 
 	"github.com/spf13/cobra"
+	"github.com/gojektech/proctor/cmd/version/github"
 )
 
 var (
@@ -28,8 +29,8 @@ var (
 	}
 )
 
-func Execute(printer io.Printer, proctorDClient daemon.Client) {
-	versionCmd := version.NewCmd(printer)
+func Execute(printer io.Printer, proctorDClient daemon.Client, githubClient github.LatestReleaseFetcher) {
+	versionCmd := version.NewCmd(printer, githubClient)
 	rootCmd.AddCommand(versionCmd)
 
 	descriptionCmd := description.NewCmd(printer, proctorDClient)
