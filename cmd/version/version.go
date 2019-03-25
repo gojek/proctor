@@ -19,8 +19,8 @@ func NewCmd(printer io.Printer, fetcher github.LatestReleaseFetcher) *cobra.Comm
 		Run: func(cmd *cobra.Command, args []string) {
 			printer.Println(fmt.Sprintf("Proctor: A Developer Friendly Automation Orchestrator %s", ClientVersion), color.Reset)
 			release, e := fetcher.LatestRelease("gojektech", "proctor")
-			if e == nil && *release.TagName != ClientVersion {
-				printer.Println(fmt.Sprintf("Your version of Proctor client is out of date! The latest version is %s You can update by either running brew upgrade proctor or downloading a release for your OS here: https://github.com/gojektech/proctor/releases", *release.TagName), color.Reset)
+			if e == nil && release != ClientVersion {
+				printer.Println(fmt.Sprintf("Your version of Proctor client is out of date! The latest version is %s You can update by either running brew upgrade proctor or downloading a release for your OS here: https://github.com/gojektech/proctor/releases", release), color.Reset)
 			}
 		},
 	}

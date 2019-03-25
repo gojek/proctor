@@ -6,7 +6,7 @@ import (
 )
 
 type LatestReleaseFetcher interface {
-	LatestRelease(owner, repository string) (*github.RepositoryRelease, error)
+	LatestRelease(owner, repository string) (string, error)
 }
 
 type client struct {
@@ -17,7 +17,7 @@ func NewClient() *client {
 	return &client{github.NewClient(nil)}
 }
 
-func (gc *client) LatestRelease(owner, repository string) (*github.RepositoryRelease, error) {
+func (gc *client) LatestRelease(owner, repository string) (string, error) {
 	release, _, err := gc.client.Repositories.GetLatestRelease(context.Background(), owner, repository)
-	return release, err
+	return *release.TagName, err
 }
