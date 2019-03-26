@@ -7,10 +7,11 @@ import (
 	"github.com/gojektech/proctor/io"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	"github.com/gojektech/proctor/cmd/version/github"
 )
 
 func TestRootCmdUsage(t *testing.T) {
-	Execute(&io.MockPrinter{}, &daemon.MockClient{})
+	Execute(&io.MockPrinter{}, &daemon.MockClient{}, &github.MockClient{})
 
 	assert.Equal(t, "proctor", rootCmd.Use)
 	assert.Equal(t, "A command-line interface to run procs", rootCmd.Short)
@@ -27,7 +28,7 @@ func contains(commands []*cobra.Command, commandName string) bool {
 }
 
 func TestRootCmdSubCommands(t *testing.T) {
-	Execute(&io.MockPrinter{}, &daemon.MockClient{})
+	Execute(&io.MockPrinter{}, &daemon.MockClient{}, &github.MockClient{})
 
 	assert.True(t, contains(rootCmd.Commands(), "describe"))
 	assert.True(t, contains(rootCmd.Commands(), "execute"))
