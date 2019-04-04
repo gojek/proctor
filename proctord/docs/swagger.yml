@@ -1,7 +1,7 @@
 consumes:
   - application/json
 info:
-  description: Issues and validates OTP
+  description: A command line solution for creating infrastructure
   title: Proctor-Service
   version: 1.0.0
 basePath: /
