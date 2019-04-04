@@ -1,7 +1,7 @@
 consumes:
   - application/json
 info:
-  description: A command line solution for creating infrastructure
+  description: A developer friendly automation orchestrator
   title: Proctor-Service
   version: 1.0.0
 basePath: /
