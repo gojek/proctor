@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	gh "github.com/gojektech/proctor/cmd/version/github"
-	"github.com/gojektech/proctor/io"
+	gh "proctor/cmd/version/github"
+	"proctor/io"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
@@ -42,7 +42,7 @@ func TestOldVersionCmd(t *testing.T) {
 	mockPrinter.On("Println", fmt.Sprintf("Proctor: A Developer Friendly Automation Orchestrator %s", ClientVersion), color.Reset).Once()
 	mockPrinter.On("Println", fmt.Sprintf("Your version of Proctor client is out of date!"+
 		" The latest version is %s You can update by either running brew upgrade proctor or downloading a release for your OS here:"+
-		" https://github.com/gojektech/proctor/releases", version), color.Reset).Once()
+		" https://proctor/releases", version), color.Reset).Once()
 	githubClient.On("LatestRelease", "gojektech", "proctor").Return(version, nil)
 
 	versionCmd.Run(&cobra.Command{}, []string{})

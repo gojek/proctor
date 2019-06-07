@@ -9,7 +9,7 @@ import (
 
 	"errors"
 
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

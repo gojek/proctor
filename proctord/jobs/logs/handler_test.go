@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/kubernetes"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/kubernetes"
+	"proctor/proctord/utility"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

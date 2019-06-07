@@ -1,11 +1,11 @@
 package server
 
 import (
-	"github.com/gojektech/proctor/proctord/instrumentation"
+	"proctor/proctord/instrumentation"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/logger"
+	"proctor/proctord/config"
+	"proctor/proctord/logger"
 
 	"github.com/tylerb/graceful"
 	"github.com/urfave/negroni"

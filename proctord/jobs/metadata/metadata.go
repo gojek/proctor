@@ -1,6 +1,6 @@
 package metadata
 
-import "github.com/gojektech/proctor/proctord/jobs/metadata/env"
+import "proctor/proctord/jobs/metadata/env"
 
 type Metadata struct {
 	Name             string   `json:"name"`

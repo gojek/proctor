@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/storage/postgres"
+	"proctor/proctord/storage/postgres"
 	"github.com/satori/go.uuid"
 )
 

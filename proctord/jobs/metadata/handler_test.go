@@ -9,9 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/jobs/metadata/env"
+	"proctor/proctord/jobs/metadata/env"
 
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

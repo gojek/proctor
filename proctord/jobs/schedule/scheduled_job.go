@@ -1,8 +1,8 @@
 package schedule
 
 import (
-	"github.com/gojektech/proctor/proctord/storage/postgres"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/storage/postgres"
+	"proctor/proctord/utility"
 )
 
 type ScheduledJob struct {

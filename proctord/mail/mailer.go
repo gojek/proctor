@@ -3,8 +3,8 @@ package mail
 import (
 	"net/smtp"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/config"
+	"proctor/proctord/utility"
 )
 
 type Mailer interface {

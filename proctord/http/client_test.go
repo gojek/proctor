@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/config"
+	"proctor/proctord/config"
 	"github.com/stretchr/testify/assert"
 )
 

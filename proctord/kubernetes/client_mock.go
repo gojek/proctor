@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"io"
 
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/utility"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -2,11 +2,11 @@ package audit
 
 import (
 	"github.com/getsentry/raven-go"
-	"github.com/gojektech/proctor/proctord/kubernetes"
-	"github.com/gojektech/proctor/proctord/logger"
-	"github.com/gojektech/proctor/proctord/storage"
-	"github.com/gojektech/proctor/proctord/storage/postgres"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/kubernetes"
+	"proctor/proctord/logger"
+	"proctor/proctord/storage"
+	"proctor/proctord/storage/postgres"
+	"proctor/proctord/utility"
 )
 
 type Auditor interface {

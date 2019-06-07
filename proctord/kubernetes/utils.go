@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/logger"
+	"proctor/proctord/config"
+	"proctor/proctord/logger"
 )
 
 func KubeConfig() string {

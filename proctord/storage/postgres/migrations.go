@@ -3,8 +3,8 @@ package postgres
 import (
 	"fmt"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/logger"
+	"proctor/proctord/config"
+	"proctor/proctord/logger"
 	"github.com/mattes/migrate"
 	//postgres driver
 	_ "github.com/mattes/migrate/database/postgres"

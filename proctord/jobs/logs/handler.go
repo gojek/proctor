@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/kubernetes"
-	_logger "github.com/gojektech/proctor/proctord/logger"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/config"
+	"proctor/proctord/kubernetes"
+	_logger "proctor/proctord/logger"
+	"proctor/proctord/utility"
 
 	"github.com/gorilla/websocket"
 )

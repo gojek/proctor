@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/audit"
-	"github.com/gojektech/proctor/proctord/jobs/execution"
-	"github.com/gojektech/proctor/proctord/logger"
-	"github.com/gojektech/proctor/proctord/mail"
-	"github.com/gojektech/proctor/proctord/storage"
-	"github.com/gojektech/proctor/proctord/storage/postgres"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/audit"
+	"proctor/proctord/jobs/execution"
+	"proctor/proctord/logger"
+	"proctor/proctord/mail"
+	"proctor/proctord/storage"
+	"proctor/proctord/storage/postgres"
+	"proctor/proctord/utility"
 	"github.com/robfig/cron"
 )
 

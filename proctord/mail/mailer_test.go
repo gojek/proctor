@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/config"
+	"proctor/proctord/utility"
 )
 
 func TestSendMail(t *testing.T) {

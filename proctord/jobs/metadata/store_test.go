@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/redis"
+	"proctor/proctord/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"

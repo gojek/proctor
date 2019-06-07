@@ -1,7 +1,7 @@
 package audit
 
 import (
-	"github.com/gojektech/proctor/proctord/storage/postgres"
+	"proctor/proctord/storage/postgres"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -3,7 +3,7 @@ package logger
 import (
 	"os"
 
-	"github.com/gojektech/proctor/proctord/config"
+	"proctor/proctord/config"
 
 	log "github.com/sirupsen/logrus"
 )

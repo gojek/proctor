@@ -1,7 +1,7 @@
 package sort
 
 import (
-	"github.com/gojektech/proctor/proctord/jobs/metadata"
+	"proctor/proctord/jobs/metadata"
 	"sort"
 )
 

@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/daemon"
-	"github.com/gojektech/proctor/io"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/daemon"
+	"proctor/io"
+	"proctor/proctord/utility"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

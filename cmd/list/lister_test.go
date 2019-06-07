@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/daemon"
-	"github.com/gojektech/proctor/io"
-	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
+	"proctor/daemon"
+	"proctor/io"
+	proc_metadata "proctor/proctord/jobs/metadata"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

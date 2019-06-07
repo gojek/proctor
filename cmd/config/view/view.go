@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
-	proctor_config "github.com/gojektech/proctor/config"
-	"github.com/gojektech/proctor/io"
+	proctor_config "proctor/config"
+	"proctor/io"
 	"github.com/spf13/cobra"
 )
 

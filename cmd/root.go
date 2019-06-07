@@ -2,23 +2,23 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gojektech/proctor/cmd/schedule/remove"
+	"proctor/cmd/schedule/remove"
 	"os"
 
-	"github.com/gojektech/proctor/cmd/config"
-	"github.com/gojektech/proctor/cmd/config/view"
-	"github.com/gojektech/proctor/cmd/description"
-	"github.com/gojektech/proctor/cmd/execution"
-	"github.com/gojektech/proctor/cmd/list"
-	"github.com/gojektech/proctor/cmd/schedule"
-	schedule_list "github.com/gojektech/proctor/cmd/schedule/list"
-	schedule_describe "github.com/gojektech/proctor/cmd/schedule/describe"
-	"github.com/gojektech/proctor/cmd/version"
-	"github.com/gojektech/proctor/daemon"
-	"github.com/gojektech/proctor/io"
+	"proctor/cmd/config"
+	"proctor/cmd/config/view"
+	"proctor/cmd/description"
+	"proctor/cmd/execution"
+	"proctor/cmd/list"
+	"proctor/cmd/schedule"
+	schedule_list "proctor/cmd/schedule/list"
+	schedule_describe "proctor/cmd/schedule/describe"
+	"proctor/cmd/version"
+	"proctor/daemon"
+	"proctor/io"
 
 	"github.com/spf13/cobra"
-	"github.com/gojektech/proctor/cmd/version/github"
+	"proctor/cmd/version/github"
 )
 
 var (

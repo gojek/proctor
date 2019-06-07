@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"

@@ -1,16 +1,16 @@
-proctor
-proctord/proctord
+cli
+server
 homebrew-gojek
 scripts/proctor.rb
+_output/*
 
-proctord/.env
+proctord
 .env
 
-vendor/
-proctord/vendor/
-dist/
+proctord
 
 *.swp
 *.swo
 .idea
 .DS_Store
+.vscode/
