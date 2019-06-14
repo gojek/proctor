@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/logger"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/config"
+	"proctor/proctord/logger"
+	"proctor/proctord/utility"
 	uuid "github.com/satori/go.uuid"
 	batch_v1 "k8s.io/api/batch/v1"
 	"k8s.io/api/core/v1"

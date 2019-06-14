@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/config"
+	"proctor/proctord/config"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )

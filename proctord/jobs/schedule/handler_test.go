@@ -12,10 +12,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/storage"
-	"github.com/gojektech/proctor/proctord/storage/postgres"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/jobs/metadata"
+	"proctor/proctord/storage"
+	"proctor/proctord/storage/postgres"
+	"proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

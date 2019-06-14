@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/jobs/secrets"
-	"github.com/gojektech/proctor/proctord/kubernetes"
-	"github.com/gojektech/proctor/proctord/storage/postgres"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/jobs/metadata"
+	"proctor/proctord/jobs/secrets"
+	"proctor/proctord/kubernetes"
+	"proctor/proctord/storage/postgres"
+	"proctor/proctord/utility"
 )
 
 type executioner struct {

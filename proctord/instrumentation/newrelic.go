@@ -3,7 +3,7 @@ package instrumentation
 import (
 	"net/http"
 
-	"github.com/gojektech/proctor/proctord/config"
+	"proctor/proctord/config"
 	"github.com/newrelic/go-agent"
 )
 

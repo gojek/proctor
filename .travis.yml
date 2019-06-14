@@ -2,16 +2,13 @@ dist: trusty
 sudo: required
 language: go
 go:
-- "1.10"
+- "1.12"
 
 services:
   - redis-server
   - postgresql
 
 before_script:
-# Install glide
-- curl https://glide.sh/get | sh
-# Start Redis sever
 - sudo service redis-server start
 
 stages:
@@ -21,12 +18,7 @@ jobs:
   include:
     - stage: test
       script:
-        # testing proctord
-        - cd proctord/
-        - make setup-test-teardown
-        # testing proctor cli
-        - cd ../.
-        - make ci.test
+        - make db.setup test-with-race
 
 after_success:
   - scripts/release.sh

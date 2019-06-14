@@ -8,16 +8,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gojektech/proctor/cmd/version"
+	"proctor/cmd/version"
 
-	"github.com/gojektech/proctor/config"
-	"github.com/gojektech/proctor/io"
+	"proctor/config"
+	"proctor/io"
 	"github.com/gorilla/websocket"
 	"github.com/thingful/httpmock"
 
-	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/jobs/metadata/env"
-	"github.com/gojektech/proctor/proctord/utility"
+	proc_metadata "proctor/proctord/jobs/metadata"
+	"proctor/proctord/jobs/metadata/env"
+	"proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

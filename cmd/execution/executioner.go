@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/daemon"
-	"github.com/gojektech/proctor/io"
-	proctord_utility "github.com/gojektech/proctor/proctord/utility"
+	"proctor/daemon"
+	"proctor/io"
+	proctord_utility "proctor/proctord/utility"
 	"github.com/spf13/cobra"
 )
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/utility"
 	"github.com/pkg/errors"
 
 	"github.com/spf13/viper"

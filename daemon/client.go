@@ -14,15 +14,15 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/gojektech/proctor/cmd/version"
+	"proctor/cmd/version"
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/config"
-	"github.com/gojektech/proctor/io"
-	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/jobs/schedule"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/config"
+	"proctor/io"
+	proc_metadata "proctor/proctord/jobs/metadata"
+	"proctor/proctord/jobs/schedule"
+	"proctor/proctord/utility"
 	"github.com/gorilla/websocket"
 )
 

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/config"
+	"proctor/proctord/utility"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

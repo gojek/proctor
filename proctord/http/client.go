@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	"github.com/gojektech/proctor/proctord/config"
+	"proctor/proctord/config"
 )
 
 func NewClient() (*http.Client, error) {

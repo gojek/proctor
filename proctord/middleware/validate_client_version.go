@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/config"
+	"proctor/proctord/utility"
 	"github.com/hashicorp/go-version"
-	"github.com/gojektech/proctor/proctord/logger"
+	"proctor/proctord/logger"
 	"net/http"
 )
 

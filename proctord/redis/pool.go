@@ -3,7 +3,7 @@ package redis
 import (
 	"time"
 
-	"github.com/gojektech/proctor/proctord/config"
+	"proctor/proctord/config"
 
 	"github.com/garyburd/redigo/redis"
 )

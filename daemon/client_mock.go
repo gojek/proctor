@@ -1,8 +1,8 @@
 package daemon
 
 import (
-	proc_metadata "github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/jobs/schedule"
+	proc_metadata "proctor/proctord/jobs/metadata"
+	"proctor/proctord/jobs/schedule"
 	"github.com/stretchr/testify/mock"
 )
 

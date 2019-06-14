@@ -1,8 +1,8 @@
 package list
 
 import (
-	"github.com/gojektech/proctor/daemon"
-	"github.com/gojektech/proctor/io"
+	"proctor/daemon"
+	"proctor/io"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
 	"testing"

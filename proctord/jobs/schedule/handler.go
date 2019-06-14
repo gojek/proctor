@@ -10,10 +10,10 @@ import (
 
 	"github.com/badoux/checkmail"
 
-	"github.com/gojektech/proctor/proctord/jobs/metadata"
-	"github.com/gojektech/proctor/proctord/logger"
-	"github.com/gojektech/proctor/proctord/storage"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/jobs/metadata"
+	"proctor/proctord/logger"
+	"proctor/proctord/storage"
+	"proctor/proctord/utility"
 	"github.com/robfig/cron"
 )
 

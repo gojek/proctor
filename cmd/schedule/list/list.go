@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/daemon"
-	"github.com/gojektech/proctor/io"
+	"proctor/daemon"
+	"proctor/io"
 	"github.com/spf13/cobra"
 )
 

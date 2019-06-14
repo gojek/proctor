@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/config"
-	"github.com/gojektech/proctor/proctord/logger"
+	"proctor/proctord/config"
+	"proctor/proctord/logger"
 	"github.com/jmoiron/sqlx"
 	//postgres driver
 	_ "github.com/lib/pq"

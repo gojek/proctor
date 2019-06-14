@@ -7,7 +7,7 @@ if [ -n "$TRAVIS_TAG" ]; then
   SHA=$(cat dist/checksums.txt | grep Darwin_x86_64 | awk '{ print $1}')
   go run scripts/proctor_template.go $TRAVIS_TAG $SHA
   rm -rf homebrew-gojek
-  git clone "https://$GITHUB_TOKEN:@github.com/gojektech/homebrew-gojek.git"
+  git clone "https://$GITHUB_TOKEN:@github.com/gojek/homebrew-gojek.git"
   cp scripts/proctor.rb homebrew-gojek/Formula/proctor.rb
   cd homebrew-gojek
   git add .

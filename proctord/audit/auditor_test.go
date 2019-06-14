@@ -3,10 +3,10 @@ package audit
 import (
 	"testing"
 
-	"github.com/gojektech/proctor/proctord/kubernetes"
-	"github.com/gojektech/proctor/proctord/storage"
-	"github.com/gojektech/proctor/proctord/storage/postgres"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/kubernetes"
+	"proctor/proctord/storage"
+	"proctor/proctord/storage/postgres"
+	"proctor/proctord/utility"
 )
 
 func TestJobsExecutionAuditing(t *testing.T) {

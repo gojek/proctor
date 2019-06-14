@@ -5,8 +5,8 @@ import (
 	"github.com/getsentry/raven-go"
 	"net/http"
 
-	"github.com/gojektech/proctor/proctord/logger"
-	"github.com/gojektech/proctor/proctord/utility"
+	"proctor/proctord/logger"
+	"proctor/proctord/utility"
 )
 
 type handler struct {

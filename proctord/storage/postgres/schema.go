@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/gojektech/proctor/proctord/logger"
+	"proctor/proctord/logger"
 )
 
 type JobsExecutionAuditLog struct {

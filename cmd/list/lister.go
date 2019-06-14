@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/gojektech/proctor/daemon"
-	"github.com/gojektech/proctor/io"
+	"proctor/daemon"
+	"proctor/io"
 	"github.com/spf13/cobra"
-	"github.com/gojektech/proctor/utility/sort"
+	"proctor/utility/sort"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
