@@ -27,7 +27,7 @@ test:
 
 .PHONY: server
 server:
-	go build -o $(BIN_DIR)/server ./exec/server/server.go
+	go build -o $(BIN_DIR)/server ./proctord/main.go
 
 .PHONY: start-server
 start-server:
@@ -35,7 +35,7 @@ start-server:
 
 .PHONY: cli
 cli:
-	go build -o $(BIN_DIR)/cli ./exec/cli/cli.go
+	go build -o $(BIN_DIR)/cli ./cli/main.go
 
 generate:
 	go get -u github.com/go-bindata/go-bindata/...

@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	modelMetadata "proctor/shared/model/metadata"
-	"proctor/shared/model/metadata"
 	"proctor/proctord/jobs/secrets"
 	"proctor/proctord/kubernetes"
 	"proctor/proctord/storage/postgres"
 	utility "proctor/shared/constant"
+	"proctor/shared/model/metadata"
+	modelMetadata "proctor/shared/model/metadata"
 )
 
 type ExecutionerTestSuite struct {

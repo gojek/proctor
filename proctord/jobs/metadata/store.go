@@ -2,8 +2,8 @@ package metadata
 
 import (
 	"encoding/json"
-    modelMetadata "proctor/shared/model/metadata"
 	"proctor/proctord/redis"
+	modelMetadata "proctor/shared/model/metadata"
 )
 
 const JobNameKeySuffix = "-metadata"

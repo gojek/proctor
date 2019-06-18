@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"github.com/getsentry/raven-go"
 	"net/http"
-	procMetadata "proctor/shared/model/metadata"
 	"proctor/proctord/logger"
 	utility "proctor/shared/constant"
+	procMetadata "proctor/shared/model/metadata"
 )
 
 type handler struct {
