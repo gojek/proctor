@@ -2,16 +2,16 @@ package metadata
 
 import (
 	"encoding/json"
-
+    modelMetadata "proctor/shared/model/metadata"
 	"proctor/proctord/redis"
 )
 
 const JobNameKeySuffix = "-metadata"
 
 type Store interface {
-	CreateOrUpdateJobMetadata(metadata Metadata) error
-	GetAllJobsMetadata() ([]Metadata, error)
-	GetJobMetadata(jobName string) (*Metadata, error)
+	CreateOrUpdateJobMetadata(metadata modelMetadata.Metadata) error
+	GetAllJobsMetadata() ([]modelMetadata.Metadata, error)
+	GetJobMetadata(jobName string) (*modelMetadata.Metadata, error)
 }
 
 type store struct {
@@ -28,7 +28,7 @@ func jobMetadataKey(jobName string) string {
 	return jobName + JobNameKeySuffix
 }
 
-func (store *store) CreateOrUpdateJobMetadata(metadata Metadata) error {
+func (store *store) CreateOrUpdateJobMetadata(metadata modelMetadata.Metadata) error {
 	jobNameKey := jobMetadataKey(metadata.Name)
 
 	binaryJobMetadata, err := json.Marshal(metadata)
@@ -39,7 +39,7 @@ func (store *store) CreateOrUpdateJobMetadata(metadata Metadata) error {
 	return store.redisClient.SET(jobNameKey, binaryJobMetadata)
 }
 
-func (store *store) GetAllJobsMetadata() ([]Metadata, error) {
+func (store *store) GetAllJobsMetadata() ([]modelMetadata.Metadata, error) {
 	jobNameKeyRegex := "*" + JobNameKeySuffix
 
 	keys, err := store.redisClient.KEYS(jobNameKeyRegex)
@@ -56,7 +56,7 @@ func (store *store) GetAllJobsMetadata() ([]Metadata, error) {
 		return nil, err
 	}
 
-	jobsMetadata := make([]Metadata, len(values))
+	jobsMetadata := make([]modelMetadata.Metadata, len(values))
 	for i := range values {
 		err = json.Unmarshal(values[i], &jobsMetadata[i])
 		if err != nil {
@@ -67,13 +67,13 @@ func (store *store) GetAllJobsMetadata() ([]Metadata, error) {
 	return jobsMetadata, nil
 }
 
-func (store *store) GetJobMetadata(jobName string) (*Metadata, error) {
+func (store *store) GetJobMetadata(jobName string) (*modelMetadata.Metadata, error) {
 	binaryJobMetadata, err := store.redisClient.GET(jobMetadataKey(jobName))
 	if err != nil {
 		return nil, err
 	}
 
-	var jobMetadata Metadata
+	var jobMetadata modelMetadata.Metadata
 	err = json.Unmarshal(binaryJobMetadata, &jobMetadata)
 	if err != nil {
 		return nil, err

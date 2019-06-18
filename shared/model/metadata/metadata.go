@@ -1,6 +1,6 @@
 package metadata
 
-import "proctor/proctord/jobs/metadata/env"
+import "proctor/shared/model/metadata/env"
 
 type Metadata struct {
 	Name             string   `json:"name"`

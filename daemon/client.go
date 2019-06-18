@@ -21,7 +21,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 	"proctor/config"
-	proc_metadata "proctor/proctord/jobs/metadata"
+	proc_metadata "proctor/shared/model/metadata"
 	"proctor/proctord/jobs/schedule"
 	"proctor/proctord/utility"
 )

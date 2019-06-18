@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"proctor/daemon"
-	procMetadata "proctor/proctord/jobs/metadata"
-	"proctor/proctord/jobs/metadata/env"
+	procMetadata "proctor/shared/model/metadata"
+	"proctor/shared/model/metadata/env"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

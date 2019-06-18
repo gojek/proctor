@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/thingful/httpmock"
 	"proctor/config"
-	proc_metadata "proctor/proctord/jobs/metadata"
-	"proctor/proctord/jobs/metadata/env"
+	proc_metadata "proctor/shared/model/metadata"
+	"proctor/shared/model/metadata/env"
 	"proctor/proctord/utility"
 )
 

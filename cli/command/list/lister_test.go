@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"proctor/daemon"
-	procMetadata "proctor/proctord/jobs/metadata"
+	procMetadata "proctor/shared/model/metadata"
 )
 
 type ListCmdTestSuite struct {

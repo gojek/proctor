@@ -1,7 +1,7 @@
 package sort
 
 import (
-	"proctor/proctord/jobs/metadata"
+	"proctor/shared/model/metadata"
 	"sort"
 )
 

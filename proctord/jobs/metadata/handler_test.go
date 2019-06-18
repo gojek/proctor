@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"proctor/proctord/jobs/metadata/env"
+	"proctor/shared/model/metadata/env"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

@@ -2,7 +2,7 @@ package sort
 
 import (
 	"github.com/stretchr/testify/assert"
-	"proctor/proctord/jobs/metadata"
+	"proctor/shared/model/metadata"
 	"testing"
 )
 

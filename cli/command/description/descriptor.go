@@ -8,7 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"proctor/daemon"
-	procMetadata "proctor/proctord/jobs/metadata"
+	procMetadata "proctor/shared/model/metadata"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {

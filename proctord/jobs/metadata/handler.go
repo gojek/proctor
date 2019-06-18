@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/getsentry/raven-go"
 	"net/http"
-
+	procMetadata "proctor/shared/model/metadata"
 	"proctor/proctord/logger"
 	"proctor/proctord/utility"
 )
@@ -26,7 +26,7 @@ func NewHandler(store Store) Handler {
 
 func (handler *handler) HandleSubmission() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var jobMetadata []Metadata
+		var jobMetadata []procMetadata.Metadata
 		err := json.NewDecoder(req.Body).Decode(&jobMetadata)
 		defer req.Body.Close()
 		if err != nil {

@@ -2,7 +2,7 @@ package daemon
 
 import (
 	"github.com/stretchr/testify/mock"
-	proc_metadata "proctor/proctord/jobs/metadata"
+	proc_metadata "proctor/shared/model/metadata"
 	"proctor/proctord/jobs/schedule"
 )
 
