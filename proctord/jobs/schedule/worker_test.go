@@ -49,7 +49,7 @@ func (suite *WorkerTestSuite) TestCronEnablingForScheduledJobs() {
 	disabledJob := "some-job-two"
 	notificationEmails := "foo@bar.com,goo@bar.com"
 	scheduledJobs := []postgres.JobsSchedule{
-		postgres.JobsSchedule{
+		{
 			ID:                 "some-uuid-one",
 			Enabled:            true,
 			Time:               "*/1 * * * * *",
@@ -57,7 +57,7 @@ func (suite *WorkerTestSuite) TestCronEnablingForScheduledJobs() {
 			Args:               base64.StdEncoding.EncodeToString(jsonEncodedJobArgs),
 			NotificationEmails: notificationEmails,
 		},
-		postgres.JobsSchedule{
+		{
 			ID:                 "some-uuid-two",
 			Enabled:            false,
 			Time:               "*/1 * * * * *",
@@ -109,7 +109,7 @@ func (suite *WorkerTestSuite) TestCronForDisablingEnabledScheduledJobs() {
 	jobName := "some-job-one"
 	notificationEmails := "foo@bar.com,goo@bar.com"
 	scheduledJobs := []postgres.JobsSchedule{
-		postgres.JobsSchedule{
+		{
 			ID:                 "some-uuid-one",
 			Enabled:            true,
 			Time:               "*/1 * * * * *",
@@ -120,7 +120,7 @@ func (suite *WorkerTestSuite) TestCronForDisablingEnabledScheduledJobs() {
 	}
 
 	disabledScheduledJobs := []postgres.JobsSchedule{
-		postgres.JobsSchedule{
+		{
 			ID:      "some-uuid-one",
 			Enabled: false,
 			Time:    "*/1 * * * * *",

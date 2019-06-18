@@ -294,7 +294,7 @@ func (s *SchedulerTestSuite) TestGetScheduledJobs() {
 	responseRecorder := httptest.NewRecorder()
 
 	scheduledJobsStoreFormat := []postgres.JobsSchedule{
-		postgres.JobsSchedule{
+		{
 			ID: "some-id",
 		},
 	}
@@ -350,7 +350,7 @@ func (s *SchedulerTestSuite) TestGetScheduledJobByID() {
 	jobID := "some-id"
 
 	scheduledJobsStoreFormat := []postgres.JobsSchedule{
-		postgres.JobsSchedule{
+		{
 			ID: jobID,
 		},
 	}

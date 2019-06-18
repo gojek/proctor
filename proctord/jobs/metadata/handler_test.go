@@ -37,13 +37,13 @@ func (s *MetadataHandlerTestSuite) TestSuccessfulMetadataSubmission() {
 	t := s.T()
 
 	secrets := []env.VarMetadata{
-		env.VarMetadata{
+		{
 			Name:        "SAMPLE_SECRET",
 			Description: "description of secret",
 		},
 	}
 	args := []env.VarMetadata{
-		env.VarMetadata{
+		{
 			Name:        "SAMPLE_ARG",
 			Description: "description of arg",
 		},

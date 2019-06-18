@@ -122,7 +122,7 @@ func (worker *worker) Run(tickerChan <-chan time.Time, signalsChan <-chan os.Sig
 				}
 			}
 		case <-signalsChan:
-			for id, _ := range worker.inMemoryScheduledJobs {
+			for id := range worker.inMemoryScheduledJobs {
 				worker.disableScheduledJobIfItExists(id)
 			}
 			//TODO: wait for all active executions to complete
