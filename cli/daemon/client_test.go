@@ -57,11 +57,11 @@ func (s *ClientTestSuite) TestListProcsReturnsListOfProcsWithDetails() {
 	defer httpmock.DeactivateAndReset()
 
 	body := `[ { "name": "job-1", "description": "job description", "image_name": "hub.docker.com/job-1:latest", "env_vars": { "secrets": [ { "name": "SECRET1", "description": "Base64 encoded secret for authentication." } ], "args": [ { "name": "ARG1", "description": "Argument name" } ] } } ]`
-	var args = []env.VarMetadata{env.VarMetadata{Name: "ARG1", Description: "Argument name"}}
-	var secrets = []env.VarMetadata{env.VarMetadata{Name: "SECRET1", Description: "Base64 encoded secret for authentication."}}
+	var args = []env.VarMetadata{{Name: "ARG1", Description: "Argument name"}}
+	var secrets = []env.VarMetadata{{Name: "SECRET1", Description: "Base64 encoded secret for authentication."}}
 	envVars := env.Vars{Secrets: secrets, Args: args}
 	var expectedProcList = []modelMetadata.Metadata{
-		modelMetadata.Metadata{
+		{
 			Name:        "job-1",
 			Description: "job description",
 			ImageName:   "hub.docker.com/job-1:latest",

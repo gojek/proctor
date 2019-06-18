@@ -184,8 +184,8 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"data": &bintree{nil, map[string]*bintree{
-		"config_template.yaml": &bintree{dataConfig_templateYaml, map[string]*bintree{}},
+	"data": {nil, map[string]*bintree{
+		"config_template.yaml": {dataConfig_templateYaml, map[string]*bintree{}},
 	}},
 }}
 
