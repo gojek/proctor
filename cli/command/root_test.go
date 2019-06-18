@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"proctor/cli/command/version/github"
-	"proctor/daemon"
+	"proctor/cli/daemon"
 )
 
 func TestRootCmdUsage(t *testing.T) {

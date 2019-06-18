@@ -11,7 +11,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	proctorConfig "proctor/config"
+	proctorConfig "proctor/cli/config"
 )
 
 func CreateDirIfNotExist(dir string) {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"proctor/daemon"
+	"proctor/cli/daemon"
 	procMetadata "proctor/shared/model/metadata"
 	"proctor/shared/model/metadata/env"
 

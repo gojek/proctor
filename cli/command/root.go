@@ -17,7 +17,7 @@ import (
 	scheduleList "proctor/cli/command/schedule/list"
 	"proctor/cli/command/version"
 	"proctor/cli/command/version/github"
-	"proctor/daemon"
+	"proctor/cli/daemon"
 )
 
 var (

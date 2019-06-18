@@ -3,8 +3,8 @@ package main
 import (
 	"proctor/cli/command"
 	"proctor/cli/command/version/github"
-	"proctor/config"
-	"proctor/daemon"
+	"proctor/cli/config"
+	"proctor/cli/daemon"
 	"proctor/shared/io"
 )
 

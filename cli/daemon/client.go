@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	io_reader "io"
+	ioReader "io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -21,7 +21,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
-	"proctor/config"
+	"proctor/cli/config"
 	modelMetadata "proctor/shared/model/metadata"
 	modelSchedule "proctor/shared/model/schedule"
 )
@@ -422,7 +422,7 @@ func buildHTTPError(c *client, resp *http.Response) error {
 	return fmt.Errorf("%s\nStatus Code: %d, %s", constant.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
 
-func getHttpResponseError(response io_reader.ReadCloser) error {
+func getHttpResponseError(response ioReader.ReadCloser) error {
 	body, _ := ioutil.ReadAll(response)
 	bodyString := string(body)
 	return fmt.Errorf(bodyString)
