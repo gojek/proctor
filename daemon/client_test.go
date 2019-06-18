@@ -5,18 +5,17 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"proctor/shared"
 	"strings"
 	"testing"
 
-	"proctor/cmd/version"
+	"proctor/cli/version"
 
 	"github.com/gorilla/websocket"
-	"github.com/thingful/httpmock"
-	"proctor/config"
-	"proctor/io"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/thingful/httpmock"
+	"proctor/config"
 	proc_metadata "proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/metadata/env"
 	"proctor/proctord/utility"
@@ -39,12 +38,12 @@ type ClientTestSuite struct {
 	suite.Suite
 	testClient       Client
 	mockConfigLoader *config.MockLoader
-	mockPrinter      *io.MockPrinter
+	mockPrinter      *shared.MockPrinter
 }
 
 func (s *ClientTestSuite) SetupTest() {
 	s.mockConfigLoader = &config.MockLoader{}
-	s.mockPrinter = &io.MockPrinter{}
+	s.mockPrinter = &shared.MockPrinter{}
 
 	s.testClient = NewClient(s.mockPrinter, s.mockConfigLoader)
 }

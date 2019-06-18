@@ -12,15 +12,15 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"proctor/shared/io"
 	"time"
 
-	"proctor/cmd/version"
+	"proctor/cli/version"
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 	"proctor/config"
-	"proctor/io"
 	proc_metadata "proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/schedule"
 	"proctor/proctord/utility"
