@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 	"proctor/daemon"
 	"proctor/io"
 	proctord_utility "proctor/proctord/utility"
-	"github.com/spf13/cobra"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(int)) *cobra.Command {
@@ -50,7 +50,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 				osExitFunc(1)
 				return
 			}
-			
+
 			printer.Println("Proc submitted for execution. \nStreaming logs:", color.FgGreen)
 			err = proctorDClient.StreamProcLogs(executedProcName)
 			if err != nil {

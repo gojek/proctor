@@ -3,41 +3,41 @@ package schedule
 import (
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 	"proctor/daemon"
 	"proctor/io"
-	"github.com/spf13/cobra"
 	"strings"
 )
 
-func NewCmd(printer io.Printer,proctorDClient daemon.Client) *cobra.Command {
+func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 	return &cobra.Command{
 		Use:     "schedule",
 		Short:   "Create scheduled jobs",
 		Long:    "This command helps to create scheduled jobs",
-		Example:  fmt.Sprintf("proctor schedule run-sample -g my-group -t '0 2 * * *'  -n 'username@mail.com' -T 'sample,proctor' ARG_ONE1=foobar"),
-		Args:     cobra.MinimumNArgs(1),
+		Example: fmt.Sprintf("proctor schedule run-sample -g my-group -t '0 2 * * *'  -n 'username@mail.com' -T 'sample,proctor' ARG_ONE1=foobar"),
+		Args:    cobra.MinimumNArgs(1),
 
 		Run: func(cmd *cobra.Command, args []string) {
 			procName := args[0]
 			printer.Println(fmt.Sprintf("%-40s %-100s", "Creating Scheduled Job", procName), color.Reset)
 			time, err := cmd.Flags().GetString("time")
 			if err != nil {
-				printer.Println(err.Error(),color.FgRed)
+				printer.Println(err.Error(), color.FgRed)
 			}
 
 			notificationEmails, err := cmd.Flags().GetString("notify")
 			if err != nil {
-				printer.Println(err.Error(),color.FgRed)
+				printer.Println(err.Error(), color.FgRed)
 			}
 
 			tags, err := cmd.Flags().GetString("tags")
 			if err != nil {
-				printer.Println(err.Error(),color.FgRed)
+				printer.Println(err.Error(), color.FgRed)
 			}
 
 			group, err := cmd.Flags().GetString("group")
 			if err != nil {
-				printer.Println(err.Error(),color.FgRed)
+				printer.Println(err.Error(), color.FgRed)
 			}
 
 			jobArgs := make(map[string]string)
@@ -70,4 +70,3 @@ func NewCmd(printer io.Printer,proctorDClient daemon.Client) *cobra.Command {
 		},
 	}
 }
-

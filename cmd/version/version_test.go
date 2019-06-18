@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	gh "proctor/cmd/version/github"
-	"proctor/io"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	gh "proctor/cmd/version/github"
+	"proctor/io"
 )
 
 func TestVersionCmdUsage(t *testing.T) {

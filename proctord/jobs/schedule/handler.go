@@ -10,11 +10,11 @@ import (
 
 	"github.com/badoux/checkmail"
 
+	"github.com/robfig/cron"
 	"proctor/proctord/jobs/metadata"
 	"proctor/proctord/logger"
 	"proctor/proctord/storage"
 	"proctor/proctord/utility"
-	"github.com/robfig/cron"
 )
 
 type scheduler struct {
@@ -90,7 +90,7 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 		_, err = scheduler.metadataStore.GetJobMetadata(scheduledJob.Name)
 		if err != nil {
 			if err.Error() == "redigo: nil returned" {
-				logger.Error(fmt.Sprintf("Client provided non existent proc name: %s ", scheduledJob.Tags), scheduledJob.Name, )
+				logger.Error(fmt.Sprintf("Client provided non existent proc name: %s ", scheduledJob.Tags), scheduledJob.Name)
 
 				w.WriteHeader(http.StatusNotFound)
 				w.Write([]byte(utility.NonExistentProcClientError))

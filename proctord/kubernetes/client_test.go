@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"proctor/proctord/config"
-	"proctor/proctord/utility"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -16,6 +14,8 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	batch_v1 "k8s.io/client-go/kubernetes/typed/batch/v1"
+	"proctor/proctord/config"
+	"proctor/proctord/utility"
 
 	batchV1 "k8s.io/api/batch/v1"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
@@ -98,7 +98,7 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	expectedLabel := jobLabel(executedJobname)
 	assert.Equal(t, expectedLabel, executedJob.ObjectMeta.Labels)
 	assert.Equal(t, expectedLabel, executedJob.Spec.Template.ObjectMeta.Labels)
-	assert.Equal(t, map[string]string{"key.one":"true"}, executedJob.Spec.Template.Annotations)
+	assert.Equal(t, map[string]string{"key.one": "true"}, executedJob.Spec.Template.Annotations)
 
 	assert.Equal(t, config.KubeJobActiveDeadlineSeconds(), executedJob.Spec.ActiveDeadlineSeconds)
 	assert.Equal(t, config.KubeJobRetries(), executedJob.Spec.BackoffLimit)

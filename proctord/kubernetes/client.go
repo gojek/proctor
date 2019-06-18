@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"time"
 
-	"proctor/proctord/config"
-	"proctor/proctord/logger"
-	"proctor/proctord/utility"
 	uuid "github.com/satori/go.uuid"
 	batch_v1 "k8s.io/api/batch/v1"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+	"proctor/proctord/config"
+	"proctor/proctord/logger"
+	"proctor/proctord/utility"
 	//Package needed for kubernetes cluster in google cloud
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
@@ -105,8 +105,8 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 	}
 
 	objectMeta := meta_v1.ObjectMeta{
-		Name:   uniqueJobName,
-		Labels: label,
+		Name:        uniqueJobName,
+		Labels:      label,
 		Annotations: config.JobPodAnnotations(),
 	}
 

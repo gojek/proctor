@@ -1,19 +1,19 @@
 package remove
 
 import (
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"proctor/daemon"
 	"proctor/io"
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/suite"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 type ScheduleCreateCmdTestSuite struct {
 	suite.Suite
-	mockPrinter        *io.MockPrinter
-	mockProctorDClient *daemon.MockClient
-	testScheduleRemoveCmd   *cobra.Command
+	mockPrinter           *io.MockPrinter
+	mockProctorDClient    *daemon.MockClient
+	testScheduleRemoveCmd *cobra.Command
 }
 
 func (s *ScheduleCreateCmdTestSuite) SetupTest() {

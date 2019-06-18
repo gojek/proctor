@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"fmt"
-	"proctor/proctord/config"
-	"proctor/proctord/utility"
 	"github.com/hashicorp/go-version"
-	"proctor/proctord/logger"
 	"net/http"
+	"proctor/proctord/config"
+	"proctor/proctord/logger"
+	"proctor/proctord/utility"
 )
 
 func ValidateClientVersion(next http.HandlerFunc) http.HandlerFunc {

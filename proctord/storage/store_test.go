@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"proctor/proctord/storage/postgres"
+	"proctor/proctord/utility"
 	"testing"
 )
 
@@ -159,7 +159,7 @@ func TestJobsScheduleInsertionSuccessfull(t *testing.T) {
 	postgresClient := postgres.NewClient()
 	testStore := New(postgresClient)
 
-	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
+	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", "group1", map[string]string{})
 	assert.NoError(t, err)
 	_, err = uuid.FromString(scheduledJobID)
 	assert.NoError(t, err)
@@ -181,12 +181,12 @@ func TestJobsScheduleInsertionFailed(t *testing.T) {
 
 	mockPostgresClient.On("NamedExec",
 		"INSERT INTO jobs_schedule (id, name, tags, time, notification_emails, user_email, group_name, args, enabled) "+
-	"VALUES (:id, :name, :tags, :time, :notification_emails, :user_email,  :group_name, :args, :enabled)",
+			"VALUES (:id, :name, :tags, :time, :notification_emails, :user_email,  :group_name, :args, :enabled)",
 		mock.AnythingOfType("*postgres.JobsSchedule")).Run(func(args mock.Arguments) {
 	}).Return(int64(0), errors.New("any-error")).
 		Once()
 
-	_, err := testStore.InsertScheduledJob(jobName, tag, time, notificationEmail, userEmail,groupName, map[string]string{})
+	_, err := testStore.InsertScheduledJob(jobName, tag, time, notificationEmail, userEmail, groupName, map[string]string{})
 
 	assert.Error(t, err)
 
@@ -197,7 +197,7 @@ func TestGetScheduledJobByID(t *testing.T) {
 	postgresClient := postgres.NewClient()
 	testStore := New(postgresClient)
 
-	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
+	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", "group1", map[string]string{})
 	assert.NoError(t, err)
 
 	resultJob, err := testStore.GetScheduledJob(jobID)
@@ -223,7 +223,7 @@ func TestRemoveScheduledJobByID(t *testing.T) {
 	postgresClient := postgres.NewClient()
 	testStore := New(postgresClient)
 
-	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com","group1", map[string]string{})
+	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", "group1", map[string]string{})
 	assert.NoError(t, err)
 
 	removedJobsCount, err := testStore.RemoveScheduledJob(jobID)

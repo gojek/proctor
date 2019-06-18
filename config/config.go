@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"proctor/proctord/utility"
 	"github.com/pkg/errors"
+	"proctor/proctord/utility"
 
 	"github.com/spf13/viper"
 )

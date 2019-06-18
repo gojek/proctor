@@ -5,10 +5,10 @@ import (
 	"errors"
 	"testing"
 
-	"proctor/proctord/redis"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"proctor/proctord/redis"
 )
 
 type MetadataStoreTestSuite struct {

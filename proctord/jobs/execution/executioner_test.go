@@ -4,14 +4,14 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 	"proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/secrets"
 	"proctor/proctord/kubernetes"
 	"proctor/proctord/storage/postgres"
 	"proctor/proctord/utility"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 )
 
 type ExecutionerTestSuite struct {

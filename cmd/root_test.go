@@ -3,11 +3,11 @@ package cmd
 import (
 	"testing"
 
-	"proctor/daemon"
-	"proctor/io"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"proctor/cmd/version/github"
+	"proctor/daemon"
+	"proctor/io"
 )
 
 func TestRootCmdUsage(t *testing.T) {

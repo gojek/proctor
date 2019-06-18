@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 	"proctor/daemon"
 	"proctor/io"
 	proc_metadata "proctor/proctord/jobs/metadata"
-	"github.com/spf13/cobra"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {

@@ -2,10 +2,10 @@ package main
 
 import (
 	"proctor/cmd"
+	"proctor/cmd/version/github"
 	"proctor/config"
 	"proctor/daemon"
 	"proctor/io"
-	"proctor/cmd/version/github"
 )
 
 func main() {

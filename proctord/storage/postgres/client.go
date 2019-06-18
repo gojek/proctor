@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
-	"github.com/jmoiron/sqlx"
 	//postgres driver
 	_ "github.com/lib/pq"
 )

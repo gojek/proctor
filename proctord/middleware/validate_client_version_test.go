@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"proctor/proctord/utility"
 	"testing"
 )
 
@@ -18,7 +18,7 @@ func getTestHandler() http.HandlerFunc {
 
 func TestValidClientVersionHttpHeader(t *testing.T) {
 
-	os.Setenv("PROCTOR_MIN_CLIENT_VERSION","0.2.0")
+	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
 	ts := httptest.NewServer(ValidateClientVersion(getTestHandler()))
 	defer ts.Close()
@@ -36,7 +36,7 @@ func TestValidClientVersionHttpHeader(t *testing.T) {
 
 func TestEmptyClientVersionHttpHeader(t *testing.T) {
 
-	os.Setenv("PROCTOR_MIN_CLIENT_VERSION","0.2.0")
+	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
 	ts := httptest.NewServer(ValidateClientVersion(getTestHandler()))
 	defer ts.Close()
@@ -53,7 +53,7 @@ func TestEmptyClientVersionHttpHeader(t *testing.T) {
 
 func TestInvalidClientVersionHttpHeader(t *testing.T) {
 
-	os.Setenv("PROCTOR_MIN_CLIENT_VERSION","0.3.0")
+	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.3.0")
 
 	ts := httptest.NewServer(ValidateClientVersion(getTestHandler()))
 	defer ts.Close()
@@ -69,5 +69,5 @@ func TestInvalidClientVersionHttpHeader(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	body, _ := ioutil.ReadAll(resp.Body)
 	bodyString := string(body)
-	assert.Equal(t,bodyString,"Your Proctor client is using an outdated version: 0.1.0 . To continue using proctor, please upgrade to latest version.")
+	assert.Equal(t, bodyString, "Your Proctor client is using an outdated version: 0.1.0 . To continue using proctor, please upgrade to latest version.")
 }

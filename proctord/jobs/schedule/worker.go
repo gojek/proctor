@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/robfig/cron"
 	"proctor/proctord/audit"
 	"proctor/proctord/jobs/execution"
 	"proctor/proctord/logger"
@@ -14,7 +15,6 @@ import (
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
 	"proctor/proctord/utility"
-	"github.com/robfig/cron"
 )
 
 type worker struct {
@@ -86,7 +86,7 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 
 			if err != nil {
 				logger.Error(fmt.Sprintf("Error notifying job: %s `", scheduledJob.Tags), scheduledJob.Name, "` ID: `", jobExecutionID, "` execution status: `", jobExecutionStatus, "` to users: ", err.Error())
-				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name,"job_id":jobExecutionID, "job_execution_status": jobExecutionStatus})
+				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name, "job_id": jobExecutionID, "job_execution_status": jobExecutionStatus})
 				return
 			}
 		})
@@ -109,7 +109,7 @@ func (worker *worker) Run(tickerChan <-chan time.Time, signalsChan <-chan os.Sig
 			scheduledJobs, err := worker.store.GetScheduledJobs()
 			if err != nil {
 				logger.Error("Error getting scheduled jobs from store: ", err.Error())
-				raven.CaptureError(err,nil)
+				raven.CaptureError(err, nil)
 				continue
 			}
 

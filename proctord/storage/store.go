@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"proctor/proctord/storage/postgres"
 	"github.com/satori/go.uuid"
+	"proctor/proctord/storage/postgres"
 )
 
 type Store interface {

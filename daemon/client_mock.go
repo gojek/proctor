@@ -1,9 +1,9 @@
 package daemon
 
 import (
+	"github.com/stretchr/testify/mock"
 	proc_metadata "proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/schedule"
-	"github.com/stretchr/testify/mock"
 )
 
 type MockClient struct {
@@ -35,7 +35,7 @@ func (m *MockClient) GetDefinitiveProcExecutionStatus(name string) (string, erro
 	return args.Get(0).(string), args.Error(1)
 }
 
-func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string,group string, jobArgs map[string]string) (string, error) {
+func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string, group string, jobArgs map[string]string) (string, error) {
 	args := m.Called(name, tags, time, notificationEmails, group, jobArgs)
 	return args.Get(0).(string), args.Error(1)
 }

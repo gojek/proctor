@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 	proctor_config "proctor/config"
 	"proctor/io"
-	"github.com/spf13/cobra"
 )
 
 func CreateDirIfNotExist(dir string) {

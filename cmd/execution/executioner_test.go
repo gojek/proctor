@@ -7,12 +7,12 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"proctor/daemon"
-	"proctor/io"
-	"proctor/proctord/utility"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"proctor/daemon"
+	"proctor/io"
+	"proctor/proctord/utility"
 )
 
 type ExecutionCmdTestSuite struct {

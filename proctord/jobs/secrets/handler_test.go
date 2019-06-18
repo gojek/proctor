@@ -9,10 +9,10 @@ import (
 
 	"errors"
 
-	"proctor/proctord/utility"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"proctor/proctord/utility"
 )
 
 type SecretsHandlerTestSuite struct {

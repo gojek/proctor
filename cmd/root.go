@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"proctor/cmd/schedule/remove"
 	"os"
+	"proctor/cmd/schedule/remove"
 
 	"proctor/cmd/config"
 	"proctor/cmd/config/view"
@@ -11,8 +11,8 @@ import (
 	"proctor/cmd/execution"
 	"proctor/cmd/list"
 	"proctor/cmd/schedule"
-	schedule_list "proctor/cmd/schedule/list"
 	schedule_describe "proctor/cmd/schedule/describe"
+	schedule_list "proctor/cmd/schedule/list"
 	"proctor/cmd/version"
 	"proctor/daemon"
 	"proctor/io"

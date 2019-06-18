@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"proctor/daemon"
-	"proctor/io"
-	proc_metadata "proctor/proctord/jobs/metadata"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"proctor/daemon"
+	"proctor/io"
+	proc_metadata "proctor/proctord/jobs/metadata"
 )
 
 type ListCmdTestSuite struct {

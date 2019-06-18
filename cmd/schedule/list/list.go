@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 	"proctor/daemon"
 	"proctor/io"
-	"github.com/spf13/cobra"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
@@ -25,7 +25,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 
 			printer.Println(fmt.Sprintf("%-40s %-30s %-20s %s", "ID", "PROC NAME", "GROUP NAME", "TAGS"), color.FgGreen)
 			for _, scheduledProc := range scheduledProcs {
-				printer.Println(fmt.Sprintf("%-40s %-30s %-20s %s", scheduledProc.ID, scheduledProc.Name, scheduledProc.Group,scheduledProc.Tags), color.Reset)
+				printer.Println(fmt.Sprintf("%-40s %-30s %-20s %s", scheduledProc.ID, scheduledProc.Name, scheduledProc.Group, scheduledProc.Tags), color.Reset)
 			}
 		},
 	}

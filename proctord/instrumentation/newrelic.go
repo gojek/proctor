@@ -3,8 +3,8 @@ package instrumentation
 import (
 	"net/http"
 
-	"proctor/proctord/config"
 	"github.com/newrelic/go-agent"
+	"proctor/proctord/config"
 )
 
 var NewRelicApp newrelic.Application

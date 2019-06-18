@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 	"proctor/cmd/version/github"
 	"proctor/io"
-	"github.com/spf13/cobra"
 )
 
 const ClientVersion = "v0.6.0"

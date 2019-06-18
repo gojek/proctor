@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"proctor/proctord/storage/postgres"
 	"github.com/stretchr/testify/mock"
+	"proctor/proctord/storage/postgres"
 )
 
 type MockStore struct {

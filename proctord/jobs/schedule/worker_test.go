@@ -9,15 +9,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 	"proctor/proctord/audit"
 	"proctor/proctord/jobs/execution"
 	"proctor/proctord/mail"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
 	"proctor/proctord/utility"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 )
 
 type WorkerTestSuite struct {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"proctor/proctord/config"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"proctor/proctord/config"
 )
 
 func TestNamedExec(t *testing.T) {

@@ -10,16 +10,16 @@ import (
 
 	"proctor/cmd/version"
 
-	"proctor/config"
-	"proctor/io"
 	"github.com/gorilla/websocket"
 	"github.com/thingful/httpmock"
+	"proctor/config"
+	"proctor/io"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	proc_metadata "proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/metadata/env"
 	"proctor/proctord/utility"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 )
 
 type TestConnectionError struct {

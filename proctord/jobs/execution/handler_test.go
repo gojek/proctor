@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"proctor/proctord/audit"
-	"proctor/proctord/storage"
-	"proctor/proctord/utility"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -15,6 +12,9 @@ import (
 	"github.com/urfave/negroni"
 	"net/http"
 	"net/http/httptest"
+	"proctor/proctord/audit"
+	"proctor/proctord/storage"
+	"proctor/proctord/utility"
 	"testing"
 )
 

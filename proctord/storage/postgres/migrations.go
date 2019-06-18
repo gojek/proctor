@@ -3,9 +3,9 @@ package postgres
 import (
 	"fmt"
 
+	"github.com/mattes/migrate"
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
-	"github.com/mattes/migrate"
 	//postgres driver
 	_ "github.com/mattes/migrate/database/postgres"
 	//driver for reading migrations from file

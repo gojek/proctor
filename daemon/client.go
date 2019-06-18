@@ -18,12 +18,12 @@ import (
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
+	"github.com/gorilla/websocket"
 	"proctor/config"
 	"proctor/io"
 	proc_metadata "proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/schedule"
 	"proctor/proctord/utility"
-	"github.com/gorilla/websocket"
 )
 
 type Client interface {
@@ -31,7 +31,7 @@ type Client interface {
 	ExecuteProc(string, map[string]string) (string, error)
 	StreamProcLogs(string) error
 	GetDefinitiveProcExecutionStatus(string) (string, error)
-	ScheduleJob(string, string, string, string,string, map[string]string) (string, error)
+	ScheduleJob(string, string, string, string, string, map[string]string) (string, error)
 	ListScheduledProcs() ([]schedule.ScheduledJob, error)
 	DescribeScheduledProc(string) (schedule.ScheduledJob, error)
 	RemoveScheduledProc(string) error
@@ -104,7 +104,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
-		return "",  buildHTTPError(c, resp)
+		return "", buildHTTPError(c, resp)
 	}
 
 	var scheduledJob ScheduleJobPayload
@@ -401,19 +401,19 @@ func buildHTTPError(c *client, resp *http.Response) error {
 			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
 		}
 		return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
-	} 
-	
+	}
+
 	if resp.StatusCode == http.StatusBadRequest {
 		return getHttpResponseError(resp.Body)
-	} 
+	}
 
 	if resp.StatusCode == http.StatusNoContent {
 		return fmt.Errorf(utility.NoScheduledJobsError)
-	}  
+	}
 
 	if resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf(utility.JobNotFoundError)
-	}  
+	}
 
 	if resp.StatusCode == http.StatusForbidden {
 		return fmt.Errorf(utility.JobForbiddenErrorHeader)

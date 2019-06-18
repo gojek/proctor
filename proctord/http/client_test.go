@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"testing"
 
-	"proctor/proctord/config"
 	"github.com/stretchr/testify/assert"
+	"proctor/proctord/config"
 )
 
 func TestNewClient(t *testing.T) {

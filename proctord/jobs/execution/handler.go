@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/getsentry/raven-go"
+	"github.com/gorilla/mux"
+	"net/http"
 	"proctor/proctord/audit"
 	"proctor/proctord/logger"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
 	"proctor/proctord/utility"
-	"github.com/gorilla/mux"
-	"net/http"
 	"time"
 )
 

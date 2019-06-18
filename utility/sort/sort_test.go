@@ -1,8 +1,8 @@
 package sort
 
 import (
-	"proctor/proctord/jobs/metadata"
 	"github.com/stretchr/testify/assert"
+	"proctor/proctord/jobs/metadata"
 	"testing"
 )
 

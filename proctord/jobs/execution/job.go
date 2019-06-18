@@ -5,4 +5,3 @@ type Job struct {
 	Args        map[string]string `json:"args"`
 	CallbackURL string            `json:"callback_url"`
 }
-

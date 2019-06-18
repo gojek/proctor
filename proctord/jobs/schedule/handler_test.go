@@ -12,12 +12,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"proctor/proctord/jobs/metadata"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
 	"proctor/proctord/utility"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 )
 
 type SchedulerTestSuite struct {
@@ -66,7 +66,7 @@ func (suite *SchedulerTestSuite) TestSuccessfulJobScheduling() {
 
 	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
 	insertedScheduledJobID := "123"
-	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, userEmail,scheduledJob.Group, scheduledJob.Args).Return(insertedScheduledJobID, nil)
+	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, userEmail, scheduledJob.Group, scheduledJob.Args).Return(insertedScheduledJobID, nil)
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
@@ -250,7 +250,7 @@ func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
 	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
-	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "",scheduledJob.Group, scheduledJob.Args).Return("", errors.New("pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\""))
+	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "", scheduledJob.Group, scheduledJob.Args).Return("", errors.New("pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\""))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
@@ -276,7 +276,7 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
 	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
-	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "",scheduledJob.Group, scheduledJob.Args).Return("", errors.New("any-error"))
+	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "", scheduledJob.Group, scheduledJob.Args).Return("", errors.New("any-error"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 

@@ -3,8 +3,8 @@ package kubernetes
 import (
 	"io"
 
-	"proctor/proctord/utility"
 	"github.com/stretchr/testify/mock"
+	"proctor/proctord/utility"
 )
 
 type MockClient struct {

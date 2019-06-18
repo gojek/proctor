@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"proctor/proctord/redis"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"proctor/proctord/redis"
 )
 
 type SecretsStoreTestSuite struct {

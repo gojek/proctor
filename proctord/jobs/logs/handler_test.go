@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"proctor/proctord/kubernetes"
-	"proctor/proctord/utility"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"proctor/proctord/kubernetes"
+	"proctor/proctord/utility"
 )
 
 type LoggerTestSuite struct {
