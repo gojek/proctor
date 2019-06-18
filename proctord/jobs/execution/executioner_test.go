@@ -7,25 +7,25 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	jobsMetadata "proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/secrets"
 	"proctor/proctord/kubernetes"
 	"proctor/proctord/storage/postgres"
-	utility "proctor/shared/constant"
 	"proctor/shared/model/metadata"
-	modelMetadata "proctor/shared/model/metadata"
+	"proctor/shared/utility"
 )
 
 type ExecutionerTestSuite struct {
 	suite.Suite
 	mockKubeClient    kubernetes.MockClient
-	mockMetadataStore *modelMetadata.MockStore
+	mockMetadataStore *jobsMetadata.MockStore
 	mockSecretsStore  *secrets.MockStore
 	testExecutioner   Executioner
 }
 
 func (suite *ExecutionerTestSuite) SetupTest() {
 	suite.mockKubeClient = kubernetes.MockClient{}
-	suite.mockMetadataStore = &metadata.MockStore{}
+	suite.mockMetadataStore = &jobsMetadata.MockStore{}
 	suite.mockSecretsStore = &secrets.MockStore{}
 	suite.testExecutioner = NewExecutioner(&suite.mockKubeClient, suite.mockMetadataStore, suite.mockSecretsStore)
 }

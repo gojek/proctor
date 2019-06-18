@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"proctor/proctord/config"
-	utility "proctor/shared/constant"
+	"proctor/shared/utility"
 )
 
 func TestSendMail(t *testing.T) {

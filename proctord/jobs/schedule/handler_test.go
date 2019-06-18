@@ -17,7 +17,9 @@ import (
 	"proctor/proctord/jobs/metadata"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
+	modelMetadata "proctor/shared/model/metadata"
+	modelSchedule "proctor/shared/model/schedule"
 )
 
 type SchedulerTestSuite struct {
@@ -49,7 +51,7 @@ func (suite *SchedulerTestSuite) TestSuccessfulJobScheduling() {
 	t := suite.T()
 
 	userEmail := "mrproctor@example.com"
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "any-job",
 		Args:               map[string]string{},
 		Time:               "* 2 * * *",
@@ -62,9 +64,9 @@ func (suite *SchedulerTestSuite) TestSuccessfulJobScheduling() {
 
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
-	req.Header.Set(utility.UserEmailHeaderKey, userEmail)
+	req.Header.Set(constant.UserEmailHeaderKey, userEmail)
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
+	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
 	insertedScheduledJobID := "123"
 	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, userEmail, scheduledJob.Group, scheduledJob.Args).Return(insertedScheduledJobID, nil)
 
@@ -72,7 +74,7 @@ func (suite *SchedulerTestSuite) TestSuccessfulJobScheduling() {
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
 
-	expectedResponse := ScheduledJob{}
+	expectedResponse := modelSchedule.ScheduledJob{}
 	err = json.NewDecoder(responseRecorder.Body).Decode(&expectedResponse)
 	assert.NoError(t, err)
 	assert.Equal(t, insertedScheduledJobID, expectedResponse.ID)
@@ -88,13 +90,13 @@ func (suite *SchedulerTestSuite) TestBadRequestWhenRequestBodyIsIncorrectForJobS
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.ClientError, string(responseBody))
+	assert.Equal(t, constant.ClientError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestInvalidCronExpression() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "2 * invalid *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
@@ -111,13 +113,13 @@ func (suite *SchedulerTestSuite) TestInvalidCronExpression() {
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.InvalidCronExpressionClientError, string(responseBody))
+	assert.Equal(t, constant.InvalidCronExpressionClientError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestInvalidEmailAddress() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "user-test.com",
@@ -134,13 +136,13 @@ func (suite *SchedulerTestSuite) TestInvalidEmailAddress() {
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.InvalidEmailIdClientError, string(responseBody))
+	assert.Equal(t, constant.InvalidEmailIdClientError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestInvalidTag() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		Group:              "some-group",
@@ -157,13 +159,13 @@ func (suite *SchedulerTestSuite) TestInvalidTag() {
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.InvalidTagError, string(responseBody))
+	assert.Equal(t, constant.InvalidTagError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestInvalidGroupName() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "user@proctor.com",
@@ -180,13 +182,13 @@ func (suite *SchedulerTestSuite) TestInvalidGroupName() {
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.GroupNameMissingError, string(responseBody))
+	assert.Equal(t, constant.GroupNameMissingError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
@@ -199,19 +201,19 @@ func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, errors.New("redigo: nil returned"))
+	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, errors.New("redigo: nil returned"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusNotFound, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.NonExistentProcClientError, string(responseBody))
+	assert.Equal(t, constant.NonExistentProcClientError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
@@ -224,19 +226,19 @@ func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, errors.New("any error"))
+	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, errors.New("any error"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.ServerError, string(responseBody))
+	assert.Equal(t, constant.ServerError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
@@ -249,20 +251,20 @@ func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
+	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
 	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "", scheduledJob.Group, scheduledJob.Args).Return("", errors.New("pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\""))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusConflict, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.DuplicateJobNameArgsClientError, string(responseBody))
+	assert.Equal(t, constant.DuplicateJobNameArgsClientError, string(responseBody))
 }
 
 func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	t := suite.T()
 
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		Name:               "non-existent",
 		Time:               "* 2 * * *",
 		NotificationEmails: "foo@bar.com,bar@foo.com",
@@ -275,14 +277,14 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&metadata.Metadata{}, nil)
+	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
 	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "", scheduledJob.Group, scheduledJob.Args).Return("", errors.New("any-error"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	responseBody, _ := ioutil.ReadAll(responseRecorder.Body)
-	assert.Equal(t, utility.ServerError, string(responseBody))
+	assert.Equal(t, constant.ServerError, string(responseBody))
 }
 
 func (s *SchedulerTestSuite) TestGetScheduledJobs() {
@@ -304,7 +306,7 @@ func (s *SchedulerTestSuite) TestGetScheduledJobs() {
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 
-	var scheduledJobs []ScheduledJob
+	var scheduledJobs []modelSchedule.ScheduledJob
 	err := json.Unmarshal(responseRecorder.Body.Bytes(), &scheduledJobs)
 	assert.NoError(t, err)
 	assert.Equal(t, scheduledJobsStoreFormat[0].ID, scheduledJobs[0].ID)
@@ -340,7 +342,7 @@ func (s *SchedulerTestSuite) TestGetScheduledJobsFailure() {
 	s.mockStore.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
-	assert.Equal(t, utility.ServerError, responseRecorder.Body.String())
+	assert.Equal(t, constant.ServerError, responseRecorder.Body.String())
 }
 
 func (s *SchedulerTestSuite) TestGetScheduledJobByID() {
@@ -362,7 +364,7 @@ func (s *SchedulerTestSuite) TestGetScheduledJobByID() {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 
-	var scheduledJob ScheduledJob
+	var scheduledJob modelSchedule.ScheduledJob
 	err = json.NewDecoder(response.Body).Decode(&scheduledJob)
 	assert.NoError(t, err)
 	assert.Equal(t, jobID, scheduledJob.ID)

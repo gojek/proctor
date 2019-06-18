@@ -12,7 +12,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"proctor/proctord/kubernetes"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
+	"proctor/shared/utility"
 )
 
 type LoggerTestSuite struct {
@@ -95,7 +96,7 @@ func (suite *LoggerTestSuite) TestLoggerStreamConnectionUpgradeFailure() {
 	suite.mockKubeClient.AssertNotCalled(t, "StreamJobLogs", mock.Anything)
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
-	assert.Equal(t, "Bad Request\n"+utility.ClientError, responseRecorder.Body.String())
+	assert.Equal(t, "Bad Request\n"+constant.ClientError, responseRecorder.Body.String())
 }
 
 func (suite *LoggerTestSuite) TestLoggerStreamForNoJobName() {

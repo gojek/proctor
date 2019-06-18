@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"proctor/proctord/redis"
+	modelMetadata "proctor/shared/model/metadata"
 )
 
 type MetadataStoreTestSuite struct {
@@ -26,7 +27,7 @@ func (s *MetadataStoreTestSuite) SetupTest() {
 func (s *MetadataStoreTestSuite) TestCreateOrUpdateJobMetadata() {
 	t := s.T()
 
-	metadata := Metadata{
+	metadata := modelMetadata.Metadata{
 		Name:         "any-name",
 		ImageName:    "any-image-name",
 		Description:  "any-description",
@@ -48,7 +49,7 @@ func (s *MetadataStoreTestSuite) TestCreateOrUpdateJobMetadata() {
 func (s *MetadataStoreTestSuite) TestCreateOrUpdateJobMetadataForRedisClientFailure() {
 	t := s.T()
 
-	metadata := Metadata{}
+	metadata := modelMetadata.Metadata{}
 
 	expectedError := errors.New("any-error")
 	s.mockRedisClient.On("SET", mock.Anything, mock.Anything).Return(expectedError).Once()
@@ -61,7 +62,7 @@ func (s *MetadataStoreTestSuite) TestCreateOrUpdateJobMetadataForRedisClientFail
 func (s *MetadataStoreTestSuite) TestGetAllJobsMetadata() {
 	t := s.T()
 
-	metadata1 := Metadata{
+	metadata1 := modelMetadata.Metadata{
 		Name:         "job1",
 		ImageName:    "job1-image-name",
 		Description:  "desc1",
@@ -69,7 +70,7 @@ func (s *MetadataStoreTestSuite) TestGetAllJobsMetadata() {
 		Contributors: "Test User<testuser@example.com",
 		Organization: "Test Org",
 	}
-	metadata2 := Metadata{
+	metadata2 := modelMetadata.Metadata{
 		Name:         "job2",
 		ImageName:    "job2-image-name",
 		Description:  "desc2",
@@ -97,7 +98,7 @@ func (s *MetadataStoreTestSuite) TestGetAllJobsMetadata() {
 	jobMetadata, err := s.testMetadataStore.GetAllJobsMetadata()
 	assert.NoError(t, err)
 
-	assert.EqualValues(t, []Metadata{metadata1, metadata2}, jobMetadata)
+	assert.EqualValues(t, []modelMetadata.Metadata{metadata1, metadata2}, jobMetadata)
 	s.mockRedisClient.AssertExpectations(t)
 }
 
@@ -134,7 +135,7 @@ func (s *MetadataStoreTestSuite) TestGetAllJobsMetadataRedisClientMgetFailure() 
 func (s *MetadataStoreTestSuite) TestGetJobMetadata() {
 	t := s.T()
 
-	metadata := Metadata{
+	metadata := modelMetadata.Metadata{
 		Name:         "job1",
 		ImageName:    "job1-image-name",
 		Description:  "desc1",
