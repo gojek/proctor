@@ -12,13 +12,13 @@ import (
 	"proctor/proctord/jobs/secrets"
 	"proctor/proctord/kubernetes"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 type ExecutionerTestSuite struct {
 	suite.Suite
 	mockKubeClient    kubernetes.MockClient
-	mockMetadataStore *metadata.MockStore
+	mockMetadataStore *modelMetadata.MockStore
 	mockSecretsStore  *secrets.MockStore
 	testExecutioner   Executioner
 }

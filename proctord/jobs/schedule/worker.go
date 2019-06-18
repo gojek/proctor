@@ -14,7 +14,8 @@ import (
 	"proctor/proctord/mail"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	"proctor/shared/constant"
+	"proctor/shared/utility"
 )
 
 type worker struct {
@@ -58,7 +59,7 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 		cronJob := cron.New()
 		err = cronJob.AddFunc(scheduledJob.Time, func() {
 			jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{}
-			jobsExecutionAuditLog.UserEmail = utility.WorkerEmail
+			jobsExecutionAuditLog.UserEmail = constant.WorkerEmail
 
 			jobExecutionID, err := worker.executioner.Execute(jobsExecutionAuditLog, scheduledJob.Name, jobArgs)
 			if err != nil {
@@ -66,7 +67,7 @@ func (worker *worker) enableScheduledJobIfItDoesNotExist(scheduledJob postgres.J
 				raven.CaptureError(err, map[string]string{"job_tags": scheduledJob.Tags, "job_name": scheduledJob.Name})
 
 				jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
-				jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
+				jobsExecutionAuditLog.JobSubmissionStatus = constant.JobSubmissionServerError
 				worker.auditor.JobsExecution(jobsExecutionAuditLog)
 				return
 			}

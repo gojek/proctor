@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"proctor/proctord/utility"
+	"proctor/shared/constant"
 
 	"github.com/spf13/viper"
 )
@@ -73,7 +73,7 @@ func (loader *loader) Load() (ProctorConfig, ConfigError) {
 
 	proctorHost := viper.GetString(ProctorHost)
 	if proctorHost == "" {
-		return ProctorConfig{}, ConfigError{error: errors.New("Mandatory Config Missing"), Message: utility.ConfigProctorHostMissingError}
+		return ProctorConfig{}, ConfigError{error: errors.New("Mandatory Config Missing"), Message: constant.ConfigProctorHostMissingError}
 	}
 	emailId := viper.GetString(EmailId)
 	accessToken := viper.GetString(AccessToken)

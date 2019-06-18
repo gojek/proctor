@@ -6,7 +6,7 @@ import (
 	"proctor/proctord/kubernetes"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 func TestJobsExecutionAuditing(t *testing.T) {

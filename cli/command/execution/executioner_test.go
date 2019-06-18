@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"proctor/daemon"
-	"proctor/proctord/utility"
+	"proctor/shared/constant"
 )
 
 type ExecutionCmdTestSuite struct {
@@ -56,7 +56,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmd() {
 	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(utility.JobSucceeded, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobSucceeded, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution successful", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
@@ -79,7 +79,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForNoProcVariables() {
 	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(utility.JobSucceeded, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobSucceeded, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution successful", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
@@ -103,7 +103,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForIncorrectVariableFormat() {
 	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(utility.JobSucceeded, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobSucceeded, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution successful", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
@@ -198,7 +198,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDGetDefinitiveProcExec
 	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(utility.JobFailed, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobFailed, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution failed", color.FgRed).Once()
 
 	osExitFunc := func(exitCode int) {

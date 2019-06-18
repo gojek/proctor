@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 	"testing"
 )
 

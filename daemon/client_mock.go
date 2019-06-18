@@ -2,7 +2,7 @@ package daemon
 
 import (
 	"github.com/stretchr/testify/mock"
-	procMetadata "proctor/shared/model/metadata"
+	modelMetadata "proctor/shared/model/metadata"
 	modelSchedule "proctor/shared/model/schedule"
 )
 
@@ -10,9 +10,9 @@ type MockClient struct {
 	mock.Mock
 }
 
-func (m *MockClient) ListProcs() ([]procMetadata.Metadata, error) {
+func (m *MockClient) ListProcs() ([]modelMetadata.Metadata, error) {
 	args := m.Called()
-	return args.Get(0).([]procMetadata.Metadata), args.Error(1)
+	return args.Get(0).([]modelMetadata.Metadata), args.Error(1)
 }
 
 func (m *MockClient) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) {

@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	batch_v1 "k8s.io/client-go/kubernetes/typed/batch/v1"
 	"proctor/proctord/config"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 
 	batchV1 "k8s.io/api/batch/v1"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"

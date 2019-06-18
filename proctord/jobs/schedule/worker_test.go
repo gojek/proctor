@@ -17,7 +17,7 @@ import (
 	"proctor/proctord/mail"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 type WorkerTestSuite struct {

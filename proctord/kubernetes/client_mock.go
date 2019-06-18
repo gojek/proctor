@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/stretchr/testify/mock"
-	"proctor/proctord/utility"
+	"proctor/shared/utility"
 )
 
 type MockClient struct {

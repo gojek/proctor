@@ -2,7 +2,7 @@ package schedule
 
 import (
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	"proctor/shared/utility"
 
 	modelSchedule "proctor/shared/model/schedule"
 )

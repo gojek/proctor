@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 	"testing"
 )
 

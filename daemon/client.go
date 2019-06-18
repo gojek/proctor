@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"proctor/shared/constant"
 	"proctor/shared/io"
 	"time"
 
@@ -21,13 +22,12 @@ import (
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 	"proctor/config"
-	"proctor/proctord/utility"
-	procMetadata "proctor/shared/model/metadata"
+	modelMetadata "proctor/shared/model/metadata"
 	modelSchedule "proctor/shared/model/schedule"
 )
 
 type Client interface {
-	ListProcs() ([]procMetadata.Metadata, error)
+	ListProcs() ([]modelMetadata.Metadata, error)
 	ExecuteProc(string, map[string]string) (string, error)
 	StreamProcLogs(string) error
 	GetDefinitiveProcExecutionStatus(string) (string, error)
@@ -93,9 +93,9 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", "http://"+c.proctordHost+"/jobs/schedule", bytes.NewReader(requestBody))
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
-	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -130,31 +130,31 @@ func (c *client) loadProctorConfig() error {
 	return nil
 }
 
-func (c *client) ListProcs() ([]procMetadata.Metadata, error) {
+func (c *client) ListProcs() ([]modelMetadata.Metadata, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return []procMetadata.Metadata{}, err
+		return []modelMetadata.Metadata{}, err
 	}
 
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
 	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/metadata", nil)
-	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
-	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return []procMetadata.Metadata{}, buildNetworkError(err)
+		return []modelMetadata.Metadata{}, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return []procMetadata.Metadata{}, buildHTTPError(c, resp)
+		return []modelMetadata.Metadata{}, buildHTTPError(c, resp)
 	}
 
-	var procList []procMetadata.Metadata
+	var procList []modelMetadata.Metadata
 	err = json.NewDecoder(resp.Body).Decode(&procList)
 	return procList, err
 }
@@ -169,9 +169,9 @@ func (c *client) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) {
 		Timeout: c.connectionTimeoutSecs,
 	}
 	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/schedule", nil)
-	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
-	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -199,9 +199,9 @@ func (c *client) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob
 	}
 	url := fmt.Sprintf("http://"+c.proctordHost+"/jobs/schedule/%s", jobID)
 	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
-	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -229,9 +229,9 @@ func (c *client) RemoveScheduledProc(jobID string) error {
 	}
 	url := fmt.Sprintf("http://"+c.proctordHost+"/jobs/schedule/%s", jobID)
 	req, err := http.NewRequest("DELETE", url, nil)
-	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
-	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -265,9 +265,9 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", "http://"+c.proctordHost+"/jobs/execute", bytes.NewReader(requestBody))
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
-	req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-	req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", buildNetworkError(err)
@@ -304,18 +304,18 @@ func (c *client) StreamProcLogs(name string) error {
 	token := []string{c.accessToken}
 	emailId := []string{c.emailId}
 	clientVersion := []string{c.clientVersion}
-	headers[utility.AccessTokenHeaderKey] = token
-	headers[utility.UserEmailHeaderKey] = emailId
-	headers[utility.ClientVersionHeaderKey] = clientVersion
+	headers[constant.AccessTokenHeaderKey] = token
+	headers[constant.UserEmailHeaderKey] = emailId
+	headers[constant.ClientVersionHeaderKey] = clientVersion
 
 	wsConn, response, err := websocket.DefaultDialer.Dial(proctodWebsocketURLWithProcName, headers)
 	if err != nil {
 		animation.Stop()
 		if response.StatusCode == http.StatusUnauthorized {
 			if c.emailId == "" || c.accessToken == "" {
-				return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
+				return fmt.Errorf("%s\n%s", constant.UnauthorizedErrorHeader, constant.UnauthorizedErrorMissingConfig)
 			}
-			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
+			return fmt.Errorf("%s\n%s", constant.UnauthorizedErrorHeader, constant.UnauthorizedErrorInvalidConfig)
 		}
 		return err
 	}
@@ -359,9 +359,9 @@ func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, erro
 		}
 
 		req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/execute/"+procName+"/status", nil)
-		req.Header.Add(utility.UserEmailHeaderKey, c.emailId)
-		req.Header.Add(utility.AccessTokenHeaderKey, c.accessToken)
-		req.Header.Add(utility.ClientVersionHeaderKey, c.clientVersion)
+		req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+		req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+		req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 
 		resp, err := httpClient.Do(req)
 		if err != nil {
@@ -379,7 +379,7 @@ func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, erro
 		}
 
 		procExecutionStatus := string(body)
-		if procExecutionStatus == utility.JobSucceeded || procExecutionStatus == utility.JobFailed {
+		if procExecutionStatus == constant.JobSucceeded || procExecutionStatus == constant.JobFailed {
 			return procExecutionStatus, nil
 		}
 
@@ -390,17 +390,17 @@ func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, erro
 
 func buildNetworkError(err error) error {
 	if netError, ok := err.(net.Error); ok && netError.Timeout() {
-		return fmt.Errorf("%s\n%s\n%s", utility.GenericTimeoutErrorHeader, netError.Error(), utility.GenericTimeoutErrorBody)
+		return fmt.Errorf("%s\n%s\n%s", constant.GenericTimeoutErrorHeader, netError.Error(), constant.GenericTimeoutErrorBody)
 	}
-	return fmt.Errorf("%s\n%s", utility.GenericNetworkErrorHeader, err.Error())
+	return fmt.Errorf("%s\n%s", constant.GenericNetworkErrorHeader, err.Error())
 }
 
 func buildHTTPError(c *client, resp *http.Response) error {
 	if resp.StatusCode == http.StatusUnauthorized {
 		if c.emailId == "" || c.accessToken == "" {
-			return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorMissingConfig)
+			return fmt.Errorf("%s\n%s", constant.UnauthorizedErrorHeader, constant.UnauthorizedErrorMissingConfig)
 		}
-		return fmt.Errorf("%s\n%s", utility.UnauthorizedErrorHeader, utility.UnauthorizedErrorInvalidConfig)
+		return fmt.Errorf("%s\n%s", constant.UnauthorizedErrorHeader, constant.UnauthorizedErrorInvalidConfig)
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
@@ -408,18 +408,18 @@ func buildHTTPError(c *client, resp *http.Response) error {
 	}
 
 	if resp.StatusCode == http.StatusNoContent {
-		return fmt.Errorf(utility.NoScheduledJobsError)
+		return fmt.Errorf(constant.NoScheduledJobsError)
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		return fmt.Errorf(utility.JobNotFoundError)
+		return fmt.Errorf(constant.JobNotFoundError)
 	}
 
 	if resp.StatusCode == http.StatusForbidden {
-		return fmt.Errorf(utility.JobForbiddenErrorHeader)
+		return fmt.Errorf(constant.JobForbiddenErrorHeader)
 	}
 
-	return fmt.Errorf("%s\nStatus Code: %d, %s", utility.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
+	return fmt.Errorf("%s\nStatus Code: %d, %s", constant.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
 
 func getHttpResponseError(response io_reader.ReadCloser) error {

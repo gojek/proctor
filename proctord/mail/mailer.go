@@ -4,7 +4,7 @@ import (
 	"net/smtp"
 
 	"proctor/proctord/config"
-	"proctor/proctord/utility"
+	"proctor/shared/utility"
 )
 
 type Mailer interface {

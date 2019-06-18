@@ -14,7 +14,7 @@ import (
 	"net/http/httptest"
 	"proctor/proctord/audit"
 	"proctor/proctord/storage"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 	"testing"
 )
 

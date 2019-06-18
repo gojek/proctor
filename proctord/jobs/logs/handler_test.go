@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"proctor/proctord/kubernetes"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 type LoggerTestSuite struct {

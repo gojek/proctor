@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 func ValidateClientVersion(next http.HandlerFunc) http.HandlerFunc {

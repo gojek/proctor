@@ -8,7 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"proctor/daemon"
-	proctordUtility "proctor/proctord/utility"
+	"proctor/shared/constant"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(int)) *cobra.Command {
@@ -68,7 +68,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 				return
 			}
 
-			if procExecutionStatus != proctordUtility.JobSucceeded {
+			if procExecutionStatus != constant.JobSucceeded {
 				printer.Println("Proc execution failed", color.FgRed)
 				osExitFunc(1)
 				return

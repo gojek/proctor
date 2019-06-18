@@ -18,7 +18,7 @@ import (
 	"proctor/config"
 	proc_metadata "proctor/shared/model/metadata"
 	"proctor/shared/model/metadata/env"
-	"proctor/proctord/utility"
+	"proctor/shared/constant"
 )
 
 type TestConnectionError struct {
@@ -78,9 +78,9 @@ func (s *ClientTestSuite) TestListProcsReturnsListOfProcsWithDetails() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -111,9 +111,9 @@ func (s *ClientTestSuite) TestListProcsReturnErrorFromResponseBody() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -145,9 +145,9 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -178,9 +178,9 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideConnectionError() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -211,9 +211,9 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedUser() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -243,9 +243,9 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedErrorWithConfigMissing() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{""},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{""},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -279,9 +279,9 @@ func (s *ClientTestSuite) TestExecuteProc() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -321,9 +321,9 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -360,9 +360,9 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -393,9 +393,9 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -424,9 +424,9 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorized() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -456,9 +456,9 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotS
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{""},
-				utility.AccessTokenHeaderKey:   []string{""},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{""},
+				constant.AccessTokenHeaderKey:   []string{""},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -488,9 +488,9 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -513,9 +513,9 @@ func (s *ClientTestSuite) TestLogStreamForAuthorizedUser() {
 	logStreamAuthorizer := func(t *testing.T) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			upgrader := websocket.Upgrader{}
-			assert.Equal(t, "proctor@example.com", r.Header.Get(utility.UserEmailHeaderKey))
-			assert.Equal(t, "access-token", r.Header.Get(utility.AccessTokenHeaderKey))
-			assert.Equal(t, version.ClientVersion, r.Header.Get(utility.ClientVersionHeaderKey))
+			assert.Equal(t, "proctor@example.com", r.Header.Get(constant.UserEmailHeaderKey))
+			assert.Equal(t, "access-token", r.Header.Get(constant.AccessTokenHeaderKey))
+			assert.Equal(t, version.ClientVersion, r.Header.Get(constant.ClientVersionHeaderKey))
 			conn, _ := upgrader.Upgrade(w, r, nil)
 			defer conn.Close()
 		}
@@ -574,7 +574,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	expectedProcExecutionStatus := utility.JobSucceeded
+	expectedProcExecutionStatus := constant.JobSucceeded
 	responseBody := expectedProcExecutionStatus
 
 	httpmock.RegisterStubRequest(
@@ -586,9 +586,9 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -610,7 +610,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	expectedProcExecutionStatus := utility.JobFailed
+	expectedProcExecutionStatus := constant.JobFailed
 	responseBody := expectedProcExecutionStatus
 
 	httpmock.RegisterStubRequest(
@@ -622,9 +622,9 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -655,9 +655,9 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -688,9 +688,9 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse()
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -712,7 +712,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: expectedRequestsToProctorDCount}
 
-	expectedProcExecutionStatus := utility.JobWaiting
+	expectedProcExecutionStatus := constant.JobWaiting
 	responseBody := expectedProcExecutionStatus
 
 	httpmock.Activate()
@@ -728,9 +728,9 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -764,9 +764,9 @@ func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -800,9 +800,9 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWithInvalidJobID() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -833,9 +833,9 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWhenJobIDNotFound() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -866,9 +866,9 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWitInternalServerError() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -900,9 +900,9 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobs() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -935,9 +935,9 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenNoJobsScheduled() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -967,9 +967,9 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenServerReturnInternal
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -1001,9 +1001,9 @@ func (s *ClientTestSuite) TestSuccessRemoveScheduledJob() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -1034,9 +1034,9 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWithInvalidJobID() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -1067,9 +1067,9 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWhenJobIDNotFound() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)
@@ -1100,9 +1100,9 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 			},
 		).WithHeader(
 			&http.Header{
-				utility.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				utility.AccessTokenHeaderKey:   []string{"access-token"},
-				utility.ClientVersionHeaderKey: []string{version.ClientVersion},
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
 			},
 		),
 	)

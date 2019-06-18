@@ -14,7 +14,7 @@ import (
 	"proctor/proctord/jobs/metadata"
 	"proctor/proctord/logger"
 	"proctor/proctord/storage"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 	modelSchedule "proctor/shared/model/schedule"
 )
 

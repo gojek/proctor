@@ -6,7 +6,7 @@ import (
 	"net/http"
 	procMetadata "proctor/shared/model/metadata"
 	"proctor/proctord/logger"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 type handler struct {

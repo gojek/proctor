@@ -17,7 +17,7 @@ import (
 	"proctor/proctord/jobs/metadata"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 type SchedulerTestSuite struct {

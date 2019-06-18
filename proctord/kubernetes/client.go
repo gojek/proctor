@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 	//Package needed for kubernetes cluster in google cloud
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"

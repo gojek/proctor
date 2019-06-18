@@ -11,7 +11,7 @@ import (
 	"proctor/proctord/logger"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 	"time"
 )
 

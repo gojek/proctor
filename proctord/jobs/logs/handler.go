@@ -10,7 +10,7 @@ import (
 	"proctor/proctord/config"
 	"proctor/proctord/kubernetes"
 	_logger "proctor/proctord/logger"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 
 	"github.com/gorilla/websocket"
 )

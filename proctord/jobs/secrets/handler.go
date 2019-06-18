@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"proctor/proctord/logger"
-	"proctor/proctord/utility"
+	utility "proctor/shared/constant"
 )
 
 type handler struct {

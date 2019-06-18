@@ -8,7 +8,8 @@ import (
 	"proctor/proctord/jobs/secrets"
 	"proctor/proctord/kubernetes"
 	"proctor/proctord/storage/postgres"
-	"proctor/proctord/utility"
+	"proctor/shared/constant"
+	"proctor/shared/utility"
 )
 
 type executioner struct {
@@ -52,7 +53,7 @@ func (executioner *executioner) Execute(jobsExecutionAuditLog *postgres.JobsExec
 		return "", errors.New(fmt.Sprintf("Error submitting job to kube: %s. Error: %s", jobName, err.Error()))
 	}
 	jobsExecutionAuditLog.AddExecutionID(jobExecutionID)
-	jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionSuccess
+	jobsExecutionAuditLog.JobSubmissionStatus = constant.JobSubmissionSuccess
 
 	return jobExecutionID, nil
 }
