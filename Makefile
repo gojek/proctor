@@ -38,7 +38,7 @@ cli:
 	go build -o $(BIN_DIR)/cli ./exec/cli/cli.go
 
 generate:
-	go get github.com/go-bindata/go-bindata
+	go get -u github.com/go-bindata/go-bindata/...
 	$(GOPATH)/bin/go-bindata -pkg config -o config/data.go data/config_template.yaml
 
 db.setup: db.create db.migrate
