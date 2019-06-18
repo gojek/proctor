@@ -2,22 +2,22 @@ package daemon
 
 import (
 	"github.com/stretchr/testify/mock"
-	proc_metadata "proctor/shared/model/metadata"
-	"proctor/proctord/jobs/schedule"
+	procMetadata "proctor/shared/model/metadata"
+	modelSchedule "proctor/shared/model/schedule"
 )
 
 type MockClient struct {
 	mock.Mock
 }
 
-func (m *MockClient) ListProcs() ([]proc_metadata.Metadata, error) {
+func (m *MockClient) ListProcs() ([]procMetadata.Metadata, error) {
 	args := m.Called()
-	return args.Get(0).([]proc_metadata.Metadata), args.Error(1)
+	return args.Get(0).([]procMetadata.Metadata), args.Error(1)
 }
 
-func (m *MockClient) ListScheduledProcs() ([]schedule.ScheduledJob, error) {
+func (m *MockClient) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) {
 	args := m.Called()
-	return args.Get(0).([]schedule.ScheduledJob), args.Error(1)
+	return args.Get(0).([]modelSchedule.ScheduledJob), args.Error(1)
 }
 
 func (m *MockClient) ExecuteProc(name string, procArgs map[string]string) (string, error) {
@@ -40,9 +40,9 @@ func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string, gr
 	return args.Get(0).(string), args.Error(1)
 }
 
-func (m *MockClient) DescribeScheduledProc(jobID string) (schedule.ScheduledJob, error) {
+func (m *MockClient) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob, error) {
 	args := m.Called(jobID)
-	return args.Get(0).(schedule.ScheduledJob), args.Error(1)
+	return args.Get(0).(modelSchedule.ScheduledJob), args.Error(1)
 }
 
 func (m *MockClient) RemoveScheduledProc(jobID string) error {

@@ -21,19 +21,19 @@ import (
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 	"proctor/config"
-	proc_metadata "proctor/shared/model/metadata"
-	"proctor/proctord/jobs/schedule"
 	"proctor/proctord/utility"
+	procMetadata "proctor/shared/model/metadata"
+	modelSchedule "proctor/shared/model/schedule"
 )
 
 type Client interface {
-	ListProcs() ([]proc_metadata.Metadata, error)
+	ListProcs() ([]procMetadata.Metadata, error)
 	ExecuteProc(string, map[string]string) (string, error)
 	StreamProcLogs(string) error
 	GetDefinitiveProcExecutionStatus(string) (string, error)
 	ScheduleJob(string, string, string, string, string, map[string]string) (string, error)
-	ListScheduledProcs() ([]schedule.ScheduledJob, error)
-	DescribeScheduledProc(string) (schedule.ScheduledJob, error)
+	ListScheduledProcs() ([]modelSchedule.ScheduledJob, error)
+	DescribeScheduledProc(string) (modelSchedule.ScheduledJob, error)
 	RemoveScheduledProc(string) error
 }
 
@@ -130,10 +130,10 @@ func (c *client) loadProctorConfig() error {
 	return nil
 }
 
-func (c *client) ListProcs() ([]proc_metadata.Metadata, error) {
+func (c *client) ListProcs() ([]procMetadata.Metadata, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return []proc_metadata.Metadata{}, err
+		return []procMetadata.Metadata{}, err
 	}
 
 	client := &http.Client{
@@ -146,23 +146,23 @@ func (c *client) ListProcs() ([]proc_metadata.Metadata, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return []proc_metadata.Metadata{}, buildNetworkError(err)
+		return []procMetadata.Metadata{}, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return []proc_metadata.Metadata{}, buildHTTPError(c, resp)
+		return []procMetadata.Metadata{}, buildHTTPError(c, resp)
 	}
 
-	var procList []proc_metadata.Metadata
+	var procList []procMetadata.Metadata
 	err = json.NewDecoder(resp.Body).Decode(&procList)
 	return procList, err
 }
 
-func (c *client) ListScheduledProcs() ([]schedule.ScheduledJob, error) {
+func (c *client) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return []schedule.ScheduledJob{}, err
+		return []modelSchedule.ScheduledJob{}, err
 	}
 
 	client := &http.Client{
@@ -175,23 +175,23 @@ func (c *client) ListScheduledProcs() ([]schedule.ScheduledJob, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return []schedule.ScheduledJob{}, buildNetworkError(err)
+		return []modelSchedule.ScheduledJob{}, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return []schedule.ScheduledJob{}, buildHTTPError(c, resp)
+		return []modelSchedule.ScheduledJob{}, buildHTTPError(c, resp)
 	}
 
-	var scheduledProcsList []schedule.ScheduledJob
+	var scheduledProcsList []modelSchedule.ScheduledJob
 	err = json.NewDecoder(resp.Body).Decode(&scheduledProcsList)
 	return scheduledProcsList, err
 }
 
-func (c *client) DescribeScheduledProc(jobID string) (schedule.ScheduledJob, error) {
+func (c *client) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return schedule.ScheduledJob{}, err
+		return modelSchedule.ScheduledJob{}, err
 	}
 
 	client := &http.Client{
@@ -205,15 +205,15 @@ func (c *client) DescribeScheduledProc(jobID string) (schedule.ScheduledJob, err
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return schedule.ScheduledJob{}, buildNetworkError(err)
+		return modelSchedule.ScheduledJob{}, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return schedule.ScheduledJob{}, buildHTTPError(c, resp)
+		return modelSchedule.ScheduledJob{}, buildHTTPError(c, resp)
 	}
 
-	var scheduledProc schedule.ScheduledJob
+	var scheduledProc modelSchedule.ScheduledJob
 	err = json.NewDecoder(resp.Body).Decode(&scheduledProc)
 	return scheduledProc, err
 }

@@ -3,20 +3,12 @@ package schedule
 import (
 	"proctor/proctord/storage/postgres"
 	"proctor/proctord/utility"
+
+	modelSchedule "proctor/shared/model/schedule"
 )
 
-type ScheduledJob struct {
-	ID                 string            `json:"id"`
-	Name               string            `json:"name"`
-	Args               map[string]string `json:"args"`
-	NotificationEmails string            `json:"notification_emails"`
-	Time               string            `json:"time"`
-	Tags               string            `json:"tags"`
-	Group              string            `json:"group_name"`
-}
-
-func FromStoreToHandler(scheduledJobsStoreFormat []postgres.JobsSchedule) ([]ScheduledJob, error) {
-	var scheduledJobs []ScheduledJob
+func FromStoreToHandler(scheduledJobsStoreFormat []postgres.JobsSchedule) ([]modelSchedule.ScheduledJob, error) {
+	var scheduledJobs []modelSchedule.ScheduledJob
 	for _, scheduledJobStoreFormat := range scheduledJobsStoreFormat {
 		scheduledJob, err := GetScheduledJob(scheduledJobStoreFormat)
 		if err != nil {
@@ -27,12 +19,12 @@ func FromStoreToHandler(scheduledJobsStoreFormat []postgres.JobsSchedule) ([]Sch
 	return scheduledJobs, nil
 }
 
-func GetScheduledJob(scheduledJobStoreFormat postgres.JobsSchedule) (ScheduledJob, error) {
+func GetScheduledJob(scheduledJobStoreFormat postgres.JobsSchedule) (modelSchedule.ScheduledJob, error) {
 	args, err := utility.DeserializeMap(scheduledJobStoreFormat.Args)
 	if err != nil {
-		return ScheduledJob{}, err
+		return modelSchedule.ScheduledJob{}, err
 	}
-	scheduledJob := ScheduledJob{
+	scheduledJob := modelSchedule.ScheduledJob{
 		ID:                 scheduledJobStoreFormat.ID,
 		Name:               scheduledJobStoreFormat.Name,
 		Args:               args,

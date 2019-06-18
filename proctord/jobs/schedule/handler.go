@@ -15,6 +15,7 @@ import (
 	"proctor/proctord/logger"
 	"proctor/proctord/storage"
 	"proctor/proctord/utility"
+	modelSchedule "proctor/shared/model/schedule"
 )
 
 type scheduler struct {
@@ -38,7 +39,7 @@ func NewScheduler(store storage.Store, metadataStore metadata.Store) Scheduler {
 
 func (scheduler *scheduler) Schedule() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var scheduledJob ScheduledJob
+		var scheduledJob modelSchedule.ScheduledJob
 		err := json.NewDecoder(req.Body).Decode(&scheduledJob)
 		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
 		defer req.Body.Close()
