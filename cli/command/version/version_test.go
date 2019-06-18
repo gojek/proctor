@@ -8,7 +8,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
-	gh "proctor/cli/version/github"
+	gh "proctor/cli/command/version/github"
 )
 
 func TestVersionCmdUsage(t *testing.T) {

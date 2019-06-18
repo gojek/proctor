@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"proctor/shared"
+	"proctor/shared/io"
 	"strings"
 	"testing"
 
-	"proctor/cli/version"
+	"proctor/cli/command/version"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -38,12 +38,12 @@ type ClientTestSuite struct {
 	suite.Suite
 	testClient       Client
 	mockConfigLoader *config.MockLoader
-	mockPrinter      *shared.MockPrinter
+	mockPrinter      *io.MockPrinter
 }
 
 func (s *ClientTestSuite) SetupTest() {
 	s.mockConfigLoader = &config.MockLoader{}
-	s.mockPrinter = &shared.MockPrinter{}
+	s.mockPrinter = &io.MockPrinter{}
 
 	s.testClient = NewClient(s.mockPrinter, s.mockConfigLoader)
 }

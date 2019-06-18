@@ -1,22 +1,22 @@
-package cli
+package command
 
 import (
 	"fmt"
 	"os"
-	"proctor/cli/schedule/remove"
+	"proctor/cli/command/schedule/remove"
 	"proctor/shared/io"
 
 	"github.com/spf13/cobra"
-	"proctor/cli/config"
-	"proctor/cli/config/view"
-	"proctor/cli/description"
-	"proctor/cli/execution"
-	"proctor/cli/list"
-	"proctor/cli/schedule"
-	scheduleDescribe "proctor/cli/schedule/describe"
-	scheduleList "proctor/cli/schedule/list"
-	"proctor/cli/version"
-	"proctor/cli/version/github"
+	"proctor/cli/command/config"
+	"proctor/cli/command/config/view"
+	"proctor/cli/command/description"
+	"proctor/cli/command/execution"
+	"proctor/cli/command/list"
+	"proctor/cli/command/schedule"
+	scheduleDescribe "proctor/cli/command/schedule/describe"
+	scheduleList "proctor/cli/command/schedule/list"
+	"proctor/cli/command/version"
+	"proctor/cli/command/version/github"
 	"proctor/daemon"
 )
 

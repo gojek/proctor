@@ -6,7 +6,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"proctor/cli/version/github"
+	"proctor/cli/command/version/github"
 )
 
 const ClientVersion = "v0.6.0"

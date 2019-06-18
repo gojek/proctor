@@ -1,4 +1,4 @@
-package cli
+package command
 
 import (
 	"proctor/shared/io"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
-	"proctor/cli/version/github"
+	"proctor/cli/command/version/github"
 	"proctor/daemon"
 )
 

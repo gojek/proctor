@@ -15,7 +15,7 @@ import (
 	"proctor/shared/io"
 	"time"
 
-	"proctor/cli/version"
+	"proctor/cli/command/version"
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"

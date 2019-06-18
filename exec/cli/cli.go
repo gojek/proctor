@@ -1,8 +1,8 @@
 package main
 
 import (
-	"proctor/cli"
-	"proctor/cli/version/github"
+	"proctor/cli/command"
+	"proctor/cli/command/version/github"
 	"proctor/config"
 	"proctor/daemon"
 	"proctor/shared/io"
@@ -14,5 +14,5 @@ func main() {
 	proctorDClient := daemon.NewClient(printer, proctorConfigLoader)
 	githubClient := github.NewClient()
 
-	cli.Execute(printer, proctorDClient, githubClient)
+	command.Execute(printer, proctorDClient, githubClient)
 }

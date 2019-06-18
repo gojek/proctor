@@ -1,13 +1,8 @@
-
-
 homebrew-gojek
 scripts/proctor.rb
 _output/*
 
-proctord
 .env
-
-proctord
 
 *.swp
 *.swo
