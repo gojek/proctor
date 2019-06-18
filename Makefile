@@ -39,7 +39,7 @@ cli:
 
 generate:
 	go get -u github.com/go-bindata/go-bindata/...
-	$(GOPATH)/bin/go-bindata -pkg config -o config/data.go data/config_template.yaml
+	$(GOPATH)/bin/go-bindata -pkg config -o cli/config/data.go assets/config_template.yaml
 
 db.setup: db.create db.migrate
 

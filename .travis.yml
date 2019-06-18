@@ -21,4 +21,4 @@ jobs:
         - make db.setup test-with-race
 
 after_success:
-  - scripts/release.sh
+  - assets/scripts/release.sh
