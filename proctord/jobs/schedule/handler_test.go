@@ -356,7 +356,7 @@ func (suite *SchedulerTestSuite) TestGetScheduledJobByID() {
 	}
 	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, nil).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
 	response, err := suite.Client.Do(req)
@@ -378,9 +378,9 @@ func (suite *SchedulerTestSuite) TestGetScheduledJobByIDOnInvalidJobID() {
 
 	var scheduledJobsStoreFormat []postgres.JobsSchedule
 
-	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%suite\"", jobID))).Once()
+	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID))).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
 	response, err := suite.Client.Do(req)
@@ -404,7 +404,7 @@ func (suite *SchedulerTestSuite) TestGetScheduledJobByIDOnInternalServerError() 
 
 	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, errors.New("some-error")).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
 	response, err := suite.Client.Do(req)
@@ -428,7 +428,7 @@ func (suite *SchedulerTestSuite) TestGetScheduledJobByIDOnJobIDNotFound() {
 
 	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, nil).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
 	response, err := suite.Client.Do(req)
@@ -450,7 +450,7 @@ func (suite *SchedulerTestSuite) TestRemoveScheduledJobByID() {
 
 	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(1), nil).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
 	response, err := suite.Client.Do(req)
@@ -470,9 +470,9 @@ func (suite *SchedulerTestSuite) TestRemoveScheduledJobByIDOnInvalidJobID() {
 	t := suite.T()
 	jobID := "invalid-job-id"
 
-	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%suite\"", jobID))).Once()
+	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID))).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
 	response, err := suite.Client.Do(req)
@@ -494,7 +494,7 @@ func (suite *SchedulerTestSuite) TestRemoveScheduledJobByIDOnInternalServerError
 
 	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), errors.New("some-error")).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
 	response, err := suite.Client.Do(req)
@@ -516,7 +516,7 @@ func (suite *SchedulerTestSuite) TestRemoveScheduledJobByIDOnJobIDNotFound() {
 
 	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), nil).Once()
 
-	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
+	url := fmt.Sprintf("%s/jobs/schedule/%s", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
 	response, err := suite.Client.Do(req)
