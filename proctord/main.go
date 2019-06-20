@@ -15,7 +15,7 @@ import (
 
 func main() {
 	logger.Setup()
-	raven.SetDSN(config.SentryDSN())
+	_ = raven.SetDSN(config.SentryDSN())
 
 	proctord := cli.NewApp()
 	proctord.Name = "proctord"
@@ -61,5 +61,5 @@ func main() {
 		},
 	}
 
-	proctord.Run(os.Args)
+	_ = proctord.Run(os.Args)
 }

@@ -61,7 +61,7 @@ func (suite *LoggerTestSuite) TestLoggerStream() {
 	defer s.Close()
 
 	buffer := utility.NewBuffer()
-	buffer.Write([]byte("first line\nsecond line\n"))
+	_, _ = buffer.Write([]byte("first line\nsecond line\n"))
 	suite.mockKubeClient.On("StreamJobLogs", "sample").Return(buffer, nil).Once()
 
 	c, _, err := websocket.DefaultDialer.Dial(s.URL+"?"+logsHandlerRawQuery, nil)

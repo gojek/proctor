@@ -7,7 +7,7 @@ import (
 	"proctor/proctord/audit"
 	"proctor/proctord/config"
 	"proctor/proctord/docs"
-	http_client "proctor/proctord/http"
+	httpClient "proctor/proctord/http"
 	"proctor/proctord/jobs/execution"
 	"proctor/proctord/jobs/logs"
 	"proctor/proctord/jobs/metadata"
@@ -35,7 +35,7 @@ func NewRouter() (*mux.Router, error) {
 	metadataStore := metadata.NewStore(redisClient)
 	secretsStore := secrets.NewStore(redisClient)
 
-	httpClient, err := http_client.NewClient()
+	httpClient, err := httpClient.NewClient()
 	if err != nil {
 		return router, err
 	}
@@ -52,7 +52,7 @@ func NewRouter() (*mux.Router, error) {
 	scheduledJobsHandler := schedule.NewScheduler(store, metadataStore)
 
 	router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "pong")
+		_, _ = fmt.Fprintf(w, "pong")
 	})
 
 	router.HandleFunc("/docs", docs.APIDocHandler)

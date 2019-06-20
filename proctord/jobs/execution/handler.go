@@ -11,7 +11,7 @@ import (
 	"proctor/proctord/logger"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 	"time"
 )
 
@@ -41,7 +41,7 @@ func (handler *executionHandler) Status() http.HandlerFunc {
 		jobExecutionStatus, err := handler.store.GetJobExecutionStatus(jobExecutionID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(utility.ServerError))
+			_, _ = w.Write([]byte(constant.ServerError))
 			logger.Error(fmt.Sprintf("Error getting job status for job_id: %s", jobExecutionID), err.Error())
 			raven.CaptureError(err, map[string]string{"job_id": jobExecutionID})
 
@@ -53,7 +53,7 @@ func (handler *executionHandler) Status() http.HandlerFunc {
 			return
 		}
 
-		fmt.Fprintf(w, jobExecutionStatus)
+		_, _ = fmt.Fprintf(w, jobExecutionStatus)
 	}
 }
 
@@ -63,7 +63,7 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 			JobExecutionStatus: "WAITING",
 		}
 
-		userEmail := req.Header.Get(utility.UserEmailHeaderKey)
+		userEmail := req.Header.Get(constant.UserEmailHeaderKey)
 		jobsExecutionAuditLog.UserEmail = userEmail
 
 		var job Job
@@ -74,10 +74,10 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 			raven.CaptureError(err, map[string]string{"user_email": userEmail})
 
 			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error parsing request body: %s", err.Error())
-			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionClientError
+			jobsExecutionAuditLog.JobSubmissionStatus = constant.JobSubmissionClientError
 
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(utility.ClientError))
+			_, _ = w.Write([]byte(constant.ClientError))
 			go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
 
 			return
@@ -88,17 +88,17 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 			raven.CaptureError(err, map[string]string{"user_email": userEmail, "job_name": job.Name})
 
 			jobsExecutionAuditLog.Errors = fmt.Sprintf("Error executing job: %s", err.Error())
-			jobsExecutionAuditLog.JobSubmissionStatus = utility.JobSubmissionServerError
+			jobsExecutionAuditLog.JobSubmissionStatus = constant.JobSubmissionServerError
 			go handler.auditor.JobsExecutionAndStatus(jobsExecutionAuditLog)
 
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(utility.ServerError))
+			_, _ = w.Write([]byte(constant.ServerError))
 
 			return
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
+		_, _ = w.Write([]byte(fmt.Sprintf("{ \"name\":\"%s\" }", jobExecutionID)))
 
 		remoteCallerURL := job.CallbackURL
 		go handler.postJobExecute(jobsExecutionAuditLog, remoteCallerURL, jobExecutionID)
@@ -114,16 +114,16 @@ func (handler *executionHandler) postJobExecute(jobsExecutionAuditLog *postgres.
 }
 
 func (handler *executionHandler) sendStatusToCaller(remoteCallerURL, jobExecutionID string) {
-	status := utility.JobWaiting
+	status := constant.JobWaiting
 
 	for {
 		jobExecutionStatus, _ := handler.store.GetJobExecutionStatus(jobExecutionID)
 		if jobExecutionStatus == "" {
-			status = utility.JobNotFound
+			status = constant.JobNotFound
 			break
 		}
 
-		if jobExecutionStatus == utility.JobSucceeded || jobExecutionStatus == utility.JobFailed {
+		if jobExecutionStatus == constant.JobSucceeded || jobExecutionStatus == constant.JobFailed {
 			status = jobExecutionStatus
 			break
 		}

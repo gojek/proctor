@@ -6,7 +6,7 @@ import (
 	"proctor/proctord/kubernetes"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 )
 
 func TestJobsExecutionAuditing(t *testing.T) {
@@ -36,7 +36,7 @@ func TestAuditJobsExecutionStatusAuditing(t *testing.T) {
 	mockKubeClient.On("JobExecutionStatus", jobExecutionID).Return(jobExecutionStatus, nil)
 	mockStore.On("UpdateJobsExecutionAuditLog", jobExecutionID, jobExecutionStatus).Return(nil).Once()
 
-	testAuditor.JobsExecutionStatus(jobExecutionID)
+	_,_ = testAuditor.JobsExecutionStatus(jobExecutionID)
 
 	mockStore.AssertExpectations(t)
 	mockKubeClient.AssertExpectations(t)
@@ -52,7 +52,7 @@ func TestAuditJobsExecutionAndStatusAuditing(t *testing.T) {
 	jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
 		JobName:             "any-job-name",
 		ExecutionID:         postgres.StringToSQLString(jobExecutionID),
-		JobSubmissionStatus: utility.JobSubmissionSuccess,
+		JobSubmissionStatus: constant.JobSubmissionSuccess,
 	}
 
 	mockStore.On("AuditJobsExecution", jobsExecutionAuditLog).Return(nil).Once()

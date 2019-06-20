@@ -9,7 +9,7 @@ import (
 )
 
 func TestEnvironment(t *testing.T) {
-	os.Setenv("PROCTOR_KUBE_CONFIG", "in-cluster")
+	_ = os.Setenv("PROCTOR_KUBE_CONFIG", "in-cluster")
 
 	viper.AutomaticEnv()
 
@@ -17,7 +17,7 @@ func TestEnvironment(t *testing.T) {
 }
 
 func TestLogLevel(t *testing.T) {
-	os.Setenv("PROCTOR_LOG_LEVEL", "debug")
+	_ = os.Setenv("PROCTOR_LOG_LEVEL", "debug")
 
 	viper.AutomaticEnv()
 
@@ -25,7 +25,7 @@ func TestLogLevel(t *testing.T) {
 }
 
 func TestAppPort(t *testing.T) {
-	os.Setenv("PROCTOR_APP_PORT", "3000")
+	_ = os.Setenv("PROCTOR_APP_PORT", "3000")
 
 	viper.AutomaticEnv()
 
@@ -33,7 +33,7 @@ func TestAppPort(t *testing.T) {
 }
 
 func TestDefaultNamespace(t *testing.T) {
-	os.Setenv("PROCTOR_DEFAULT_NAMESPACE", "default")
+	_ = os.Setenv("PROCTOR_DEFAULT_NAMESPACE", "default")
 
 	viper.AutomaticEnv()
 
@@ -41,7 +41,7 @@ func TestDefaultNamespace(t *testing.T) {
 }
 
 func TestRedisAddress(t *testing.T) {
-	os.Setenv("PROCTOR_REDIS_ADDRESS", "localhost:6379")
+	_ = os.Setenv("PROCTOR_REDIS_ADDRESS", "localhost:6379")
 
 	viper.AutomaticEnv()
 
@@ -49,7 +49,7 @@ func TestRedisAddress(t *testing.T) {
 }
 
 func TestKubeClusterHostName(t *testing.T) {
-	os.Setenv("PROCTOR_KUBE_CLUSTER_HOST_NAME", "somekube.io")
+	_ = os.Setenv("PROCTOR_KUBE_CLUSTER_HOST_NAME", "somekube.io")
 
 	viper.AutomaticEnv()
 
@@ -57,7 +57,7 @@ func TestKubeClusterHostName(t *testing.T) {
 }
 
 func TestKubeCACertEncoded(t *testing.T) {
-	os.Setenv("PROCTOR_KUBE_CA_CERT_ENCODED", "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCmNlcnRpZmljYXRlCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K")
+	_ = os.Setenv("PROCTOR_KUBE_CA_CERT_ENCODED", "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCmNlcnRpZmljYXRlCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K")
 
 	viper.AutomaticEnv()
 
@@ -65,7 +65,7 @@ func TestKubeCACertEncoded(t *testing.T) {
 }
 
 func TestKubeBasicAuthEncoded(t *testing.T) {
-	os.Setenv("PROCTOR_KUBE_BASIC_AUTH_ENCODED", "YWRtaW46cGFzc3dvcmQK")
+	_ = os.Setenv("PROCTOR_KUBE_BASIC_AUTH_ENCODED", "YWRtaW46cGFzc3dvcmQK")
 
 	viper.AutomaticEnv()
 
@@ -73,7 +73,7 @@ func TestKubeBasicAuthEncoded(t *testing.T) {
 }
 
 func TestRedisMaxActiveConnections(t *testing.T) {
-	os.Setenv("PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS", "50")
+	_ = os.Setenv("PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS", "50")
 
 	viper.AutomaticEnv()
 
@@ -81,7 +81,7 @@ func TestRedisMaxActiveConnections(t *testing.T) {
 }
 
 func TestLogsStreamReadBufferSize(t *testing.T) {
-	os.Setenv("PROCTOR_LOGS_STREAM_READ_BUFFER_SIZE", "140")
+	_ = os.Setenv("PROCTOR_LOGS_STREAM_READ_BUFFER_SIZE", "140")
 
 	viper.AutomaticEnv()
 
@@ -89,7 +89,7 @@ func TestLogsStreamReadBufferSize(t *testing.T) {
 }
 
 func TestLogsStreamWriteBufferSize(t *testing.T) {
-	os.Setenv("PROCTOR_LOGS_STREAM_WRITE_BUFFER_SIZE", "4096")
+	_ = os.Setenv("PROCTOR_LOGS_STREAM_WRITE_BUFFER_SIZE", "4096")
 
 	viper.AutomaticEnv()
 
@@ -97,7 +97,7 @@ func TestLogsStreamWriteBufferSize(t *testing.T) {
 }
 
 func TestKubeJobActiveDeadlineSeconds(t *testing.T) {
-	os.Setenv("PROCTOR_KUBE_JOB_ACTIVE_DEADLINE_SECONDS", "900")
+	_ = os.Setenv("PROCTOR_KUBE_JOB_ACTIVE_DEADLINE_SECONDS", "900")
 
 	viper.AutomaticEnv()
 
@@ -106,7 +106,7 @@ func TestKubeJobActiveDeadlineSeconds(t *testing.T) {
 }
 
 func TestKubeJobRetries(t *testing.T) {
-	os.Setenv("PROCTOR_KUBE_JOB_RETRIES", "0")
+	_ = os.Setenv("PROCTOR_KUBE_JOB_RETRIES", "0")
 
 	viper.AutomaticEnv()
 
@@ -115,7 +115,7 @@ func TestKubeJobRetries(t *testing.T) {
 }
 
 func TestPostgresUser(t *testing.T) {
-	os.Setenv("PROCTOR_POSTGRES_USER", "postgres")
+	_ = os.Setenv("PROCTOR_POSTGRES_USER", "postgres")
 
 	viper.AutomaticEnv()
 
@@ -123,7 +123,7 @@ func TestPostgresUser(t *testing.T) {
 }
 
 func TestPostgresPassword(t *testing.T) {
-	os.Setenv("PROCTOR_POSTGRES_PASSWORD", "ipsum-lorem")
+	_ = os.Setenv("PROCTOR_POSTGRES_PASSWORD", "ipsum-lorem")
 
 	viper.AutomaticEnv()
 
@@ -131,7 +131,7 @@ func TestPostgresPassword(t *testing.T) {
 }
 
 func TestPostgresHost(t *testing.T) {
-	os.Setenv("PROCTOR_POSTGRES_HOST", "localhost")
+	_ = os.Setenv("PROCTOR_POSTGRES_HOST", "localhost")
 
 	viper.AutomaticEnv()
 
@@ -139,7 +139,7 @@ func TestPostgresHost(t *testing.T) {
 }
 
 func TestPostgresPort(t *testing.T) {
-	os.Setenv("PROCTOR_POSTGRES_PORT", "5432")
+	_ = os.Setenv("PROCTOR_POSTGRES_PORT", "5432")
 
 	viper.AutomaticEnv()
 
@@ -147,7 +147,7 @@ func TestPostgresPort(t *testing.T) {
 }
 
 func TestPostgresDatabase(t *testing.T) {
-	os.Setenv("PROCTOR_POSTGRES_DATABASE", "proctord_development")
+	_ = os.Setenv("PROCTOR_POSTGRES_DATABASE", "proctord_development")
 
 	viper.AutomaticEnv()
 
@@ -155,7 +155,7 @@ func TestPostgresDatabase(t *testing.T) {
 }
 
 func TestPostgresMaxConnections(t *testing.T) {
-	os.Setenv("PROCTOR_POSTGRES_MAX_CONNECTIONS", "50")
+	_ = os.Setenv("PROCTOR_POSTGRES_MAX_CONNECTIONS", "50")
 
 	viper.AutomaticEnv()
 
@@ -163,7 +163,7 @@ func TestPostgresMaxConnections(t *testing.T) {
 }
 
 func TestPostgresConnectionMaxLifetime(t *testing.T) {
-	os.Setenv("PROCTOR_POSTGRES_CONNECTIONS_MAX_LIFETIME", "30")
+	_ = os.Setenv("PROCTOR_POSTGRES_CONNECTIONS_MAX_LIFETIME", "30")
 
 	viper.AutomaticEnv()
 
@@ -171,7 +171,7 @@ func TestPostgresConnectionMaxLifetime(t *testing.T) {
 }
 
 func TestNewRelicAppName(t *testing.T) {
-	os.Setenv("PROCTOR_NEW_RELIC_APP_NAME", "PROCTORD")
+	_ = os.Setenv("PROCTOR_NEW_RELIC_APP_NAME", "PROCTORD")
 
 	viper.AutomaticEnv()
 
@@ -179,7 +179,7 @@ func TestNewRelicAppName(t *testing.T) {
 }
 
 func TestNewRelicLicenceKey(t *testing.T) {
-	os.Setenv("PROCTOR_NEW_RELIC_LICENCE_KEY", "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr")
+	_ = os.Setenv("PROCTOR_NEW_RELIC_LICENCE_KEY", "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr")
 
 	viper.AutomaticEnv()
 
@@ -187,7 +187,7 @@ func TestNewRelicLicenceKey(t *testing.T) {
 }
 
 func TestMinClientVersion(t *testing.T) {
-	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
+	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
 	viper.AutomaticEnv()
 
@@ -195,7 +195,7 @@ func TestMinClientVersion(t *testing.T) {
 }
 
 func TestScheduledJobsFetchIntervalInMins(t *testing.T) {
-	os.Setenv("PROCTOR_SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS", "5")
+	_ = os.Setenv("PROCTOR_SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS", "5")
 
 	viper.AutomaticEnv()
 
@@ -203,7 +203,7 @@ func TestScheduledJobsFetchIntervalInMins(t *testing.T) {
 }
 
 func TestMailUsername(t *testing.T) {
-	os.Setenv("PROCTOR_MAIL_USERNAME", "foo@bar.com")
+	_ = os.Setenv("PROCTOR_MAIL_USERNAME", "foo@bar.com")
 
 	viper.AutomaticEnv()
 
@@ -211,7 +211,7 @@ func TestMailUsername(t *testing.T) {
 }
 
 func TestMailPassword(t *testing.T) {
-	os.Setenv("PROCTOR_MAIL_PASSWORD", "password")
+	_ = os.Setenv("PROCTOR_MAIL_PASSWORD", "password")
 
 	viper.AutomaticEnv()
 
@@ -219,7 +219,7 @@ func TestMailPassword(t *testing.T) {
 }
 
 func TestMailServerHost(t *testing.T) {
-	os.Setenv("PROCTOR_MAIL_SERVER_HOST", "127.0.0.1")
+	_ = os.Setenv("PROCTOR_MAIL_SERVER_HOST", "127.0.0.1")
 
 	viper.AutomaticEnv()
 
@@ -227,7 +227,7 @@ func TestMailServerHost(t *testing.T) {
 }
 
 func TestMailServerPort(t *testing.T) {
-	os.Setenv("PROCTOR_MAIL_SERVER_PORT", "123")
+	_ = os.Setenv("PROCTOR_MAIL_SERVER_PORT", "123")
 
 	viper.AutomaticEnv()
 
@@ -235,7 +235,7 @@ func TestMailServerPort(t *testing.T) {
 }
 
 func TestJobPodAnnotations(t *testing.T) {
-	os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
+	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
 
 	viper.AutomaticEnv()
 
@@ -243,7 +243,7 @@ func TestJobPodAnnotations(t *testing.T) {
 }
 
 func TestSentryDSN(t *testing.T) {
-	os.Setenv("PROCTOR_SENTRY_DSN", "domain")
+	_ = os.Setenv("PROCTOR_SENTRY_DSN", "domain")
 
 	viper.AutomaticEnv()
 
@@ -251,7 +251,7 @@ func TestSentryDSN(t *testing.T) {
 }
 
 func TestDocsPath(t *testing.T) {
-	os.Setenv("PROCTOR_DOCS_PATH", "path1")
+	_ = os.Setenv("PROCTOR_DOCS_PATH", "path1")
 
 	viper.AutomaticEnv()
 

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"proctor/proctord/storage/postgres"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 	"testing"
 )
 
@@ -102,7 +102,7 @@ func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
 		Run(func(args mock.Arguments) {
 			jobsExecutionAuditLogResult := args.Get(0).(*[]postgres.JobsExecutionAuditLog)
 			*jobsExecutionAuditLogResult = append(*jobsExecutionAuditLogResult, postgres.JobsExecutionAuditLog{
-				JobExecutionStatus: utility.JobSucceeded,
+				JobExecutionStatus: constant.JobSucceeded,
 			})
 		}).
 		Once()
@@ -110,7 +110,7 @@ func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
 	status, err := testStore.GetJobExecutionStatus(jobName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, utility.JobSucceeded, status)
+	assert.Equal(t, constant.JobSucceeded, status)
 
 	mockPostgresClient.AssertExpectations(t)
 }

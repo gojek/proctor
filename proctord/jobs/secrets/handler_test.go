@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 )
 
 type SecretsHandlerTestSuite struct {
@@ -63,7 +63,7 @@ func (suite *SecretsHandlerTestSuite) TestSecretsUpdationSecretsMalformedData() 
 
 	suite.mockSecretsStore.AssertNotCalled(t, "CreateOrUpdateJobSecret", mock.Anything)
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
-	assert.Equal(t, utility.ClientError, responseRecorder.Body.String())
+	assert.Equal(t, constant.ClientError, responseRecorder.Body.String())
 }
 
 func (suite *SecretsHandlerTestSuite) TestSecretsUpdationSecretsStoreFailure() {
@@ -87,7 +87,7 @@ func (suite *SecretsHandlerTestSuite) TestSecretsUpdationSecretsStoreFailure() {
 	suite.mockSecretsStore.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
-	assert.Equal(t, utility.ServerError, responseRecorder.Body.String())
+	assert.Equal(t, constant.ServerError, responseRecorder.Body.String())
 }
 
 func TestSecretsHandlerTestSuite(t *testing.T) {

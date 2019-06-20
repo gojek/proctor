@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 	"testing"
 )
 
@@ -18,7 +18,7 @@ func getTestHandler() http.HandlerFunc {
 
 func TestValidClientVersionHttpHeader(t *testing.T) {
 
-	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
+	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
 	ts := httptest.NewServer(ValidateClientVersion(getTestHandler()))
 	defer ts.Close()
@@ -26,7 +26,7 @@ func TestValidClientVersionHttpHeader(t *testing.T) {
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", ts.URL+"/jobs/metadata", nil)
-	req.Header.Add(utility.ClientVersionHeaderKey, "0.2.0")
+	req.Header.Add(constant.ClientVersionHeaderKey, "0.2.0")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
@@ -36,7 +36,7 @@ func TestValidClientVersionHttpHeader(t *testing.T) {
 
 func TestEmptyClientVersionHttpHeader(t *testing.T) {
 
-	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
+	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
 	ts := httptest.NewServer(ValidateClientVersion(getTestHandler()))
 	defer ts.Close()
@@ -53,7 +53,7 @@ func TestEmptyClientVersionHttpHeader(t *testing.T) {
 
 func TestInvalidClientVersionHttpHeader(t *testing.T) {
 
-	os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.3.0")
+	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.3.0")
 
 	ts := httptest.NewServer(ValidateClientVersion(getTestHandler()))
 	defer ts.Close()
@@ -61,7 +61,7 @@ func TestInvalidClientVersionHttpHeader(t *testing.T) {
 	client := &http.Client{}
 
 	req, _ := http.NewRequest("GET", ts.URL+"/jobs/metadata", nil)
-	req.Header.Add(utility.ClientVersionHeaderKey, "0.1.0")
+	req.Header.Add(constant.ClientVersionHeaderKey, "0.1.0")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()

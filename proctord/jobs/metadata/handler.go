@@ -5,8 +5,8 @@ import (
 	"github.com/getsentry/raven-go"
 	"net/http"
 	"proctor/proctord/logger"
-	utility "proctor/shared/constant"
-	procMetadata "proctor/shared/model/metadata"
+	"proctor/shared/constant"
+	modelMetadata "proctor/shared/model/metadata"
 )
 
 type handler struct {
@@ -26,14 +26,14 @@ func NewHandler(store Store) Handler {
 
 func (handler *handler) HandleSubmission() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var jobMetadata []procMetadata.Metadata
+		var jobMetadata []modelMetadata.Metadata
 		err := json.NewDecoder(req.Body).Decode(&jobMetadata)
 		defer req.Body.Close()
 		if err != nil {
 			logger.Error("Error parsing request body", err.Error())
 
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(utility.ClientError))
+			_, _ =	w.Write([]byte(constant.ClientError))
 			return
 		}
 
@@ -44,7 +44,7 @@ func (handler *handler) HandleSubmission() http.HandlerFunc {
 				raven.CaptureError(err, nil)
 
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(utility.ServerError))
+				w.Write([]byte(constant.ServerError))
 				return
 			}
 		}
@@ -62,7 +62,7 @@ func (handler *handler) HandleBulkDisplay() http.HandlerFunc {
 			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(utility.ServerError))
+			w.Write([]byte(constant.ServerError))
 			return
 		}
 
@@ -72,7 +72,7 @@ func (handler *handler) HandleBulkDisplay() http.HandlerFunc {
 			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(utility.ServerError))
+			w.Write([]byte(constant.ServerError))
 			return
 		}
 

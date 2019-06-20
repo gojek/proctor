@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 	//Package needed for kubernetes cluster in google cloud
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
@@ -217,7 +217,7 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 
 	watchJob, err := kubernetesJobs.Watch(listOptions)
 	if err != nil {
-		return utility.JobFailed, err
+		return constant.JobFailed, err
 	}
 
 	resultChan := watchJob.ResultChan()
@@ -227,18 +227,18 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 
 	for event = range resultChan {
 		if event.Type == watch.Error {
-			return utility.JobExecutionStatusFetchError, nil
+			return constant.JobExecutionStatusFetchError, nil
 		}
 
 		jobEvent = event.Object.(*batch_v1.Job)
 		if jobEvent.Status.Succeeded >= int32(1) {
-			return utility.JobSucceeded, nil
+			return constant.JobSucceeded, nil
 		} else if jobEvent.Status.Failed >= int32(1) {
-			return utility.JobFailed, nil
+			return constant.JobFailed, nil
 		}
 	}
 
-	return utility.NoDefinitiveJobExecutionStatusFound, nil
+	return constant.NoDefinitiveJobExecutionStatusFound, nil
 }
 
 func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {

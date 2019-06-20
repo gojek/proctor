@@ -29,7 +29,7 @@ func Start() error {
 
 	graceful.Run(appPort, 2*time.Second, server)
 
-	postgresClient.Close()
+	_ = postgresClient.Close()
 	logger.Info("Stopped server gracefully")
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"proctor/proctord/logger"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 )
 
 type Auditor interface {
@@ -30,9 +30,9 @@ func New(store storage.Store, kubeClient kubernetes.Client) Auditor {
 func (auditor *auditor) JobsExecutionAndStatus(jobsExecutionAuditLog *postgres.JobsExecutionAuditLog) {
 	auditor.JobsExecution(jobsExecutionAuditLog)
 
-	if jobsExecutionAuditLog.JobSubmissionStatus == utility.JobSubmissionSuccess &&
+	if jobsExecutionAuditLog.JobSubmissionStatus == constant.JobSubmissionSuccess &&
 		jobsExecutionAuditLog.ExecutionID.Valid {
-		auditor.JobsExecutionStatus(jobsExecutionAuditLog.ExecutionID.String)
+		_, _ = auditor.JobsExecutionStatus(jobsExecutionAuditLog.ExecutionID.String)
 	}
 }
 

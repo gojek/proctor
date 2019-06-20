@@ -10,7 +10,7 @@ import (
 	"proctor/proctord/config"
 	"proctor/proctord/kubernetes"
 	_logger "proctor/proctord/logger"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 
 	"github.com/gorilla/websocket"
 )
@@ -51,7 +51,7 @@ func (l *logger) Stream() http.HandlerFunc {
 			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(utility.ClientError))
+			_, _ = w.Write([]byte(constant.ClientError))
 			return
 		}
 		defer conn.Close()

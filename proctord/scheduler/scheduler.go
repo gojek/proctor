@@ -7,7 +7,7 @@ import (
 
 	"proctor/proctord/audit"
 	"proctor/proctord/config"
-	http_client "proctor/proctord/http"
+	httpClient "proctor/proctord/http"
 	"proctor/proctord/jobs/execution"
 	"proctor/proctord/jobs/metadata"
 	"proctor/proctord/jobs/schedule"
@@ -29,7 +29,7 @@ func Start() error {
 	metadataStore := metadata.NewStore(redisClient)
 	secretsStore := secrets.NewStore(redisClient)
 
-	httpClient, err := http_client.NewClient()
+	httpClient, err := httpClient.NewClient()
 	if err != nil {
 		return err
 	}
@@ -48,6 +48,6 @@ func Start() error {
 	signalsChan := make(chan os.Signal, 1)
 	worker.Run(ticker.C, signalsChan)
 
-	postgresClient.Close()
+	_ = postgresClient.Close()
 	return nil
 }

@@ -287,8 +287,8 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	assert.Equal(t, constant.ServerError, string(responseBody))
 }
 
-func (s *SchedulerTestSuite) TestGetScheduledJobs() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestGetScheduledJobs() {
+	t := suite.T()
 
 	req := httptest.NewRequest("GET", "/jobs/schedule", bytes.NewReader([]byte{}))
 	responseRecorder := httptest.NewRecorder()
@@ -298,11 +298,11 @@ func (s *SchedulerTestSuite) TestGetScheduledJobs() {
 			ID: "some-id",
 		},
 	}
-	s.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobsStoreFormat, nil).Once()
+	suite.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobsStoreFormat, nil).Once()
 
-	s.testScheduler.GetScheduledJobs()(responseRecorder, req)
+	suite.testScheduler.GetScheduledJobs()(responseRecorder, req)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 
@@ -312,41 +312,41 @@ func (s *SchedulerTestSuite) TestGetScheduledJobs() {
 	assert.Equal(t, scheduledJobsStoreFormat[0].ID, scheduledJobs[0].ID)
 }
 
-func (s *SchedulerTestSuite) TestGetScheduledJobsWhenNoJobsFound() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestGetScheduledJobsWhenNoJobsFound() {
+	t := suite.T()
 
 	req := httptest.NewRequest("GET", "/jobs/schedule", bytes.NewReader([]byte{}))
 	responseRecorder := httptest.NewRecorder()
 
-	scheduledJobsStoreFormat := []postgres.JobsSchedule{}
-	s.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobsStoreFormat, nil).Once()
+	var scheduledJobsStoreFormat []postgres.JobsSchedule
+	suite.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobsStoreFormat, nil).Once()
 
-	s.testScheduler.GetScheduledJobs()(responseRecorder, req)
+	suite.testScheduler.GetScheduledJobs()(responseRecorder, req)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusNoContent, responseRecorder.Code)
 }
 
-func (s *SchedulerTestSuite) TestGetScheduledJobsFailure() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestGetScheduledJobsFailure() {
+	t := suite.T()
 
 	req := httptest.NewRequest("GET", "/jobs/schedule", bytes.NewReader([]byte{}))
 	responseRecorder := httptest.NewRecorder()
 
-	scheduledJobs := []postgres.JobsSchedule{}
-	s.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobs, errors.New("error")).Once()
+	var scheduledJobs []postgres.JobsSchedule
+	suite.mockStore.On("GetEnabledScheduledJobs").Return(scheduledJobs, errors.New("error")).Once()
 
-	s.testScheduler.GetScheduledJobs()(responseRecorder, req)
+	suite.testScheduler.GetScheduledJobs()(responseRecorder, req)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	assert.Equal(t, constant.ServerError, responseRecorder.Body.String())
 }
 
-func (s *SchedulerTestSuite) TestGetScheduledJobByID() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestGetScheduledJobByID() {
+	t := suite.T()
 	jobID := "some-id"
 
 	scheduledJobsStoreFormat := []postgres.JobsSchedule{
@@ -354,12 +354,12 @@ func (s *SchedulerTestSuite) TestGetScheduledJobByID() {
 			ID: jobID,
 		},
 	}
-	s.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, nil).Once()
+	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, nil).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, response.StatusCode)
@@ -369,167 +369,167 @@ func (s *SchedulerTestSuite) TestGetScheduledJobByID() {
 	assert.NoError(t, err)
 	assert.Equal(t, jobID, scheduledJob.ID)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
-func (s *SchedulerTestSuite) TestGetScheduledJobByIDOnInvalidJobID() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestGetScheduledJobByIDOnInvalidJobID() {
+	t := suite.T()
 	jobID := "invalid-job-id"
 
-	scheduledJobsStoreFormat := []postgres.JobsSchedule{}
+	var scheduledJobsStoreFormat []postgres.JobsSchedule
 
-	s.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID))).Once()
+	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%suite\"", jobID))).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
+	_, _ = buf.ReadFrom(response.Body)
 	responseBody := buf.String()
 	assert.Equal(t, "Invalid Job ID", responseBody)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
-func (s *SchedulerTestSuite) TestGetScheduledJobByIDOnInternalServerError() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestGetScheduledJobByIDOnInternalServerError() {
+	t := suite.T()
 	jobID := "job-id"
 
-	scheduledJobsStoreFormat := []postgres.JobsSchedule{}
+	var scheduledJobsStoreFormat []postgres.JobsSchedule
 
-	s.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, errors.New("some-error")).Once()
+	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, errors.New("some-error")).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusInternalServerError, response.StatusCode)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
+	_, _ = buf.ReadFrom(response.Body)
 	responseBody := buf.String()
 	assert.Equal(t, "Something went wrong", responseBody)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
-func (s *SchedulerTestSuite) TestGetScheduledJobByIDOnJobIDNotFound() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestGetScheduledJobByIDOnJobIDNotFound() {
+	t := suite.T()
 	jobID := "absent-job-id"
 
-	scheduledJobsStoreFormat := []postgres.JobsSchedule{}
+	var scheduledJobsStoreFormat []postgres.JobsSchedule
 
-	s.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, nil).Once()
+	suite.mockStore.On("GetScheduledJob", jobID).Return(scheduledJobsStoreFormat, nil).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("GET", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusNotFound, response.StatusCode)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
+	_, _ = buf.ReadFrom(response.Body)
 	responseBody := buf.String()
 	assert.Equal(t, "Job not found", responseBody)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
-func (s *SchedulerTestSuite) TestRemoveScheduledJobByID() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestRemoveScheduledJobByID() {
+	t := suite.T()
 	jobID := "some-id"
 
-	s.mockStore.On("RemoveScheduledJob", jobID).Return(int64(1), nil).Once()
+	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(1), nil).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
+	_, _ = buf.ReadFrom(response.Body)
 	responseBody := buf.String()
 	assert.Equal(t, "Successfully unscheduled Job ID: some-id", responseBody)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
-func (s *SchedulerTestSuite) TestRemoveScheduledJobByIDOnInvalidJobID() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestRemoveScheduledJobByIDOnInvalidJobID() {
+	t := suite.T()
 	jobID := "invalid-job-id"
 
-	s.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%s\"", jobID))).Once()
+	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), errors.New(fmt.Sprintf("pq: invalid input syntax for type uuid: \"%suite\"", jobID))).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
+	_, _ = buf.ReadFrom(response.Body)
 	responseBody := buf.String()
 	assert.Equal(t, "Invalid Job ID", responseBody)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
-func (s *SchedulerTestSuite) TestRemoveScheduledJobByIDOnInternalServerError() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestRemoveScheduledJobByIDOnInternalServerError() {
+	t := suite.T()
 	jobID := "job-id"
 
-	s.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), errors.New("some-error")).Once()
+	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), errors.New("some-error")).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusInternalServerError, response.StatusCode)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
+	_, _ = buf.ReadFrom(response.Body)
 	responseBody := buf.String()
 	assert.Equal(t, "Something went wrong", responseBody)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
-func (s *SchedulerTestSuite) TestRemoveScheduledJobByIDOnJobIDNotFound() {
-	t := s.T()
+func (suite *SchedulerTestSuite) TestRemoveScheduledJobByIDOnJobIDNotFound() {
+	t := suite.T()
 	jobID := "absent-job-id"
 
-	s.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), nil).Once()
+	suite.mockStore.On("RemoveScheduledJob", jobID).Return(int64(0), nil).Once()
 
-	url := fmt.Sprintf("%s/jobs/schedule/%s", s.TestServer.URL, jobID)
+	url := fmt.Sprintf("%suite/jobs/schedule/%suite", suite.TestServer.URL, jobID)
 	req, _ := http.NewRequest("DELETE", url, nil)
 
-	response, err := s.Client.Do(req)
+	response, err := suite.Client.Do(req)
 	assert.NoError(t, err)
 
 	assert.Equal(t, http.StatusNotFound, response.StatusCode)
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
+	_, _ = buf.ReadFrom(response.Body)
 	responseBody := buf.String()
 	assert.Equal(t, "Job not found", responseBody)
 
-	s.mockStore.AssertExpectations(t)
+	suite.mockStore.AssertExpectations(t)
 }
 
 func TestScheduleTestSuite(t *testing.T) {

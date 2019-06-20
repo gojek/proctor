@@ -23,7 +23,7 @@ func MergeMaps(mapOne, mapTwo map[string]string) map[string]string {
 func MapToString(someMap map[string]string) string {
 	b := new(bytes.Buffer)
 	for key, value := range someMap {
-		fmt.Fprintf(b, "%s=\"%s\",", key, value)
+		_, _ = fmt.Fprintf(b, "%s=\"%s\",", key, value)
 	}
 	return strings.TrimRight(b.String(), ",")
 }

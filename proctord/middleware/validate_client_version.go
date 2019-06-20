@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 )
 
 func ValidateClientVersion(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		requestHeaderClientVersion := r.Header.Get(utility.ClientVersionHeaderKey)
+		requestHeaderClientVersion := r.Header.Get(constant.ClientVersionHeaderKey)
 
 		if requestHeaderClientVersion != "" {
 			clientVersion, err := version.NewVersion(requestHeaderClientVersion)
@@ -27,7 +27,7 @@ func ValidateClientVersion(next http.HandlerFunc) http.HandlerFunc {
 
 			if clientVersion.LessThan(minClientVersion) {
 				w.WriteHeader(400)
-				w.Write([]byte(fmt.Sprintf(utility.ClientOutdatedErrorMessage, clientVersion)))
+				_, _ = w.Write([]byte(fmt.Sprintf(constant.ClientOutdatedErrorMessage, clientVersion)))
 				return
 			}
 			next.ServeHTTP(w, r)

@@ -135,7 +135,7 @@ func JobPodAnnotations() map[string]string {
 
 	err := json.Unmarshal(jsonStr, &annotations)
 	if err != nil {
-		fmt.Errorf(err.Error(), "Invalid value for key PROCTOR_JOB_POD_ANNOTATIONS")
+		_ = fmt.Errorf(err.Error(), "Invalid value for key PROCTOR_JOB_POD_ANNOTATIONS")
 	}
 
 	return annotations

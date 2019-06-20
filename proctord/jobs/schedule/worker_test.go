@@ -17,7 +17,7 @@ import (
 	"proctor/proctord/mail"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 )
 
 type WorkerTestSuite struct {
@@ -76,7 +76,7 @@ func (suite *WorkerTestSuite) TestCronEnablingForScheduledJobs() {
 	jobExecutionID := "job-execution-id"
 	suite.mockExecutioner.On("Execute", mock.Anything, enabledJob, jobArgs).Return(jobExecutionID, nil)
 
-	jobExecutionStatus := utility.JobSucceeded
+	jobExecutionStatus := constant.JobSucceeded
 	suite.mockAuditor.On("JobsExecution", mock.Anything).Return()
 	suite.mockAuditor.On("JobsExecutionStatus", jobExecutionID).Return(jobExecutionStatus, nil)
 
@@ -144,7 +144,7 @@ func (suite *WorkerTestSuite) TestCronForDisablingEnabledScheduledJobs() {
 	suite.mockExecutioner.On("Execute", mock.Anything, jobName, jobArgs).Return(jobExecutionID, nil)
 
 	suite.mockAuditor.On("JobsExecution", mock.Anything).Return()
-	jobExecutionStatus := utility.JobSucceeded
+	jobExecutionStatus := constant.JobSucceeded
 	suite.mockAuditor.On("JobsExecutionStatus", jobExecutionID).Return(jobExecutionStatus, nil)
 
 	expectedRecipients := strings.Split(notificationEmails, ",")

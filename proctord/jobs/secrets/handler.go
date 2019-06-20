@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"proctor/proctord/logger"
-	utility "proctor/shared/constant"
+	"proctor/shared/constant"
 )
 
 type handler struct {
@@ -32,7 +32,7 @@ func (handler *handler) HandleSubmission() http.HandlerFunc {
 			logger.Error("Error parsing request body", err.Error())
 
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(utility.ClientError))
+			_, _ = w.Write([]byte(constant.ClientError))
 			return
 		}
 
@@ -42,7 +42,7 @@ func (handler *handler) HandleSubmission() http.HandlerFunc {
 			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(utility.ServerError))
+			_, _ = w.Write([]byte(constant.ServerError))
 			return
 		}
 

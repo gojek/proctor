@@ -99,7 +99,7 @@ func (s *RedisClientTestSuite) TestMGET() {
 }
 
 func (s *RedisClientTestSuite) TearDownSuite() {
-	s.testRedisConn.Close()
+	_ = s.testRedisConn.Close()
 }
 
 func TestRedisClientTestSuite(t *testing.T) {
