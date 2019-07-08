@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/getsentry/raven-go"
 	"net/http"
-	 "proctor/internal/app/proctord/logger"
+	 "proctor/internal/app/service/infra/logger"
 
 	"proctor/internal/pkg/constant"
 )

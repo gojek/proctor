@@ -5,9 +5,9 @@ import (
 	"github.com/getsentry/raven-go"
 	"io"
 	"net/http"
-	"proctor/internal/app/proctord/config"
 	"proctor/internal/app/proctord/kubernetes"
-	_logger "proctor/internal/app/proctord/logger"
+	"proctor/internal/app/service/infra/config"
+	_logger "proctor/internal/app/service/infra/logger"
 	"strings"
 
 	"proctor/internal/pkg/constant"

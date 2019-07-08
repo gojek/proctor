@@ -8,9 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"proctor/internal/app/proctord/audit"
-	"proctor/internal/app/proctord/logger"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/pkg/constant"
 	"time"
 )

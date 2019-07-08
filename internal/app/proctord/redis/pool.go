@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"proctor/internal/app/proctord/config"
+	"proctor/internal/app/service/infra/config"
 	"time"
 
 	"github.com/garyburd/redigo/redis"

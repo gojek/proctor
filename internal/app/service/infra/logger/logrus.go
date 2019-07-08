@@ -2,7 +2,7 @@ package logger
 
 import (
 	"os"
-	 "proctor/internal/app/proctord/config"
+	"proctor/internal/app/service/infra/config"
 
 	log "github.com/sirupsen/logrus"
 )

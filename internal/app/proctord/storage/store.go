@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	uuid "github.com/satori/go.uuid"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/db/postgresql"
 	"time"
 )
 
@@ -20,10 +21,10 @@ type Store interface {
 }
 
 type store struct {
-	postgresClient postgres.Client
+	postgresClient postgresql.Client
 }
 
-func New(postgresClient postgres.Client) Store {
+func New(postgresClient postgresql.Client) Store {
 	return &store{
 		postgresClient: postgresClient,
 	}

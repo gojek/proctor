@@ -1,9 +1,9 @@
 package server
 
 import (
-	 "proctor/internal/app/proctord/config"
-	 "proctor/internal/app/proctord/instrumentation"
-	 "proctor/internal/app/proctord/logger"
+	"proctor/internal/app/proctord/instrumentation"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 	"time"
 
 	"github.com/tylerb/graceful"

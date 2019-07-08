@@ -3,11 +3,11 @@ package main
 import (
 	"github.com/getsentry/raven-go"
 	"os"
-	"proctor/internal/app/proctord/config"
-	"proctor/internal/app/proctord/logger"
 	"proctor/internal/app/proctord/scheduler"
 	"proctor/internal/app/proctord/server"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 
 	"github.com/urfave/cli"
 )

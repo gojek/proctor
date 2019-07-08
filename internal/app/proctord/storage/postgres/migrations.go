@@ -2,8 +2,8 @@ package postgres
 
 import (
 	"fmt"
-	 "proctor/internal/app/proctord/config"
-	 "proctor/internal/app/proctord/logger"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 
 	"github.com/mattes/migrate"
 	//postgres driver

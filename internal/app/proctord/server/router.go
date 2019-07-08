@@ -4,32 +4,32 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	 "proctor/internal/app/proctord/audit"
-	 "proctor/internal/app/proctord/config"
-	 "proctor/internal/app/proctord/docs"
+	"proctor/internal/app/proctord/audit"
+	"proctor/internal/app/proctord/docs"
 	httpClient "proctor/internal/app/proctord/http"
-	 "proctor/internal/app/proctord/instrumentation"
-	 "proctor/internal/app/proctord/jobs/execution"
-	 "proctor/internal/app/proctord/jobs/logs"
-	 "proctor/internal/app/proctord/jobs/metadata"
-	 "proctor/internal/app/proctord/jobs/schedule"
-	 "proctor/internal/app/proctord/jobs/secrets"
-	 "proctor/internal/app/proctord/kubernetes"
-	 "proctor/internal/app/proctord/middleware"
-	 "proctor/internal/app/proctord/redis"
-	 "proctor/internal/app/proctord/storage"
-	 "proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/proctord/instrumentation"
+	"proctor/internal/app/proctord/jobs/execution"
+	"proctor/internal/app/proctord/jobs/logs"
+	"proctor/internal/app/proctord/jobs/metadata"
+	"proctor/internal/app/proctord/jobs/schedule"
+	"proctor/internal/app/proctord/jobs/secrets"
+	"proctor/internal/app/proctord/kubernetes"
+	"proctor/internal/app/proctord/middleware"
+	"proctor/internal/app/proctord/redis"
+	"proctor/internal/app/proctord/storage"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/db/postgresql"
 
 	"github.com/gorilla/mux"
 )
 
-var postgresClient postgres.Client
+var postgresClient postgresql.Client
 
 func NewRouter() (*mux.Router, error) {
 	router := mux.NewRouter()
 
 	redisClient := redis.NewClient()
-	postgresClient = postgres.NewClient()
+	postgresClient = postgresql.NewClient()
 
 	store := storage.New(postgresClient)
 	metadataStore := metadata.NewStore(redisClient)

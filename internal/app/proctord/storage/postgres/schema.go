@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	 "proctor/internal/app/proctord/logger"
+	 "proctor/internal/app/service/infra/logger"
 	"time"
 )
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"proctor/internal/app/proctord/audit"
-	"proctor/internal/app/proctord/config"
 	"proctor/internal/app/proctord/http"
 	"proctor/internal/app/proctord/jobs/execution"
 	"proctor/internal/app/proctord/jobs/metadata"
@@ -14,14 +13,15 @@ import (
 	"proctor/internal/app/proctord/mail"
 	"proctor/internal/app/proctord/redis"
 	"proctor/internal/app/proctord/storage"
-	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/db/postgresql"
 	"time"
 )
 
 func Start() error {
 	fmt.Println("started scheduler")
 
-	postgresClient := postgres.NewClient()
+	postgresClient := postgresql.NewClient()
 	redisClient := redis.NewClient()
 
 	store := storage.New(postgresClient)

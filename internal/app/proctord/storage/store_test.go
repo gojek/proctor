@@ -8,12 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/pkg/constant"
 	"testing"
 )
 
 func TestJobsExecutionAuditLog(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
+	mockPostgresClient := &postgresql.ClientMock{}
 	testStore := New(mockPostgresClient)
 
 	jobExecutionAuditLog := &postgres.JobsExecutionAuditLog{
@@ -38,7 +39,7 @@ func TestJobsExecutionAuditLog(t *testing.T) {
 }
 
 func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
+	mockPostgresClient := &postgresql.ClientMock{}
 	testStore := New(mockPostgresClient)
 
 	jobExecutionAuditLog := &postgres.JobsExecutionAuditLog{
@@ -63,7 +64,7 @@ func TestJobsExecutionAuditLogPostgresClientFailure(t *testing.T) {
 }
 
 func TestUpdateJobsExecutionAuditLog(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
+	mockPostgresClient := &postgresql.ClientMock{}
 	testStore := New(mockPostgresClient)
 
 	executionID := "any-submission"
@@ -88,7 +89,7 @@ func TestUpdateJobsExecutionAuditLog(t *testing.T) {
 }
 
 func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
+	mockPostgresClient := &postgresql.ClientMock{}
 	testStore := New(mockPostgresClient)
 	jobName := "any-job"
 
@@ -116,7 +117,7 @@ func TestGetJobsStatusWhenJobIsPresent(t *testing.T) {
 }
 
 func TestGetJobsStatusWhenJobIsNotPresent(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
+	mockPostgresClient := &postgresql.ClientMock{}
 	testStore := New(mockPostgresClient)
 	jobName := "any-job"
 
@@ -138,7 +139,7 @@ func TestGetJobsStatusWhenJobIsNotPresent(t *testing.T) {
 }
 
 func TestGetJobsStatusWhenError(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
+	mockPostgresClient := &postgresql.ClientMock{}
 	testStore := New(mockPostgresClient)
 	jobName := "any-job"
 
@@ -156,7 +157,7 @@ func TestGetJobsStatusWhenError(t *testing.T) {
 }
 
 func TestJobsScheduleInsertionSuccessfull(t *testing.T) {
-	postgresClient := postgres.NewClient()
+	postgresClient := postgresql.NewClient()
 	testStore := New(postgresClient)
 
 	scheduledJobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", "group1", map[string]string{})
@@ -169,7 +170,7 @@ func TestJobsScheduleInsertionSuccessfull(t *testing.T) {
 }
 
 func TestJobsScheduleInsertionFailed(t *testing.T) {
-	mockPostgresClient := &postgres.ClientMock{}
+	mockPostgresClient := &postgresql.ClientMock{}
 	testStore := New(mockPostgresClient)
 
 	jobName := "job-name"
@@ -194,7 +195,7 @@ func TestJobsScheduleInsertionFailed(t *testing.T) {
 }
 
 func TestGetScheduledJobByID(t *testing.T) {
-	postgresClient := postgres.NewClient()
+	postgresClient := postgresql.NewClient()
 	testStore := New(postgresClient)
 
 	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", "group1", map[string]string{})
@@ -211,7 +212,7 @@ func TestGetScheduledJobByID(t *testing.T) {
 }
 
 func TestGetScheduledJobByIDReturnErrorIfIDnotFound(t *testing.T) {
-	postgresClient := postgres.NewClient()
+	postgresClient := postgresql.NewClient()
 	testStore := New(postgresClient)
 
 	resultJob, err := testStore.GetScheduledJob("86A7963B-3621-492D-8D6C-33076242256B")
@@ -220,7 +221,7 @@ func TestGetScheduledJobByIDReturnErrorIfIDnotFound(t *testing.T) {
 }
 
 func TestRemoveScheduledJobByID(t *testing.T) {
-	postgresClient := postgres.NewClient()
+	postgresClient := postgresql.NewClient()
 	testStore := New(postgresClient)
 
 	jobID, err := testStore.InsertScheduledJob("job-name", "tag-one", "* * 3 * *", "foo@bar.com", "ms@proctor.com", "group1", map[string]string{})
@@ -235,7 +236,7 @@ func TestRemoveScheduledJobByID(t *testing.T) {
 }
 
 func TestRemoveScheduledJobByIDReturnErrorIfIDnotFound(t *testing.T) {
-	postgresClient := postgres.NewClient()
+	postgresClient := postgresql.NewClient()
 	testStore := New(postgresClient)
 
 	removedJobsCount, err := testStore.RemoveScheduledJob("86A7963B-3621-492D-8D6C-33076242256B")
@@ -244,7 +245,7 @@ func TestRemoveScheduledJobByIDReturnErrorIfIDnotFound(t *testing.T) {
 }
 
 func TestRemoveScheduledJobByIDReturnErrorIfIDIsInvalid(t *testing.T) {
-	postgresClient := postgres.NewClient()
+	postgresClient := postgresql.NewClient()
 	testStore := New(postgresClient)
 
 	removedJobsCount, err := testStore.RemoveScheduledJob("86A7963B")

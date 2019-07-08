@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/textproto"
-	"proctor/internal/app/proctord/config"
+	"proctor/internal/app/service/infra/config"
 	"strings"
 	"testing"
 

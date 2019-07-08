@@ -2,7 +2,7 @@ package mail
 
 import (
 	"net/smtp"
-	 "proctor/internal/app/proctord/config"
+	 "proctor/internal/app/service/infra/config"
 
 	"proctor/internal/pkg/utility"
 )

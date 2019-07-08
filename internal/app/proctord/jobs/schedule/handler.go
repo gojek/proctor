@@ -7,8 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	jobMetadata "proctor/internal/app/proctord/jobs/metadata"
-	"proctor/internal/app/proctord/logger"
 	"proctor/internal/app/proctord/storage"
+	"proctor/internal/app/service/infra/logger"
 	"strings"
 
 	"github.com/badoux/checkmail"

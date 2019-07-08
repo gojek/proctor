@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"net/http"
-	"proctor/internal/app/proctord/config"
-	"proctor/internal/app/proctord/logger"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/pkg/constant"
 )
 

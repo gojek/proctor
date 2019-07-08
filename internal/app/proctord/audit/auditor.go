@@ -3,9 +3,9 @@ package audit
 import (
 	"github.com/getsentry/raven-go"
 	"proctor/internal/app/proctord/kubernetes"
-	"proctor/internal/app/proctord/logger"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/pkg/constant"
 )
 

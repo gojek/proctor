@@ -4,8 +4,8 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
-	 "proctor/internal/app/proctord/config"
-	 "proctor/internal/app/proctord/logger"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 )
 
 func KubeConfig() string {

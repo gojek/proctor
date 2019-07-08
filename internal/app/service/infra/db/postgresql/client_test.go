@@ -1,8 +1,9 @@
-package postgres
+package postgresql
 
 import (
 	"fmt"
-	config2 "proctor/internal/app/proctord/config"
+	"proctor/internal/app/proctord/storage/postgres"
+	config2 "proctor/internal/app/service/infra/config"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -18,10 +19,10 @@ func TestNamedExec(t *testing.T) {
 	postgresClient := &client{db: db}
 	defer postgresClient.db.Close()
 
-	jobsExecutionAuditLog := &JobsExecutionAuditLog{
+	jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
 		JobName:             "test-job-name",
 		ImageName:           "test-image-name",
-		ExecutionID:         StringToSQLString("test-submission-name"),
+		ExecutionID:         postgres.StringToSQLString("test-submission-name"),
 		JobArgs:             "test-job-args",
 		JobSubmissionStatus: "test-job-status",
 		JobExecutionStatus:  "test-job-execution-status",
@@ -30,7 +31,7 @@ func TestNamedExec(t *testing.T) {
 	_, err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
 	assert.NoError(t, err)
 
-	var persistedJobsExecutionAuditLog JobsExecutionAuditLog
+	var persistedJobsExecutionAuditLog postgres.JobsExecutionAuditLog
 	err = postgresClient.db.Get(&persistedJobsExecutionAuditLog, `SELECT job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status FROM jobs_execution_audit_log WHERE job_name='test-job-name'`)
 	assert.NoError(t, err)
 
@@ -55,10 +56,10 @@ func TestSelect(t *testing.T) {
 	defer postgresClient.db.Close()
 	jobName := "test-job-name"
 
-	jobsExecutionAuditLog := &JobsExecutionAuditLog{
+	jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
 		JobName:             jobName,
 		ImageName:           "test-image-name",
-		ExecutionID:         StringToSQLString("test-submission-name"),
+		ExecutionID:         postgres.StringToSQLString("test-submission-name"),
 		JobArgs:             "test-job-args",
 		JobSubmissionStatus: "test-job-status",
 		JobExecutionStatus:  "test-job-execution-status",
@@ -67,7 +68,7 @@ func TestSelect(t *testing.T) {
 	_, err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
 	assert.NoError(t, err)
 
-	jobsExecutionAuditLogResult := []JobsExecutionAuditLog{}
+	jobsExecutionAuditLogResult := []postgres.JobsExecutionAuditLog{}
 	err = postgresClient.db.Select(&jobsExecutionAuditLogResult, "SELECT job_execution_status from jobs_execution_audit_log where job_name = $1", jobName)
 	assert.NoError(t, err)
 
@@ -87,7 +88,7 @@ func TestSelectForNoRows(t *testing.T) {
 	defer postgresClient.db.Close()
 	jobName := "test-job-name"
 
-	jobsExecutionAuditLogResult := []JobsExecutionAuditLog{}
+	jobsExecutionAuditLogResult := []postgres.JobsExecutionAuditLog{}
 	err = postgresClient.db.Select(&jobsExecutionAuditLogResult, "SELECT job_execution_status from jobs_execution_audit_log where job_name = $1", jobName)
 	assert.NoError(t, err)
 

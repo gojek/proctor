@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"net/http"
 	"os"
-	 "proctor/internal/app/proctord/config"
+	 "proctor/internal/app/service/infra/config"
 	"testing"
 	"time"
 

@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"net/http"
-	"proctor/internal/app/proctord/config"
+	"proctor/internal/app/service/infra/config"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

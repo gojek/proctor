@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	 "proctor/internal/app/proctord/config"
-	 "proctor/internal/app/proctord/logger"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
