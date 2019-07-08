@@ -1,10 +1,10 @@
 # Proctor
 
-<p align="center"><img src="doc/proctor-logo.png" width="360"></p>
+<p align="center"><img src="assets/img/proctor-logo.png" width="360"></p>
 <p align="center">
-  <a href="https://travis-ci.org/gojektech/proctor"><img src="https://travis-ci.org/gojektech/proctor.svg?branch=master" alt="Build Status"></img></a>
-  <a href="https://goreportcard.com/report/github.com/gojektech/proctor"><img src="https://goreportcard.com/badge/github.com/gojektech/proctor"></img></a>
-  <a href="https://golangci.com"><img src="https://golangci.com/badges/github.com/gojektech/proctor.svg"></img></a>
+  <a href="https://travis-ci.org/gojek/proctor"><img src="https://travis-ci.org/gojek/proctor.svg?branch=master" alt="Build Status"></img></a>
+  <a href="https://goreportcard.com/report/github.com/gojek/proctor"><img src="https://goreportcard.com/badge/github.com/gojek/proctor"></img></a>
+  <a href="https://golangci.com"><img src="https://golangci.com/badges/github.com/gojek/proctor.svg"></img></a>
 </p>
 
 ## Description

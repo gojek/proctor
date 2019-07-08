@@ -27,7 +27,7 @@ test:
 
 .PHONY: server
 server:
-	go build -o $(BIN_DIR)/server ./proctord/main.go
+	go build -o $(BIN_DIR)/server ./cmd/proctord/main.go
 
 .PHONY: start-server
 start-server:
@@ -35,11 +35,11 @@ start-server:
 
 .PHONY: cli
 cli:
-	go build -o $(BIN_DIR)/cli ./cli/main.go
+	go build -o $(BIN_DIR)/cli ./cmd/cli/main.go
 
 generate:
 	go get -u github.com/go-bindata/go-bindata/...
-	$(GOPATH)/bin/go-bindata -pkg config -o cli/config/data.go assets/config_template.yaml
+	$(GOPATH)/bin/go-bindata -pkg config -o internal/app/cli/config/data.go internal/app/cli/config_template.yaml
 
 db.setup: db.create db.migrate
 
