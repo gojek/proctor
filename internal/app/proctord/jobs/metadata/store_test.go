@@ -3,7 +3,7 @@ package metadata
 import (
 	"encoding/json"
 	"errors"
-	"proctor/internal/app/proctord/redis"
+	"proctor/internal/app/service/infra/db/redis"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

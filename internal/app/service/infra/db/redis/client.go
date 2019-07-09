@@ -2,6 +2,8 @@ package redis
 
 import (
 	"github.com/garyburd/redigo/redis"
+	"proctor/internal/app/service/infra/config"
+	"time"
 )
 
 type Client interface {
@@ -22,6 +24,29 @@ func NewClient() Client {
 	}
 
 	return &redisClient{connPool}
+}
+
+func newPool() (*redis.Pool, error) {
+	pool := &redis.Pool{
+		MaxIdle:     config.RedisMaxActiveConnections() / 2,
+		MaxActive:   config.RedisMaxActiveConnections(),
+		IdleTimeout: 5 * time.Second,
+		Dial:        func() (redis.Conn, error) { return redis.Dial("tcp", config.RedisAddress()) },
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			if time.Since(t) < time.Minute {
+				return nil
+			}
+			_, err := c.Do("PING")
+			return err
+		},
+		Wait: true,
+	}
+
+	conn := pool.Get()
+	defer conn.Close()
+
+	_, err := conn.Do("PING")
+	return pool, err
 }
 
 func (c *redisClient) GET(key string) ([]byte, error) {

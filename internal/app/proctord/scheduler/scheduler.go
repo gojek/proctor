@@ -10,11 +10,11 @@ import (
 	"proctor/internal/app/proctord/jobs/schedule"
 	"proctor/internal/app/proctord/jobs/secrets"
 	"proctor/internal/app/proctord/kubernetes"
-	"proctor/internal/app/proctord/mail"
-	"proctor/internal/app/proctord/redis"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
+	"proctor/internal/app/service/infra/db/redis"
+	"proctor/internal/app/service/infra/mail"
 	"time"
 )
 

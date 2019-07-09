@@ -2,7 +2,7 @@ package model
 
 import (
 	sqlxTypes "github.com/jmoiron/sqlx/types"
-	dbTypes "proctor/internal/app/service/infra/db/types"
+	dbTypes "proctor/internal/app/service/infra/db/type"
 	"time"
 )
 

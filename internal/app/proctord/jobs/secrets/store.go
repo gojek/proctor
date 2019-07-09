@@ -2,7 +2,7 @@ package secrets
 
 import (
 	"encoding/json"
-	 "proctor/internal/app/proctord/redis"
+	 "proctor/internal/app/service/infra/db/redis"
 )
 
 const JobsSecretsKeySuffix = "-secret"

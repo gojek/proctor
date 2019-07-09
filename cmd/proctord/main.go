@@ -5,8 +5,8 @@ import (
 	"os"
 	"proctor/internal/app/proctord/scheduler"
 	"proctor/internal/app/proctord/server"
-	"proctor/internal/app/proctord/storage/postgres"
 	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/db/migration"
 	"proctor/internal/app/service/infra/logger"
 
 	"github.com/urfave/cli"
@@ -25,7 +25,7 @@ func main() {
 			Name:        "migrate",
 			Description: "Run database migrations for proctord",
 			Action: func(c *cli.Context) {
-				err := postgres.Up()
+				err := migration.Up()
 				if err != nil {
 					panic(err.Error())
 				}
@@ -36,7 +36,7 @@ func main() {
 			Name:        "rollback",
 			Description: "Rollback database migrations by one step for proctord",
 			Action: func(c *cli.Context) {
-				err := postgres.DownOneStep()
+				err := migration.DownOneStep()
 				if err != nil {
 					panic(err.Error())
 				}

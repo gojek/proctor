@@ -6,10 +6,10 @@ import (
 	"os"
 	"proctor/internal/app/proctord/audit"
 	"proctor/internal/app/proctord/jobs/execution"
-	"proctor/internal/app/proctord/mail"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/proctord/storage/postgres"
 	"proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/infra/mail"
 	"strings"
 	"time"
 

@@ -2,7 +2,7 @@ package metadata
 
 import (
 	"encoding/json"
-	"proctor/internal/app/proctord/redis"
+	"proctor/internal/app/service/infra/db/redis"
 	modelMetadata "proctor/internal/pkg/model/metadata"
 )
 
