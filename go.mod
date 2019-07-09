@@ -6,6 +6,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/briandowns/spinner v0.0.0-20190319032542-ac46072a5a91
+	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/certifi/gocertifi v0.0.0-20190506164543-d2eda7129713 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1 // indirect
@@ -37,6 +38,7 @@ require (
 	github.com/robfig/cron v1.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.4.2
+	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.3.0

@@ -3,7 +3,7 @@ package postgresql
 import (
 	"fmt"
 	"proctor/internal/app/proctord/storage/postgres"
-	config2 "proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/config"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestNamedExec(t *testing.T) {
-	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config2.PostgresDatabase(), config2.PostgresUser(), config2.PostgresPassword(), config2.PostgresHost())
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
 
 	db, err := sqlx.Connect("postgres", dataSourceName)
 	assert.NoError(t, err)
@@ -47,7 +47,7 @@ func TestNamedExec(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
-	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config2.PostgresDatabase(), config2.PostgresUser(), config2.PostgresPassword(), config2.PostgresHost())
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
 
 	db, err := sqlx.Connect("postgres", dataSourceName)
 	assert.NoError(t, err)
@@ -79,7 +79,7 @@ func TestSelect(t *testing.T) {
 }
 
 func TestSelectForNoRows(t *testing.T) {
-	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config2.PostgresDatabase(), config2.PostgresUser(), config2.PostgresPassword(), config2.PostgresHost())
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
 
 	db, err := sqlx.Connect("postgres", dataSourceName)
 	assert.NoError(t, err)

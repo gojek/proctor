@@ -7,7 +7,7 @@ import (
 )
 
 type ExecutionContext struct {
-	ExecutionID string                `db:"execution_id"`
+	ExecutionID uint64                `db:"id"`
 	JobName     string                `db:"job_name"`
 	UserEmail   string                `db:"user_email"`
 	ImageTag    string                `db:"image_tag"`
