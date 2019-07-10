@@ -225,10 +225,10 @@ func (client *client) waitForReadyJob(jobName string) error {
 		}
 
 		select {
-		case <-resultChan:
-			continue
 		case <-timeoutChan:
 			return fmt.Errorf("timeout when waiting pod to be ready")
+		case <-resultChan:
+			continue
 		}
 	}
 
@@ -262,10 +262,10 @@ func (client *client) waitForReadyPod(jobName string) (*v1.Pod, error) {
 			return pod, nil
 		}
 		select {
-		case <-resultChan:
-			continue
 		case <-timeoutChan:
 			return nil, fmt.Errorf("timeout when waiting pod to be ready")
+		case <-resultChan:
+			continue
 		}
 	}
 
