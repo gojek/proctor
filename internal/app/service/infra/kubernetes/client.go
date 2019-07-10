@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,6 +19,7 @@ import (
 	"proctor/internal/pkg/constant"
 	//Package needed for kubernetes cluster in google cloud
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	kubeRestClient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -40,9 +40,46 @@ type client struct {
 }
 
 type KubernetesClient interface {
+	ExecuteJobWithCommand(string, map[string]string, []string) (string, error)
 	ExecuteJob(string, map[string]string) (string, error)
 	StreamJobLogs(string) (io.ReadCloser, error)
 	JobExecutionStatus(string) (string, error)
+}
+
+func NewClientSet() (*kubernetes.Clientset, error) {
+	var kubeConfig *kubeRestClient.Config
+	if config.KubeConfig() == "out-of-cluster" {
+		logger.Info("service is running outside kube cluster")
+		home := os.Getenv("HOME")
+
+		kubeConfigPath := filepath.Join(home, ".kube", "config")
+
+		configOverrides := &clientcmd.ConfigOverrides{}
+		if config.KubeContext() != "default" {
+			configOverrides.CurrentContext = config.KubeContext()
+		}
+
+		var err error
+		kubeConfig, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+			&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeConfigPath},
+			configOverrides).ClientConfig()
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+		var err error
+		kubeConfig, err = kubeRestClient.InClusterConfig()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	clientSet, err := kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+	return clientSet, nil
 }
 
 func NewKubernetesClient(httpClient *http.Client) KubernetesClient {
@@ -50,12 +87,8 @@ func NewKubernetesClient(httpClient *http.Client) KubernetesClient {
 		httpClient: httpClient,
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", KubeConfig())
-	if err != nil {
-		panic(err.Error())
-	}
-
-	newClient.clientSet, err = kubernetes.NewForConfig(config)
+	var err error
+	newClient.clientSet, err = NewClientSet()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -90,6 +123,10 @@ func jobLabelSelector(jobName string) string {
 }
 
 func (client *client) ExecuteJob(imageName string, envMap map[string]string) (string, error) {
+	return client.ExecuteJobWithCommand(imageName, envMap, []string{})
+}
+
+func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]string, command []string) (string, error) {
 	uniqueJobName := uniqueName()
 	label := jobLabel(uniqueJobName)
 
@@ -100,6 +137,10 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 		Name:  uniqueJobName,
 		Image: imageName,
 		Env:   getEnvVars(envMap),
+	}
+
+	if len(command) != 0 {
+		container.Command = command
 	}
 
 	podSpec := v1.PodSpec{
@@ -157,7 +198,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 		if len(listOfPods.Items) > 0 {
 			podJob := listOfPods.Items[0]
 			if podJob.Status.Phase == v1.PodRunning || podJob.Status.Phase == v1.PodSucceeded || podJob.Status.Phase == v1.PodFailed {
-				return client.getLogsStreamReaderFor(podJob.ObjectMeta.Name)
+				return client.getPodLogs(podJob)
 			}
 			watchPod, err := kubernetesPods.Watch(listOptions)
 			if err != nil {
@@ -210,12 +251,73 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 	}
 }
 
-func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) {
+func (client *client) WaitForReadyJob(jobName string) error {
+	batchV1 := client.clientSet.BatchV1()
+	jobs := batchV1.Jobs(namespace)
+	listOptions := meta_v1.ListOptions{
+		TypeMeta:      typeMeta,
+		LabelSelector: jobLabelSelector(jobName),
+	}
+
+	watchJob, err := jobs.Watch(listOptions)
+	if err != nil {
+		return err
+	}
+
+	resultChan := watchJob.ResultChan()
+	defer watchJob.Stop()
+
+	select {
+	case event := <-resultChan:
+		if event.Type == watch.Error {
+			return fmt.Errorf("error when waiting for job with list option %v", listOptions)
+		}
+	case <-time.After(config.KubePodsListWaitTime() * time.Second):
+		return fmt.Errorf("timeout when waiting for ready job")
+	}
+
+	return nil
+}
+
+func (client *client) WaitForReadyPod(jobName string) (*v1.Pod, error) {
+	coreV1 := client.clientSet.CoreV1()
+	kubernetesPods := coreV1.Pods(namespace)
+	listOptions := meta_v1.ListOptions{
+		TypeMeta:      typeMeta,
+		LabelSelector: jobLabelSelector(jobName),
+	}
+
+	watchJob, err := kubernetesPods.Watch(listOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	resultChan := watchJob.ResultChan()
+	defer watchJob.Stop()
+	var pod *v1.Pod
+
+	select {
+	case event := <-resultChan:
+		if event.Type == watch.Error {
+			return nil, fmt.Errorf("error when waiting for job with list option %v", listOptions)
+		}
+		pod = event.Object.(*v1.Pod)
+		if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
+			return pod, nil
+		}
+	case <-time.After(config.KubePodsListWaitTime() * time.Second):
+		return nil, fmt.Errorf("timeout when waiting for ready job")
+	}
+
+	return pod, nil
+}
+
+func (client *client) JobExecutionStatus(jobName string) (string, error) {
 	batchV1 := client.clientSet.BatchV1()
 	kubernetesJobs := batchV1.Jobs(namespace)
 	listOptions := meta_v1.ListOptions{
 		TypeMeta:      typeMeta,
-		LabelSelector: jobLabelSelector(jobExecutionID),
+		LabelSelector: jobLabelSelector(jobName),
 	}
 
 	watchJob, err := kubernetesJobs.Watch(listOptions)
@@ -244,32 +346,16 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 	return constant.NoDefinitiveJobExecutionStatusFound, nil
 }
 
-func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {
-	logger.Debug("reading pod logs for: ", podName)
+func (client *client) getPodLogs(pod v1.Pod) (io.ReadCloser, error) {
+	logger.Debug("reading pod logs for: ", pod.Name)
+	podLogOpts := v1.PodLogOptions{
+		Follow: true,
+	}
+	request := client.clientSet.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
+	response, err := request.Stream()
 
-	req, err := http.NewRequest("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+podName+"/log?follow=true", nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Basic "+config.KubeBasicAuthEncoded())
-	resp, err := client.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body, err
-}
-
-func KubeConfig() string {
-	if config.KubeConfig() == "out-of-cluster" {
-		logger.Info("service is running outside kube cluster")
-		home := os.Getenv("HOME")
-
-		kubeConfig := flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		flag.Parse()
-
-		return *kubeConfig
-	}
-	logger.Info("Assuming service is running inside kube cluster")
-	logger.Info("Kube config provided is:", config.KubeConfig())
-	return ""
+	return response, nil
 }

@@ -16,6 +16,11 @@ func (m *MockClient) ExecuteJob(jobName string, envMap map[string]string) (strin
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockClient) ExecuteJobWithCommand(jobName string, envMap map[string]string, command []string) (string, error) {
+	args := m.Called(jobName, envMap)
+	return args.String(0), args.Error(1)
+}
+
 func (m *MockClient) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 	args := m.Called(jobName)
 	return args.Get(0).(*utility.Buffer), args.Error(1)

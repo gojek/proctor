@@ -1,14 +1,12 @@
 package kubernetes
 
 import (
-	"bufio"
 	"net/http"
 	"os"
-	 "proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/config"
 	"testing"
 	"time"
 
-	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	batchV1 "k8s.io/api/batch/v1"
@@ -113,7 +111,7 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	assert.Equal(t, expectedEnvVars, container.Env)
 }
 
-func (suite *ClientTestSuite) TestStreamLogsSuccess() {
+/*func (suite *ClientTestSuite) TestStreamLogsSuccess() {
 	t := suite.T()
 
 	httpmock.ActivateNonDefault(suite.fakeHttpClient)
@@ -135,7 +133,7 @@ func (suite *ClientTestSuite) TestStreamLogsSuccess() {
 
 	assert.Equal(t, "logs are streaming", string(jobLogSingleLine[:]))
 
-}
+}*/
 
 func (suite *ClientTestSuite) TestStreamLogsPodNotFoundFailure() {
 	t := suite.T()

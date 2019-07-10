@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"time"
 )
 
 func init() {
@@ -13,6 +14,11 @@ func init() {
 
 func KubeConfig() string {
 	return viper.GetString("KUBE_CONFIG")
+}
+
+func KubeContext() string {
+	viper.SetDefault("KUBE_CONTEXT","default")
+	return viper.GetString("KUBE_CONTEXT")
 }
 
 func LogLevel() string {
@@ -55,8 +61,8 @@ func LogsStreamWriteBufferSize() int {
 	return viper.GetInt("LOGS_STREAM_WRITE_BUFFER_SIZE")
 }
 
-func KubePodsListWaitTime() int {
-	return viper.GetInt("KUBE_POD_LIST_WAIT_TIME")
+func KubePodsListWaitTime() time.Duration {
+	return time.Duration(viper.GetInt("KUBE_POD_LIST_WAIT_TIME"))
 }
 
 func KubeJobActiveDeadlineSeconds() *int64 {

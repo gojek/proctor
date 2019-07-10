@@ -17,8 +17,8 @@ import (
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/db/redis"
-	httpClient "proctor/internal/app/service/infra/http"
 	"proctor/internal/app/service/infra/kubernetes"
+	httpClient "proctor/internal/app/service/infra/kubernetes/http"
 
 	"github.com/gorilla/mux"
 )

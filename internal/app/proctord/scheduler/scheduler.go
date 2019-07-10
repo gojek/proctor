@@ -12,8 +12,8 @@ import (
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/db/redis"
-	"proctor/internal/app/service/infra/http"
 	"proctor/internal/app/service/infra/kubernetes"
+	"proctor/internal/app/service/infra/kubernetes/http"
 	"proctor/internal/app/service/infra/mail"
 	"time"
 )
