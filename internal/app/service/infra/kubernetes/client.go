@@ -11,9 +11,9 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-	batch_v1 "k8s.io/api/batch/v1"
+	batch "k8s.io/api/batch/v1"
 	"k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"proctor/internal/pkg/constant"
@@ -23,11 +23,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var typeMeta meta_v1.TypeMeta
+var typeMeta meta.TypeMeta
 var namespace string
 
 func init() {
-	typeMeta = meta_v1.TypeMeta{
+	typeMeta = meta.TypeMeta{
 		Kind:       "Job",
 		APIVersion: "batch/v1",
 	}
@@ -148,7 +148,7 @@ func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]
 		RestartPolicy: v1.RestartPolicyNever,
 	}
 
-	objectMeta := meta_v1.ObjectMeta{
+	objectMeta := meta.ObjectMeta{
 		Name:        uniqueJobName,
 		Labels:      label,
 		Annotations: config.JobPodAnnotations(),
@@ -159,13 +159,13 @@ func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]
 		Spec:       podSpec,
 	}
 
-	jobSpec := batch_v1.JobSpec{
+	jobSpec := batch.JobSpec{
 		Template:              template,
 		ActiveDeadlineSeconds: config.KubeJobActiveDeadlineSeconds(),
 		BackoffLimit:          config.KubeJobRetries(),
 	}
 
-	jobToRun := batch_v1.Job{
+	jobToRun := batch.Job{
 		TypeMeta:   typeMeta,
 		ObjectMeta: objectMeta,
 		Spec:       jobSpec,
@@ -179,82 +179,29 @@ func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]
 }
 
 func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
-	listOptions := meta_v1.ListOptions{
-		TypeMeta:      typeMeta,
-		LabelSelector: jobLabelSelector(jobName),
+	err := client.waitForReadyJob(jobName)
+	if err != nil {
+		return nil, err
 	}
 
-	coreV1 := client.clientSet.CoreV1()
-	kubernetesPods := coreV1.Pods(namespace)
-
-	logger.Debug("list of pods")
-
-	for {
-		listOfPods, err := kubernetesPods.List(listOptions)
-		if err != nil {
-			return nil, fmt.Errorf("Error fetching kubernetes Pods list %v", err)
-		}
-
-		if len(listOfPods.Items) > 0 {
-			podJob := listOfPods.Items[0]
-			if podJob.Status.Phase == v1.PodRunning || podJob.Status.Phase == v1.PodSucceeded || podJob.Status.Phase == v1.PodFailed {
-				return client.getPodLogs(podJob)
-			}
-			watchPod, err := kubernetesPods.Watch(listOptions)
-			if err != nil {
-				return nil, fmt.Errorf("Error watching kubernetes Pods %v", err)
-			}
-
-			resultChan := watchPod.ResultChan()
-			defer watchPod.Stop()
-
-			waitingForKubePods := make(chan bool)
-			go func() {
-				defer close(waitingForKubePods)
-				time.Sleep(time.Duration(config.KubePodsListWaitTime()) * time.Second)
-				waitingForKubePods <- true
-			}()
-
-			select {
-			case <-resultChan:
-				continue
-			case <-waitingForKubePods:
-				return nil, fmt.Errorf("Pod didn't reach active state after waiting for %d minutes", config.KubePodsListWaitTime())
-			}
-
-		} else {
-			batchV1 := client.clientSet.BatchV1()
-			kubernetesJobs := batchV1.Jobs(namespace)
-
-			watchJob, err := kubernetesJobs.Watch(listOptions)
-			if err != nil {
-				return nil, fmt.Errorf("Error watching kubernetes Jobs %v", err)
-			}
-
-			resultChan := watchJob.ResultChan()
-			defer watchJob.Stop()
-
-			waitingForKubeJobs := make(chan bool)
-			go func() {
-				defer close(waitingForKubeJobs)
-				time.Sleep(time.Duration(config.KubePodsListWaitTime()) * time.Second)
-				waitingForKubeJobs <- true
-			}()
-
-			select {
-			case <-resultChan:
-				continue
-			case <-waitingForKubeJobs:
-				return nil, fmt.Errorf("Couldn't find a pod for job's given list options %v after waiting for %d minutes", listOptions, config.KubePodsListWaitTime())
-			}
-		}
+	pod, err := client.waitForReadyPod(jobName)
+	if err != nil {
+		return nil, err
 	}
+
+	result, err := client.getPodLogs(pod)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
-func (client *client) WaitForReadyJob(jobName string) error {
+func (client *client) waitForReadyJob(jobName string) error {
 	batchV1 := client.clientSet.BatchV1()
 	jobs := batchV1.Jobs(namespace)
-	listOptions := meta_v1.ListOptions{
+	listOptions := meta.ListOptions{
 		TypeMeta:      typeMeta,
 		LabelSelector: jobLabelSelector(jobName),
 	}
@@ -264,25 +211,34 @@ func (client *client) WaitForReadyJob(jobName string) error {
 		return err
 	}
 
+	timeoutChan := time.After(config.KubePodsListWaitTime() * time.Second)
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 
-	select {
-	case event := <-resultChan:
+	for event := range resultChan {
 		if event.Type == watch.Error {
-			return fmt.Errorf("error when waiting for job with list option %v", listOptions)
+			return fmt.Errorf("watch error when waiting for job with list option %v", listOptions)
 		}
-	case <-time.After(config.KubePodsListWaitTime() * time.Second):
-		return fmt.Errorf("timeout when waiting for ready job")
+		job := event.Object.(*batch.Job)
+		if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
+			return nil
+		}
+
+		select {
+		case <-resultChan:
+			continue
+		case <-timeoutChan:
+			return fmt.Errorf("timeout when waiting pod to be ready")
+		}
 	}
 
-	return nil
+	return fmt.Errorf("job never reach the active status")
 }
 
-func (client *client) WaitForReadyPod(jobName string) (*v1.Pod, error) {
+func (client *client) waitForReadyPod(jobName string) (*v1.Pod, error) {
 	coreV1 := client.clientSet.CoreV1()
 	kubernetesPods := coreV1.Pods(namespace)
-	listOptions := meta_v1.ListOptions{
+	listOptions := meta.ListOptions{
 		TypeMeta:      typeMeta,
 		LabelSelector: jobLabelSelector(jobName),
 	}
@@ -292,30 +248,34 @@ func (client *client) WaitForReadyPod(jobName string) (*v1.Pod, error) {
 		return nil, err
 	}
 
+	timeoutChan := time.After(config.KubePodsListWaitTime() * time.Second)
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 	var pod *v1.Pod
 
-	select {
-	case event := <-resultChan:
+	for event := range resultChan {
 		if event.Type == watch.Error {
-			return nil, fmt.Errorf("error when waiting for job with list option %v", listOptions)
+			return nil, fmt.Errorf("watch error when waiting for pod with list option %v", listOptions)
 		}
 		pod = event.Object.(*v1.Pod)
 		if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
 			return pod, nil
 		}
-	case <-time.After(config.KubePodsListWaitTime() * time.Second):
-		return nil, fmt.Errorf("timeout when waiting for ready job")
+		select {
+		case <-resultChan:
+			continue
+		case <-timeoutChan:
+			return nil, fmt.Errorf("timeout when waiting pod to be ready")
+		}
 	}
 
-	return pod, nil
+	return nil, fmt.Errorf("pod never get the intended state")
 }
 
 func (client *client) JobExecutionStatus(jobName string) (string, error) {
 	batchV1 := client.clientSet.BatchV1()
 	kubernetesJobs := batchV1.Jobs(namespace)
-	listOptions := meta_v1.ListOptions{
+	listOptions := meta.ListOptions{
 		TypeMeta:      typeMeta,
 		LabelSelector: jobLabelSelector(jobName),
 	}
@@ -328,14 +288,14 @@ func (client *client) JobExecutionStatus(jobName string) (string, error) {
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 	var event watch.Event
-	var jobEvent *batch_v1.Job
+	var jobEvent *batch.Job
 
 	for event = range resultChan {
 		if event.Type == watch.Error {
 			return constant.JobExecutionStatusFetchError, nil
 		}
 
-		jobEvent = event.Object.(*batch_v1.Job)
+		jobEvent = event.Object.(*batch.Job)
 		if jobEvent.Status.Succeeded >= int32(1) {
 			return constant.JobSucceeded, nil
 		} else if jobEvent.Status.Failed >= int32(1) {
@@ -346,7 +306,7 @@ func (client *client) JobExecutionStatus(jobName string) (string, error) {
 	return constant.NoDefinitiveJobExecutionStatusFound, nil
 }
 
-func (client *client) getPodLogs(pod v1.Pod) (io.ReadCloser, error) {
+func (client *client) getPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
 	logger.Debug("reading pod logs for: ", pod.Name)
 	podLogOpts := v1.PodLogOptions{
 		Follow: true,
