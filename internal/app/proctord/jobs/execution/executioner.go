@@ -5,15 +5,15 @@ import (
 	"fmt"
 	jobMetadata "proctor/internal/app/proctord/jobs/metadata"
 	jobSecrets "proctor/internal/app/proctord/jobs/secrets"
-	"proctor/internal/app/proctord/kubernetes"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/kubernetes"
 
 	"proctor/internal/pkg/constant"
 	"proctor/internal/pkg/utility"
 )
 
 type executioner struct {
-	kubeClient    kubernetes.Client
+	kubeClient    kubernetes.KubernetesClient
 	metadataStore jobMetadata.Store
 	secretsStore  jobSecrets.Store
 }
@@ -22,7 +22,7 @@ type Executioner interface {
 	Execute(*postgres.JobsExecutionAuditLog, string, map[string]string) (string, error)
 }
 
-func NewExecutioner(kubeClient kubernetes.Client, metadataStore jobMetadata.Store, secretsStore jobSecrets.Store) Executioner {
+func NewExecutioner(kubeClient kubernetes.KubernetesClient, metadataStore jobMetadata.Store, secretsStore jobSecrets.Store) Executioner {
 	return &executioner{
 		kubeClient:    kubeClient,
 		metadataStore: metadataStore,

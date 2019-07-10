@@ -1,9 +1,12 @@
 package kubernetes
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
 	"time"
@@ -36,18 +39,18 @@ type client struct {
 	httpClient *http.Client
 }
 
-type Client interface {
+type KubernetesClient interface {
 	ExecuteJob(string, map[string]string) (string, error)
 	StreamJobLogs(string) (io.ReadCloser, error)
 	JobExecutionStatus(string) (string, error)
 }
 
-func NewClient(kubeconfig string, httpClient *http.Client) Client {
+func NewKubernetesClient(httpClient *http.Client) KubernetesClient {
 	newClient := &client{
 		httpClient: httpClient,
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err := clientcmd.BuildConfigFromFlags("", KubeConfig())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -254,4 +257,19 @@ func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, err
 		return nil, err
 	}
 	return resp.Body, err
+}
+
+func KubeConfig() string {
+	if config.KubeConfig() == "out-of-cluster" {
+		logger.Info("service is running outside kube cluster")
+		home := os.Getenv("HOME")
+
+		kubeConfig := flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		flag.Parse()
+
+		return *kubeConfig
+	}
+	logger.Info("Assuming service is running inside kube cluster")
+	logger.Info("Kube config provided is:", config.KubeConfig())
+	return ""
 }

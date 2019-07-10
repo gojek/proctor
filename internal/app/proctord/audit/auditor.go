@@ -2,9 +2,9 @@ package audit
 
 import (
 	"github.com/getsentry/raven-go"
-	"proctor/internal/app/proctord/kubernetes"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/kubernetes"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/pkg/constant"
 )
@@ -17,10 +17,10 @@ type Auditor interface {
 
 type auditor struct {
 	store      storage.Store
-	kubeClient kubernetes.Client
+	kubeClient kubernetes.KubernetesClient
 }
 
-func New(store storage.Store, kubeClient kubernetes.Client) Auditor {
+func New(store storage.Store, kubeClient kubernetes.KubernetesClient) Auditor {
 	return &auditor{
 		store:      store,
 		kubeClient: kubeClient,

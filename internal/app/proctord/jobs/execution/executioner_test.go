@@ -4,8 +4,8 @@ import (
 	"errors"
 	jobMetadata "proctor/internal/app/proctord/jobs/metadata"
 	jobSecrets "proctor/internal/app/proctord/jobs/secrets"
-	"proctor/internal/app/proctord/kubernetes"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/kubernetes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

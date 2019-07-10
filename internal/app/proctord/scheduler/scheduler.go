@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"os"
 	"proctor/internal/app/proctord/audit"
-	"proctor/internal/app/proctord/http"
 	"proctor/internal/app/proctord/jobs/execution"
 	"proctor/internal/app/proctord/jobs/metadata"
 	"proctor/internal/app/proctord/jobs/schedule"
 	"proctor/internal/app/proctord/jobs/secrets"
-	"proctor/internal/app/proctord/kubernetes"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/db/redis"
+	"proctor/internal/app/service/infra/http"
+	"proctor/internal/app/service/infra/kubernetes"
 	"proctor/internal/app/service/infra/mail"
 	"time"
 )
@@ -32,8 +32,7 @@ func Start() error {
 	if err != nil {
 		return err
 	}
-	kubeConfig := kubernetes.KubeConfig()
-	kubeClient := kubernetes.NewClient(kubeConfig, httpClient)
+	kubeClient := kubernetes.NewKubernetesClient(httpClient)
 
 	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore)
 

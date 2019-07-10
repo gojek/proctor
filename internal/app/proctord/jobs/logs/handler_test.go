@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"proctor/internal/app/proctord/kubernetes"
+	"proctor/internal/app/service/infra/kubernetes"
 	"strings"
 	"testing"
 

@@ -5,8 +5,8 @@ import (
 	"github.com/getsentry/raven-go"
 	"io"
 	"net/http"
-	"proctor/internal/app/proctord/kubernetes"
 	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/kubernetes"
 	_logger "proctor/internal/app/service/infra/logger"
 	"strings"
 
@@ -21,14 +21,14 @@ var upgrader = websocket.Upgrader{
 }
 
 type logger struct {
-	kubeClient kubernetes.Client
+	kubeClient kubernetes.KubernetesClient
 }
 
 type Logger interface {
 	Stream() http.HandlerFunc
 }
 
-func NewLogger(kubeClient kubernetes.Client) Logger {
+func NewLogger(kubeClient kubernetes.KubernetesClient) Logger {
 	return &logger{
 		kubeClient: kubeClient,
 	}

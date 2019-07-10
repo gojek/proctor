@@ -6,19 +6,19 @@ import (
 	"path"
 	"proctor/internal/app/proctord/audit"
 	"proctor/internal/app/proctord/docs"
-	httpClient "proctor/internal/app/proctord/http"
 	"proctor/internal/app/proctord/instrumentation"
 	"proctor/internal/app/proctord/jobs/execution"
 	"proctor/internal/app/proctord/jobs/logs"
 	"proctor/internal/app/proctord/jobs/metadata"
 	"proctor/internal/app/proctord/jobs/schedule"
 	"proctor/internal/app/proctord/jobs/secrets"
-	"proctor/internal/app/proctord/kubernetes"
 	"proctor/internal/app/proctord/middleware"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/db/redis"
+	httpClient "proctor/internal/app/service/infra/http"
+	"proctor/internal/app/service/infra/kubernetes"
 
 	"github.com/gorilla/mux"
 )
@@ -39,8 +39,7 @@ func NewRouter() (*mux.Router, error) {
 	if err != nil {
 		return router, err
 	}
-	kubeConfig := kubernetes.KubeConfig()
-	kubeClient := kubernetes.NewClient(kubeConfig, httpClient)
+	kubeClient := kubernetes.NewKubernetesClient(httpClient)
 
 	auditor := audit.New(store, kubeClient)
 	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore)

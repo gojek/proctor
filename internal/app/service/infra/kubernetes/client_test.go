@@ -23,14 +23,14 @@ import (
 
 type ClientTestSuite struct {
 	suite.Suite
-	testClient             Client
+	testClient             KubernetesClient
 	testKubernetesJobs     batch_v1.JobInterface
 	fakeClientSet          *fakeclientset.Clientset
 	jobName                string
 	podName                string
 	fakeClientSetStreaming *fakeclientset.Clientset
 	fakeHttpClient         *http.Client
-	testClientStreaming    Client
+	testClientStreaming    KubernetesClient
 }
 
 func (suite *ClientTestSuite) SetupTest() {

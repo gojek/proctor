@@ -1,9 +1,9 @@
 package audit
 
 import (
-	"proctor/internal/app/proctord/kubernetes"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/infra/kubernetes"
 	"testing"
 
 	"proctor/internal/pkg/constant"
