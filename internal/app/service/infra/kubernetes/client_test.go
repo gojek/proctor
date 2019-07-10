@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/suite"
 	batchV1 "k8s.io/api/batch/v1"
 	"k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
-	batch_v1 "k8s.io/client-go/kubernetes/typed/batch/v1"
+	batch "k8s.io/client-go/kubernetes/typed/batch/v1"
 	testing_kubernetes "k8s.io/client-go/testing"
 	utility "proctor/internal/pkg/constant"
 )
@@ -22,7 +22,7 @@ import (
 type ClientTestSuite struct {
 	suite.Suite
 	testClient             KubernetesClient
-	testKubernetesJobs     batch_v1.JobInterface
+	testKubernetesJobs     batch.JobInterface
 	fakeClientSet          *fakeclientset.Clientset
 	jobName                string
 	podName                string
@@ -40,11 +40,11 @@ func (suite *ClientTestSuite) SetupTest() {
 	suite.podName = "pod1"
 	namespace := config.DefaultNamespace()
 	suite.fakeClientSetStreaming = fakeclientset.NewSimpleClientset(&v1.Pod{
-		TypeMeta: meta_v1.TypeMeta{
+		TypeMeta: meta.TypeMeta{
 			Kind:       "Pod",
 			APIVersion: "v1",
 		},
-		ObjectMeta: meta_v1.ObjectMeta{
+		ObjectMeta: meta.ObjectMeta{
 			Name:      suite.podName,
 			Namespace: namespace,
 			Labels: map[string]string{
@@ -73,12 +73,12 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	executedJobname, err := suite.testClient.ExecuteJob(sampleImageName, envVarsForContainer)
 	assert.NoError(t, err)
 
-	typeMeta := meta_v1.TypeMeta{
+	typeMeta := meta.TypeMeta{
 		Kind:       "Job",
 		APIVersion: "batch/v1",
 	}
 
-	listOptions := meta_v1.ListOptions{
+	listOptions := meta.ListOptions{
 		TypeMeta:      typeMeta,
 		LabelSelector: jobLabelSelector(executedJobname),
 	}
@@ -111,30 +111,6 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	assert.Equal(t, expectedEnvVars, container.Env)
 }
 
-/*func (suite *ClientTestSuite) TestStreamLogsSuccess() {
-	t := suite.T()
-
-	httpmock.ActivateNonDefault(suite.fakeHttpClient)
-	defer httpmock.DeactivateAndReset()
-
-	namespace := config.DefaultNamespace()
-	httpmock.RegisterResponder("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+suite.podName+"/log?follow=true",
-		httpmock.NewStringResponder(200, "logs are streaming"))
-
-	logStream, err := suite.testClientStreaming.StreamJobLogs(suite.jobName)
-	assert.NoError(t, err)
-
-	defer logStream.Close()
-
-	bufioReader := bufio.NewReader(logStream)
-
-	jobLogSingleLine, _, err := bufioReader.ReadLine()
-	assert.NoError(t, err)
-
-	assert.Equal(t, "logs are streaming", string(jobLogSingleLine[:]))
-
-}*/
-
 func (suite *ClientTestSuite) TestStreamLogsPodNotFoundFailure() {
 	t := suite.T()
 
@@ -152,7 +128,7 @@ func (suite *ClientTestSuite) TestShouldReturnSuccessJobExecutionStatus() {
 	var succeededJob batchV1.Job
 	uniqueJobName := "proctor-job-2"
 	label := jobLabel(uniqueJobName)
-	objectMeta := meta_v1.ObjectMeta{
+	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
 		Labels: label,
 	}
@@ -187,7 +163,7 @@ func (suite *ClientTestSuite) TestShouldReturnFailedJobExecutionStatus() {
 	var failedJob batchV1.Job
 	uniqueJobName := "proctor-job-1"
 	label := jobLabel(uniqueJobName)
-	objectMeta := meta_v1.ObjectMeta{
+	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
 		Labels: label,
 	}
@@ -220,7 +196,7 @@ func (suite *ClientTestSuite) TestJobExecutionStatusForNonDefinitiveStatus() {
 	var testJob batchV1.Job
 	uniqueJobName := "proctor-job-1"
 	label := jobLabel(uniqueJobName)
-	objectMeta := meta_v1.ObjectMeta{
+	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
 		Labels: label,
 	}
@@ -249,7 +225,7 @@ func (suite *ClientTestSuite) TestShouldReturnJobExecutionStatusFetchError() {
 	var testJob batchV1.Job
 	uniqueJobName := "proctor-job-3"
 	label := jobLabel(uniqueJobName)
-	objectMeta := meta_v1.ObjectMeta{
+	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
 		Labels: label,
 	}
