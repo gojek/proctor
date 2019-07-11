@@ -4,6 +4,7 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
 	"proctor/internal/app/service/execution/model"
+	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/id"
 	"time"
@@ -12,7 +13,7 @@ import (
 type ExecutionContextRepository interface {
 	Insert(context *model.ExecutionContext) (uint64, error)
 	UpdateJobOutput(executionId uint64, output types.GzippedText) error
-	UpdateStatus(executionId uint64, status string) error
+	UpdateStatus(executionId uint64, status status.ExecutionStatus) error
 	Delete(executionId uint64) error
 	GetById(executionId uint64) (*model.ExecutionContext, error)
 	GetByEmail(userEmail string) ([]model.ExecutionContext, error)
@@ -53,7 +54,7 @@ func (repository *executionContextRepository) UpdateJobOutput(executionId uint64
 	return err
 }
 
-func (repository *executionContextRepository) UpdateStatus(executionId uint64, status string) error {
+func (repository *executionContextRepository) UpdateStatus(executionId uint64, status status.ExecutionStatus) error {
 	sql := "UPDATE execution_context SET status = :status, updated_at = :updated_at WHERE id = :id"
 	context := model.ExecutionContext{
 		ExecutionID: executionId,

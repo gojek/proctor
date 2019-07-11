@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/stretchr/testify/assert"
 	"proctor/internal/app/service/execution/model"
+	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"testing"
 )
@@ -26,7 +27,7 @@ func TestExecutionContextRepository_Insert(t *testing.T) {
 		Args: map[string]string{
 			mapKey: mapValue,
 		},
-		Status: fake.State(),
+		Status: status.Received,
 	}
 
 	id, err := repository.Insert(context)
@@ -56,7 +57,7 @@ func TestExecutionContextRepository_Delete(t *testing.T) {
 		Args: map[string]string{
 			fake.FirstName(): fake.LastName(),
 		},
-		Status: fake.State(),
+		Status: status.Received,
 	}
 
 	id, err := repository.Insert(context)
@@ -85,14 +86,14 @@ func TestExecutionContextRepository_UpdateStatus(t *testing.T) {
 		Args: map[string]string{
 			fake.FirstName(): fake.LastName(),
 		},
-		Status: fake.State(),
+		Status: status.Received,
 	}
 
 	id, err := repository.Insert(context)
 	assert.Nil(t, err)
 	assert.NotZero(t, id)
 
-	newStatus := fake.State()
+	newStatus := status.Created
 	err = repository.UpdateStatus(id, newStatus)
 	assert.Nil(t, err)
 
@@ -116,7 +117,7 @@ func TestExecutionContextRepository_UpdateJobOutput(t *testing.T) {
 		Args: map[string]string{
 			fake.FirstName(): fake.LastName(),
 		},
-		Status: fake.State(),
+		Status: status.Received,
 	}
 
 	id, err := repository.Insert(context)
@@ -166,9 +167,9 @@ func populateSeedDataForTest(repository ExecutionContextRepository, count int, s
 			email = val
 		}
 
-		var status = fake.State()
+		var defaultStatus = status.RequirementNotMet
 		if val, ok := seedField["Status"]; ok {
-			status = val
+			defaultStatus = status.ExecutionStatus(val)
 		}
 
 		context := &model.ExecutionContext{
@@ -178,7 +179,7 @@ func populateSeedDataForTest(repository ExecutionContextRepository, count int, s
 			Args: map[string]string{
 				fake.FirstName(): fake.LastName(),
 			},
-			Status: status,
+			Status: defaultStatus,
 		}
 
 		_, err := repository.Insert(context)

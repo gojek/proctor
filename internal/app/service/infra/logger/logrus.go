@@ -60,3 +60,11 @@ func Fatal(args ...interface{}) {
 func Panic(args ...interface{}) {
 	log.Panic(args...)
 }
+
+func LogErrors(err error, action string, args ...interface{}) {
+	if err != nil {
+		logger.Error("Failed to", action, "with errors", err, "and data", args)
+	} else {
+		logger.Debug("Success to", action, "with data", args)
+	}
+}

@@ -1,7 +1,7 @@
 package model
 
 import (
-	dbTypes "proctor/internal/app/service/infra/db/type"
+	dbTypes "proctor/internal/app/service/infra/db/types"
 	"time"
 )
 

@@ -40,10 +40,10 @@ type client struct {
 }
 
 type KubernetesClient interface {
-	ExecuteJobWithCommand(string, map[string]string, []string) (string, error)
-	ExecuteJob(string, map[string]string) (string, error)
-	StreamJobLogs(string) (io.ReadCloser, error)
-	JobExecutionStatus(string) (string, error)
+	ExecuteJobWithCommand(imageName string, args map[string]string, commands []string) (string, error)
+	ExecuteJob(executionName string, args map[string]string) (string, error)
+	StreamJobLogs(executionName string) (io.ReadCloser, error)
+	JobExecutionStatus(executionName string) (string, error)
 }
 
 func NewClientSet() (*kubernetes.Clientset, error) {
@@ -112,14 +112,14 @@ func uniqueName() string {
 	return "proctor" + "-" + uuid.NewV4().String()
 }
 
-func jobLabel(jobName string) map[string]string {
+func jobLabel(executionName string) map[string]string {
 	return map[string]string{
-		"job": jobName,
+		"job": executionName,
 	}
 }
 
-func jobLabelSelector(jobName string) string {
-	return fmt.Sprintf("job=%s", jobName)
+func jobLabelSelector(executionName string) string {
+	return fmt.Sprintf("job=%s", executionName)
 }
 
 func (client *client) ExecuteJob(imageName string, envMap map[string]string) (string, error) {
@@ -127,14 +127,14 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 }
 
 func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]string, command []string) (string, error) {
-	uniqueJobName := uniqueName()
-	label := jobLabel(uniqueJobName)
+	executionName := uniqueName()
+	label := jobLabel(executionName)
 
 	batchV1 := client.clientSet.BatchV1()
 	kubernetesJobs := batchV1.Jobs(namespace)
 
 	container := v1.Container{
-		Name:  uniqueJobName,
+		Name:  executionName,
 		Image: imageName,
 		Env:   getEnvVars(envMap),
 	}
@@ -149,7 +149,7 @@ func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]
 	}
 
 	objectMeta := meta.ObjectMeta{
-		Name:        uniqueJobName,
+		Name:        executionName,
 		Labels:      label,
 		Annotations: config.JobPodAnnotations(),
 	}
@@ -175,16 +175,16 @@ func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]
 	if err != nil {
 		return "", err
 	}
-	return uniqueJobName, nil
+	return executionName, nil
 }
 
-func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
-	err := client.waitForReadyJob(jobName)
+func (client *client) StreamJobLogs(executionName string) (io.ReadCloser, error) {
+	err := client.waitForReadyJob(executionName)
 	if err != nil {
 		return nil, err
 	}
 
-	pod, err := client.waitForReadyPod(jobName)
+	pod, err := client.waitForReadyPod(executionName)
 	if err != nil {
 		return nil, err
 	}
@@ -198,12 +198,12 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 	return result, nil
 }
 
-func (client *client) waitForReadyJob(jobName string) error {
+func (client *client) waitForReadyJob(executionName string) error {
 	batchV1 := client.clientSet.BatchV1()
 	jobs := batchV1.Jobs(namespace)
 	listOptions := meta.ListOptions{
 		TypeMeta:      typeMeta,
-		LabelSelector: jobLabelSelector(jobName),
+		LabelSelector: jobLabelSelector(executionName),
 	}
 
 	watchJob, err := jobs.Watch(listOptions)
@@ -240,12 +240,12 @@ func (client *client) waitForReadyJob(jobName string) error {
 	return fmt.Errorf("job never reach the active status")
 }
 
-func (client *client) waitForReadyPod(jobName string) (*v1.Pod, error) {
+func (client *client) waitForReadyPod(executionName string) (*v1.Pod, error) {
 	coreV1 := client.clientSet.CoreV1()
 	kubernetesPods := coreV1.Pods(namespace)
 	listOptions := meta.ListOptions{
 		TypeMeta:      typeMeta,
-		LabelSelector: jobLabelSelector(jobName),
+		LabelSelector: jobLabelSelector(executionName),
 	}
 
 	watchJob, err := kubernetesPods.Watch(listOptions)
@@ -260,7 +260,7 @@ func (client *client) waitForReadyPod(jobName string) (*v1.Pod, error) {
 
 	select {
 	case <-timeoutChan:
-		return nil,fmt.Errorf("timeout when waiting pod to be available")
+		return nil, fmt.Errorf("timeout when waiting pod to be available")
 	case <-resultChan:
 		for event := range resultChan {
 			if event.Type == watch.Error {
@@ -282,12 +282,12 @@ func (client *client) waitForReadyPod(jobName string) (*v1.Pod, error) {
 	return nil, fmt.Errorf("pod never get the intended state")
 }
 
-func (client *client) JobExecutionStatus(jobName string) (string, error) {
+func (client *client) JobExecutionStatus(executionName string) (string, error) {
 	batchV1 := client.clientSet.BatchV1()
 	kubernetesJobs := batchV1.Jobs(namespace)
 	listOptions := meta.ListOptions{
 		TypeMeta:      typeMeta,
-		LabelSelector: jobLabelSelector(jobName),
+		LabelSelector: jobLabelSelector(executionName),
 	}
 
 	watchJob, err := kubernetesJobs.Watch(listOptions)
