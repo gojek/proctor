@@ -1,10 +1,12 @@
-package secrets
+package handler
 
 import (
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"proctor/internal/app/service/secret/model"
+	"proctor/internal/app/service/secret/repository"
 	"testing"
 
 	"errors"
@@ -17,20 +19,20 @@ import (
 
 type SecretsHandlerTestSuite struct {
 	suite.Suite
-	mockSecretsStore   *MockStore
-	testSecretsHandler Handler
+	mockSecretRepository *repository.MockSecretRepository
+	secretHandler        SecretHttpHandler
 }
 
 func (suite *SecretsHandlerTestSuite) SetupTest() {
-	suite.mockSecretsStore = &MockStore{}
+	suite.mockSecretRepository = &repository.MockSecretRepository{}
 
-	suite.testSecretsHandler = NewHandler(suite.mockSecretsStore)
+	suite.secretHandler = NewSecretHttpHandler(suite.mockSecretRepository)
 }
 
-func (suite *SecretsHandlerTestSuite) TestSuccessfulSecretsUpdation() {
+func (suite *SecretsHandlerTestSuite) TestPostSecretSuccess() {
 	t := suite.T()
 
-	secret := Secret{
+	secret := model.Secret{
 		JobName: "job1",
 		Secrets: map[string]string{"k1": "v1", "k2": "v2"},
 	}
@@ -41,16 +43,16 @@ func (suite *SecretsHandlerTestSuite) TestSuccessfulSecretsUpdation() {
 	req := httptest.NewRequest("POST", "/job-secrets", bytes.NewReader(requestBody))
 	responseRecorder := httptest.NewRecorder()
 
-	suite.mockSecretsStore.On("CreateOrUpdateJobSecret", secret).Return(nil).Once()
+	suite.mockSecretRepository.On("Save", secret).Return(nil).Once()
 
-	suite.testSecretsHandler.HandleSubmission()(responseRecorder, req)
+	suite.secretHandler.Post()(responseRecorder, req)
 
-	suite.mockSecretsStore.AssertExpectations(t)
+	suite.mockSecretRepository.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
 }
 
-func (suite *SecretsHandlerTestSuite) TestSecretsUpdationSecretsMalformedData() {
+func (suite *SecretsHandlerTestSuite) TestPostSecretsMalformedData() {
 	t := suite.T()
 
 	requestBody, err := json.Marshal("any-malformed-requ")
@@ -59,17 +61,17 @@ func (suite *SecretsHandlerTestSuite) TestSecretsUpdationSecretsMalformedData() 
 	req := httptest.NewRequest("POST", "/job-secrets", bytes.NewReader(requestBody))
 	responseRecorder := httptest.NewRecorder()
 
-	suite.testSecretsHandler.HandleSubmission()(responseRecorder, req)
+	suite.secretHandler.Post()(responseRecorder, req)
 
-	suite.mockSecretsStore.AssertNotCalled(t, "CreateOrUpdateJobSecret", mock.Anything)
+	suite.mockSecretRepository.AssertNotCalled(t, "Save", mock.Anything)
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	assert.Equal(t, constant.ClientError, responseRecorder.Body.String())
 }
 
-func (suite *SecretsHandlerTestSuite) TestSecretsUpdationSecretsStoreFailure() {
+func (suite *SecretsHandlerTestSuite) TestPostSecretsStoreFailure() {
 	t := suite.T()
 
-	secret := Secret{
+	secret := model.Secret{
 		JobName: "job1",
 		Secrets: map[string]string{"k1": "v1", "k2": "v2"},
 	}
@@ -80,11 +82,11 @@ func (suite *SecretsHandlerTestSuite) TestSecretsUpdationSecretsStoreFailure() {
 	req := httptest.NewRequest("POST", "/job-secrets", bytes.NewReader(requestBody))
 	responseRecorder := httptest.NewRecorder()
 
-	suite.mockSecretsStore.On("CreateOrUpdateJobSecret", secret).Return(errors.New("error")).Once()
+	suite.mockSecretRepository.On("Save", secret).Return(errors.New("error")).Once()
 
-	suite.testSecretsHandler.HandleSubmission()(responseRecorder, req)
+	suite.secretHandler.Post()(responseRecorder, req)
 
-	suite.mockSecretsStore.AssertExpectations(t)
+	suite.mockSecretRepository.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	assert.Equal(t, constant.ServerError, responseRecorder.Body.String())

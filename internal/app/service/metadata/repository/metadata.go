@@ -9,7 +9,7 @@ import (
 const KeySuffix = "-metadata"
 
 type MetadataRepository interface {
-	Save(metadata *metadata.Metadata) error
+	Save(metadata metadata.Metadata) error
 	GetAll() ([]metadata.Metadata, error)
 	GetByName(name string) (*metadata.Metadata, error)
 }
@@ -28,7 +28,7 @@ func NewMetadataRepository(client redis.Client) MetadataRepository {
 	}
 }
 
-func (repository *metadataRepository) Save(metadata *metadata.Metadata) error {
+func (repository *metadataRepository) Save(metadata metadata.Metadata) error {
 	key := applySuffix(metadata.Name)
 
 	jsonMetadata, err := json.Marshal(metadata)

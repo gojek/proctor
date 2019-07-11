@@ -1,8 +1,9 @@
-package secrets
+package repository
 
 import (
 	"encoding/json"
-	 "proctor/internal/app/service/infra/db/redis"
+	"proctor/internal/app/service/infra/db/redis"
+	"proctor/internal/app/service/secret/model"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -14,19 +15,19 @@ import (
 type SecretsStoreTestSuite struct {
 	suite.Suite
 	mockRedisClient *redis.MockClient
-	testSecretStore Store
+	repository      SecretRepository
 }
 
 func (s *SecretsStoreTestSuite) SetupTest() {
 	s.mockRedisClient = &redis.MockClient{}
 
-	s.testSecretStore = NewStore(s.mockRedisClient)
+	s.repository = NewSecretRepository(s.mockRedisClient)
 }
 
 func (s *SecretsStoreTestSuite) TestCreateOrUpdateJobSecret() {
 	t := s.T()
 
-	secret := Secret{
+	secret := model.Secret{
 		JobName: "job1",
 		Secrets: map[string]string{"k1": "v1", "k2": "v2"},
 	}
@@ -36,7 +37,7 @@ func (s *SecretsStoreTestSuite) TestCreateOrUpdateJobSecret() {
 
 	s.mockRedisClient.On("SET", "job1-secret", binaryJobSecret).Return(nil).Once()
 
-	err = s.testSecretStore.CreateOrUpdateJobSecret(secret)
+	err = s.repository.Save(secret)
 	assert.NoError(t, err)
 
 	s.mockRedisClient.AssertExpectations(t)
@@ -47,7 +48,7 @@ func (s *SecretsStoreTestSuite) TestCreateOrUpdateJobSecretRedisFailure() {
 
 	s.mockRedisClient.On("SET", mock.Anything, mock.Anything).Return(errors.New("error")).Once()
 
-	err := s.testSecretStore.CreateOrUpdateJobSecret(Secret{})
+	err := s.repository.Save(model.Secret{})
 	assert.Error(t, err)
 
 	s.mockRedisClient.AssertExpectations(t)
@@ -62,7 +63,7 @@ func (s *SecretsStoreTestSuite) TestGetJobSecrets() {
 	assert.NoError(t, err)
 	s.mockRedisClient.On("GET", "job1-secret").Return(binaryJobSecrets, nil).Once()
 
-	secrets, err := s.testSecretStore.GetJobSecrets("job1")
+	secrets, err := s.repository.GetByJobName("job1")
 	assert.NoError(t, err)
 
 	assert.EqualValues(t, jobSecrets, secrets)
@@ -73,7 +74,7 @@ func (s *SecretsStoreTestSuite) TestGetJobSecretsRedisFailure() {
 
 	s.mockRedisClient.On("GET", "job1-secret").Return([]byte{}, errors.New("error")).Once()
 
-	_, err := s.testSecretStore.GetJobSecrets("job1")
+	_, err := s.repository.GetByJobName("job1")
 	assert.Error(t, err)
 }
 
@@ -82,7 +83,7 @@ func (s *SecretsStoreTestSuite) TestGetJobSecretsCorruptData() {
 
 	s.mockRedisClient.On("GET", "job1-secret").Return([]byte("a"), nil).Once()
 
-	_, err := s.testSecretStore.GetJobSecrets("job1")
+	_, err := s.repository.GetByJobName("job1")
 	assert.Error(t, err)
 }
 

@@ -40,7 +40,7 @@ func (s *MetadataRepositoryTestSuite) TestSave() {
 
 	s.mockRedisClient.On("SET", "any-name-metadata", jsonData).Return(nil).Once()
 
-	err = s.testMetadataStore.Save(&metadata)
+	err = s.testMetadataStore.Save(metadata)
 	assert.NoError(t, err)
 	s.mockRedisClient.AssertExpectations(t)
 }
@@ -53,7 +53,7 @@ func (s *MetadataRepositoryTestSuite) TestSaveFailure() {
 	expectedError := errors.New("any-error")
 	s.mockRedisClient.On("SET", mock.Anything, mock.Anything).Return(expectedError).Once()
 
-	err := s.testMetadataStore.Save(&metadata)
+	err := s.testMetadataStore.Save(metadata)
 	assert.EqualError(t, err, "any-error")
 	s.mockRedisClient.AssertExpectations(t)
 }

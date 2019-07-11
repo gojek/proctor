@@ -6,9 +6,9 @@ import (
 	"github.com/getsentry/raven-go"
 	"github.com/gorilla/mux"
 	"net/http"
-	jobMetadata "proctor/internal/app/proctord/jobs/metadata"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/metadata/repository"
 	"strings"
 
 	"github.com/badoux/checkmail"
@@ -20,7 +20,7 @@ import (
 
 type scheduler struct {
 	store         storage.Store
-	metadataStore jobMetadata.Store
+	metadataStore repository.MetadataRepository
 }
 
 type Scheduler interface {
@@ -30,7 +30,7 @@ type Scheduler interface {
 	RemoveScheduledJob() http.HandlerFunc
 }
 
-func NewScheduler(store storage.Store, metadataStore jobMetadata.Store) Scheduler {
+func NewScheduler(store storage.Store, metadataStore repository.MetadataRepository) Scheduler {
 	return &scheduler{
 		metadataStore: metadataStore,
 		store:         store,
@@ -88,7 +88,7 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
-		_, err = scheduler.metadataStore.GetJobMetadata(scheduledJob.Name)
+		_, err = scheduler.metadataStore.GetByName(scheduledJob.Name)
 		if err != nil {
 			if err.Error() == "redigo: nil returned" {
 				logger.Error(fmt.Sprintf("Client provided non existent proc name: %s ", scheduledJob.Tags), scheduledJob.Name)

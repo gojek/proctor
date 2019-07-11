@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
-	"proctor/internal/app/service/context/model"
+	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/id"
 	"time"

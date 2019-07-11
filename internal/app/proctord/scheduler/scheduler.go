@@ -5,9 +5,7 @@ import (
 	"os"
 	"proctor/internal/app/proctord/audit"
 	"proctor/internal/app/proctord/jobs/execution"
-	"proctor/internal/app/proctord/jobs/metadata"
 	"proctor/internal/app/proctord/jobs/schedule"
-	"proctor/internal/app/proctord/jobs/secrets"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
@@ -15,6 +13,8 @@ import (
 	"proctor/internal/app/service/infra/kubernetes"
 	"proctor/internal/app/service/infra/kubernetes/http"
 	"proctor/internal/app/service/infra/mail"
+	metadataRepository "proctor/internal/app/service/metadata/repository"
+	secretRepository "proctor/internal/app/service/secret/repository"
 	"time"
 )
 
@@ -25,8 +25,8 @@ func Start() error {
 	redisClient := redis.NewClient()
 
 	store := storage.New(postgresClient)
-	metadataStore := metadata.NewStore(redisClient)
-	secretsStore := secrets.NewStore(redisClient)
+	metadataStore := metadataRepository.NewMetadataRepository(redisClient)
+	secretsStore := secretRepository.NewSecretRepository(redisClient)
 
 	httpClient, err := http.NewClient()
 	if err != nil {

@@ -1,44 +1,46 @@
-package secrets
+package handler
 
 import (
 	"encoding/json"
 	"github.com/getsentry/raven-go"
 	"net/http"
-	 "proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/secret/model"
+	"proctor/internal/app/service/secret/repository"
 
 	"proctor/internal/pkg/constant"
 )
 
 type handler struct {
-	secretsStore Store
+	repository repository.SecretRepository
 }
 
-type Handler interface {
-	HandleSubmission() http.HandlerFunc
+type SecretHttpHandler interface {
+	Post() http.HandlerFunc
 }
 
-func NewHandler(secretsStore Store) Handler {
+func NewSecretHttpHandler(repository repository.SecretRepository) SecretHttpHandler {
 	return &handler{
-		secretsStore: secretsStore,
+		repository: repository,
 	}
 }
 
-func (handler *handler) HandleSubmission() http.HandlerFunc {
+func (handler *handler) Post() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var secret Secret
+		var secret model.Secret
 		err := json.NewDecoder(req.Body).Decode(&secret)
 		defer req.Body.Close()
 		if err != nil {
-			logger.Error("Error parsing request body", err.Error())
+			logger.Error("parsing json body to secret, failed", err.Error())
 
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(constant.ClientError))
 			return
 		}
 
-		err = handler.secretsStore.CreateOrUpdateJobSecret(secret)
+		err = handler.repository.Save(secret)
 		if err != nil {
-			logger.Error("Error updating secrets", err.Error())
+			logger.Error("saving secret to storage, failed", err.Error())
 			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)

@@ -10,9 +10,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	jobMetadata "proctor/internal/app/proctord/jobs/metadata"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/metadata/repository"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ import (
 type SchedulerTestSuite struct {
 	suite.Suite
 	mockStore         *storage.MockStore
-	mockMetadataStore *jobMetadata.MockStore
+	mockMetadataStore *repository.MockMetadataRepository
 
 	testScheduler Scheduler
 
@@ -34,7 +34,7 @@ type SchedulerTestSuite struct {
 }
 
 func (suite *SchedulerTestSuite) SetupTest() {
-	suite.mockMetadataStore = &jobMetadata.MockStore{}
+	suite.mockMetadataStore = &repository.MockMetadataRepository{}
 	suite.mockStore = &storage.MockStore{}
 	suite.testScheduler = NewScheduler(suite.mockStore, suite.mockMetadataStore)
 
@@ -66,7 +66,7 @@ func (suite *SchedulerTestSuite) TestSuccessfulJobScheduling() {
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 	req.Header.Set(constant.UserEmailHeaderKey, userEmail)
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
+	suite.mockMetadataStore.On("GetByName", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
 	insertedScheduledJobID := "123"
 	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, userEmail, scheduledJob.Group, scheduledJob.Args).Return(insertedScheduledJobID, nil)
 
@@ -201,7 +201,7 @@ func (suite *SchedulerTestSuite) TestNonExistentJobScheduling() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, errors.New("redigo: nil returned"))
+	suite.mockMetadataStore.On("GetByName", scheduledJob.Name).Return(&modelMetadata.Metadata{}, errors.New("redigo: nil returned"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
@@ -226,7 +226,7 @@ func (suite *SchedulerTestSuite) TestErrorFetchingJobMetadata() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, errors.New("any error"))
+	suite.mockMetadataStore.On("GetByName", scheduledJob.Name).Return(&modelMetadata.Metadata{}, errors.New("any error"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
 
@@ -251,7 +251,7 @@ func (suite *SchedulerTestSuite) TestUniqnessConstrainOnJobNameAndArg() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
+	suite.mockMetadataStore.On("GetByName", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
 	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "", scheduledJob.Group, scheduledJob.Args).Return("", errors.New("pq: duplicate key value violates unique constraint \"unique_jobs_schedule_name_args\""))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)
@@ -277,7 +277,7 @@ func (suite *SchedulerTestSuite) TestErrorPersistingScheduledJob() {
 	responseRecorder := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(requestBody))
 
-	suite.mockMetadataStore.On("GetJobMetadata", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
+	suite.mockMetadataStore.On("GetByName", scheduledJob.Name).Return(&modelMetadata.Metadata{}, nil)
 	suite.mockStore.On("InsertScheduledJob", scheduledJob.Name, scheduledJob.Tags, "0 * 2 * * *", scheduledJob.NotificationEmails, "", scheduledJob.Group, scheduledJob.Args).Return("", errors.New("any-error"))
 
 	suite.testScheduler.Schedule()(responseRecorder, req)

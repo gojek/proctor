@@ -4,7 +4,7 @@ import (
 	fake "github.com/brianvoe/gofakeit"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/stretchr/testify/assert"
-	"proctor/internal/app/service/context/model"
+	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"testing"
 )
