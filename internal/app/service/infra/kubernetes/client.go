@@ -215,20 +215,25 @@ func (client *client) waitForReadyJob(jobName string) error {
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 
-	for event := range resultChan {
-		if event.Type == watch.Error {
-			return fmt.Errorf("watch error when waiting for job with list option %v", listOptions)
-		}
-		job := event.Object.(*batch.Job)
-		if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
-			return nil
-		}
+	select {
+	case <-timeoutChan:
+		return fmt.Errorf("timeout when waiting job to be available")
+	case <-resultChan:
+		for event := range resultChan {
+			if event.Type == watch.Error {
+				return fmt.Errorf("watch error when waiting for job with list option %v", listOptions)
+			}
+			job := event.Object.(*batch.Job)
+			if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
+				return nil
+			}
 
-		select {
-		case <-timeoutChan:
-			return fmt.Errorf("timeout when waiting pod to be ready")
-		case <-resultChan:
-			continue
+			select {
+			case <-timeoutChan:
+				return fmt.Errorf("timeout when waiting job to be ready")
+			case <-resultChan:
+				continue
+			}
 		}
 	}
 
@@ -253,19 +258,24 @@ func (client *client) waitForReadyPod(jobName string) (*v1.Pod, error) {
 	defer watchJob.Stop()
 	var pod *v1.Pod
 
-	for event := range resultChan {
-		if event.Type == watch.Error {
-			return nil, fmt.Errorf("watch error when waiting for pod with list option %v", listOptions)
-		}
-		pod = event.Object.(*v1.Pod)
-		if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
-			return pod, nil
-		}
-		select {
-		case <-timeoutChan:
-			return nil, fmt.Errorf("timeout when waiting pod to be ready")
-		case <-resultChan:
-			continue
+	select {
+	case <-timeoutChan:
+		return nil,fmt.Errorf("timeout when waiting pod to be available")
+	case <-resultChan:
+		for event := range resultChan {
+			if event.Type == watch.Error {
+				return nil, fmt.Errorf("watch error when waiting for pod with list option %v", listOptions)
+			}
+			pod = event.Object.(*v1.Pod)
+			if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
+				return pod, nil
+			}
+			select {
+			case <-timeoutChan:
+				return nil, fmt.Errorf("timeout when waiting pod to be ready")
+			case <-resultChan:
+				continue
+			}
 		}
 	}
 

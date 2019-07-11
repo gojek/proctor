@@ -110,9 +110,10 @@ func (suite *IntegrationTestSuite) TestStreamLogsSuccess() {
 	assert.Equal(t, "Bimo Horizon", string(jobLogSingleLine[:]))
 
 }
+
 func TestIntegrationTestSuite(t *testing.T) {
 	value, available := os.LookupEnv("ENABLE_INTEGRATION_TEST")
-	if available == true || value == "true" {
+	if available == true && value == "true" {
 		suite.Run(t, new(IntegrationTestSuite))
 	}
 }

@@ -118,6 +118,7 @@ func (suite *ClientTestSuite) TestStreamLogsPodNotFoundFailure() {
 	assert.Error(t, err)
 }
 
+
 func (suite *ClientTestSuite) TestShouldReturnSuccessJobExecutionStatus() {
 	t := suite.T()
 
