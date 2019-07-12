@@ -17,14 +17,14 @@ import (
 
 type ExecutionerTestSuite struct {
 	suite.Suite
-	mockKubeClient    kubernetes.MockClient
+	mockKubeClient    kubernetes.MockKubernetesClient
 	mockMetadataStore *metadataRepository.MockMetadataRepository
 	mockSecretsStore  *secretRepository.MockSecretRepository
 	testExecutioner   Executioner
 }
 
 func (suite *ExecutionerTestSuite) SetupTest() {
-	suite.mockKubeClient = kubernetes.MockClient{}
+	suite.mockKubeClient = kubernetes.MockKubernetesClient{}
 	suite.mockMetadataStore = &metadataRepository.MockMetadataRepository{}
 	suite.mockSecretsStore = &secretRepository.MockSecretRepository{}
 	suite.testExecutioner = NewExecutioner(&suite.mockKubeClient, suite.mockMetadataStore, suite.mockSecretsStore)

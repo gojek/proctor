@@ -34,16 +34,16 @@ func init() {
 	namespace = config.DefaultNamespace()
 }
 
-type client struct {
-	clientSet  kubernetes.Interface
-	httpClient *http.Client
-}
-
 type KubernetesClient interface {
 	ExecuteJobWithCommand(imageName string, args map[string]string, commands []string) (string, error)
 	ExecuteJob(executionName string, args map[string]string) (string, error)
 	StreamJobLogs(executionName string) (io.ReadCloser, error)
 	JobExecutionStatus(executionName string) (string, error)
+}
+
+type kubernetesClient struct {
+	clientSet  kubernetes.Interface
+	httpClient *http.Client
 }
 
 func NewClientSet() (*kubernetes.Clientset, error) {
@@ -83,7 +83,7 @@ func NewClientSet() (*kubernetes.Clientset, error) {
 }
 
 func NewKubernetesClient(httpClient *http.Client) KubernetesClient {
-	newClient := &client{
+	newClient := &kubernetesClient{
 		httpClient: httpClient,
 	}
 
@@ -122,11 +122,11 @@ func jobLabelSelector(executionName string) string {
 	return fmt.Sprintf("job=%s", executionName)
 }
 
-func (client *client) ExecuteJob(imageName string, envMap map[string]string) (string, error) {
+func (client *kubernetesClient) ExecuteJob(imageName string, envMap map[string]string) (string, error) {
 	return client.ExecuteJobWithCommand(imageName, envMap, []string{})
 }
 
-func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]string, command []string) (string, error) {
+func (client *kubernetesClient) ExecuteJobWithCommand(imageName string, envMap map[string]string, command []string) (string, error) {
 	executionName := uniqueName()
 	label := jobLabel(executionName)
 
@@ -178,7 +178,7 @@ func (client *client) ExecuteJobWithCommand(imageName string, envMap map[string]
 	return executionName, nil
 }
 
-func (client *client) StreamJobLogs(executionName string) (io.ReadCloser, error) {
+func (client *kubernetesClient) StreamJobLogs(executionName string) (io.ReadCloser, error) {
 	err := client.waitForReadyJob(executionName)
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (client *client) StreamJobLogs(executionName string) (io.ReadCloser, error)
 	return result, nil
 }
 
-func (client *client) waitForReadyJob(executionName string) error {
+func (client *kubernetesClient) waitForReadyJob(executionName string) error {
 	batchV1 := client.clientSet.BatchV1()
 	jobs := batchV1.Jobs(namespace)
 	listOptions := meta.ListOptions{
@@ -240,7 +240,7 @@ func (client *client) waitForReadyJob(executionName string) error {
 	return fmt.Errorf("job never reach the active status")
 }
 
-func (client *client) waitForReadyPod(executionName string) (*v1.Pod, error) {
+func (client *kubernetesClient) waitForReadyPod(executionName string) (*v1.Pod, error) {
 	coreV1 := client.clientSet.CoreV1()
 	kubernetesPods := coreV1.Pods(namespace)
 	listOptions := meta.ListOptions{
@@ -282,7 +282,7 @@ func (client *client) waitForReadyPod(executionName string) (*v1.Pod, error) {
 	return nil, fmt.Errorf("pod never get the intended state")
 }
 
-func (client *client) JobExecutionStatus(executionName string) (string, error) {
+func (client *kubernetesClient) JobExecutionStatus(executionName string) (string, error) {
 	batchV1 := client.clientSet.BatchV1()
 	kubernetesJobs := batchV1.Jobs(namespace)
 	listOptions := meta.ListOptions{
@@ -316,7 +316,7 @@ func (client *client) JobExecutionStatus(executionName string) (string, error) {
 	return constant.NoDefinitiveJobExecutionStatusFound, nil
 }
 
-func (client *client) getPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
+func (client *kubernetesClient) getPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
 	logger.Debug("reading pod logs for: ", pod.Name)
 	podLogOpts := v1.PodLogOptions{
 		Follow: true,

@@ -19,11 +19,11 @@ import (
 type LoggerTestSuite struct {
 	suite.Suite
 	testLogger     Logger
-	mockKubeClient *kubernetes.MockClient
+	mockKubeClient *kubernetes.MockKubernetesClient
 }
 
 func (suite *LoggerTestSuite) SetupTest() {
-	suite.mockKubeClient = &kubernetes.MockClient{}
+	suite.mockKubeClient = &kubernetes.MockKubernetesClient{}
 	suite.testLogger = NewLogger(suite.mockKubeClient)
 }
 

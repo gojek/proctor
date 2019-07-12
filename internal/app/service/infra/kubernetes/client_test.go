@@ -33,7 +33,7 @@ type ClientTestSuite struct {
 
 func (suite *ClientTestSuite) SetupTest() {
 	suite.fakeClientSet = fakeclientset.NewSimpleClientset()
-	suite.testClient = &client{
+	suite.testClient = &kubernetesClient{
 		clientSet: suite.fakeClientSet,
 	}
 	suite.jobName = "job1"
@@ -58,7 +58,7 @@ func (suite *ClientTestSuite) SetupTest() {
 	})
 
 	suite.fakeHttpClient = &http.Client{}
-	suite.testClientStreaming = &client{
+	suite.testClientStreaming = &kubernetesClient{
 		clientSet:  suite.fakeClientSetStreaming,
 		httpClient: suite.fakeHttpClient,
 	}

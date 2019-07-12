@@ -14,7 +14,7 @@ import (
 
 type ExecutionService interface {
 	Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error)
-	Save(executionContext *model.ExecutionContext)
+	save(executionContext *model.ExecutionContext) error
 }
 
 type executionService struct {
@@ -38,56 +38,59 @@ func NewExecutionService(
 	}
 }
 
-func (service *executionService) Save(executionContext *model.ExecutionContext) {
+func (service *executionService) save(executionContext *model.ExecutionContext) error {
+	var err error
 	if executionContext.ExecutionID == 0 {
-		_, err := service.repository.Insert(executionContext)
-		logger.LogErrors(err, "save execution context to db ", executionContext)
+		_, err = service.repository.Insert(executionContext)
+		logger.LogErrors(err, "save execution context to db", *executionContext)
 	} else {
-		context, err := service.repository.GetById(executionContext.ExecutionID)
-		if err != nil || context == nil {
-			service.repository.Insert(executionContext)
-			logger.LogErrors(err, "save execution context to db ", executionContext)
+		context, _err := service.repository.GetById(executionContext.ExecutionID)
+		logger.LogErrors(_err, "get context from db by execution id", *executionContext)
+		if _err != nil || context == nil {
+			_, err = service.repository.Insert(executionContext)
+			logger.LogErrors(err, "save execution context to db", *executionContext)
 		} else {
 			err = service.repository.UpdateStatus(executionContext.ExecutionID, executionContext.Status)
-			logger.LogErrors(err, "update execution context status", executionContext)
+			logger.LogErrors(err, "update execution context status", *executionContext)
 			if len(executionContext.Output) > 0 {
 				err = service.repository.UpdateJobOutput(executionContext.ExecutionID, executionContext.Output)
-				logger.LogErrors(err, "update execution context output", executionContext)
+				logger.LogErrors(err, "update execution context output", *executionContext)
 			}
 		}
 	}
+	return err
 }
 
-func (service *executionService) Execute(name string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error) {
+func (service *executionService) Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error) {
 	context := &model.ExecutionContext{
 		UserEmail: userEmail,
-		JobName:   name,
+		JobName:   jobName,
 		Args:      args,
 		Status:    status.Created,
 	}
 
-	defer service.Save(context)
+	defer service.save(context)
 
-	metadata, err := service.metadataRepository.GetByName(name)
+	metadata, err := service.metadataRepository.GetByName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
-		return context, "", errors.New(fmt.Sprintf("metadata not found for %v, throws error %v", name, err.Error()))
+		return context, "", errors.New(fmt.Sprintf("metadata not found for %v, throws error %v", jobName, err.Error()))
 	}
 
-	secret, err := service.secretRepository.GetByJobName(name)
+	secret, err := service.secretRepository.GetByJobName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
-		return context, "", errors.New(fmt.Sprintf("secret not found for %v, throws error %v", name, err.Error()))
+		return context, "", errors.New(fmt.Sprintf("secret not found for %v, throws error %v", jobName, err.Error()))
 	}
 
 	executionArgs := mergeArgs(args, secret)
 
 	context.Status = status.Created
 	executionName, err := service.kubernetesClient.ExecuteJob(metadata.ImageName, executionArgs)
-	logger.Info("Executed Job on Kubernetes got ", executionName, " execution name and ", err, "errors")
+	logger.Info("Executed Job on Kubernetes got ", executionName, " execution jobName and ", err, "errors")
 	if err != nil {
 		context.Status = status.CreationFailed
-		return context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", name, args, err.Error()))
+		return context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", jobName, args, err.Error()))
 	}
 
 	return context, executionName, nil

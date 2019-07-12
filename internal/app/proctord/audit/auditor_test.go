@@ -11,7 +11,7 @@ import (
 
 func TestJobsExecutionAuditing(t *testing.T) {
 	mockStore := &storage.MockStore{}
-	mockKubeClient := &kubernetes.MockClient{}
+	mockKubeClient := &kubernetes.MockKubernetesClient{}
 	testAuditor := New(mockStore, mockKubeClient)
 	jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
 		JobName: "any-job-name",
@@ -27,7 +27,7 @@ func TestJobsExecutionAuditing(t *testing.T) {
 
 func TestAuditJobsExecutionStatusAuditing(t *testing.T) {
 	mockStore := &storage.MockStore{}
-	mockKubeClient := &kubernetes.MockClient{}
+	mockKubeClient := &kubernetes.MockKubernetesClient{}
 	testAuditor := New(mockStore, mockKubeClient)
 
 	jobExecutionID := "job-execution-id"
@@ -44,7 +44,7 @@ func TestAuditJobsExecutionStatusAuditing(t *testing.T) {
 
 func TestAuditJobsExecutionAndStatusAuditing(t *testing.T) {
 	mockStore := &storage.MockStore{}
-	mockKubeClient := &kubernetes.MockClient{}
+	mockKubeClient := &kubernetes.MockKubernetesClient{}
 	testAuditor := New(mockStore, mockKubeClient)
 
 	jobExecutionID := "job-execution-id"
