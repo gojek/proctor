@@ -62,7 +62,7 @@ func (suite *LoggerTestSuite) TestLoggerStream() {
 
 	buffer := utility.NewBuffer()
 	_, _ = buffer.Write([]byte("first line\nsecond line\n"))
-	suite.mockKubeClient.On("StreamJobLogs", "sample").Return(buffer, nil).Once()
+	suite.mockKubeClient.On("StreamJobLogs", "sample", mock.Anything).Return(buffer, nil).Once()
 
 	c, _, err := websocket.DefaultDialer.Dial(s.URL+"?"+logsHandlerRawQuery, nil)
 	assert.NoError(t, err)
@@ -93,7 +93,7 @@ func (suite *LoggerTestSuite) TestLoggerStreamConnectionUpgradeFailure() {
 
 	suite.testLogger.Stream()(responseRecorder, req)
 
-	suite.mockKubeClient.AssertNotCalled(t, "StreamJobLogs", mock.Anything)
+	suite.mockKubeClient.AssertNotCalled(t, "StreamJobLogs", mock.Anything, mock.Anything)
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	assert.Equal(t, "Bad Request\n"+constant.ClientError, responseRecorder.Body.String())
@@ -109,7 +109,7 @@ func (suite *LoggerTestSuite) TestLoggerStreamForNoJobName() {
 	assert.NoError(t, err)
 	defer c.Close()
 
-	suite.mockKubeClient.AssertNotCalled(t, "StreamJobLogs", mock.Anything)
+	suite.mockKubeClient.AssertNotCalled(t, "StreamJobLogs", mock.Anything, mock.Anything)
 
 	_, finalMessage, err := c.ReadMessage()
 	assert.Error(t, err)
@@ -123,7 +123,7 @@ func (suite *LoggerTestSuite) TestLoggerStreamKubeClientFailure() {
 	s := suite.newServer()
 	defer s.Close()
 
-	suite.mockKubeClient.On("StreamJobLogs", "sample").Return(&utility.Buffer{}, errors.New("error")).Once()
+	suite.mockKubeClient.On("StreamJobLogs", "sample", mock.Anything).Return(&utility.Buffer{}, errors.New("error")).Once()
 
 	c, _, err := websocket.DefaultDialer.Dial(s.URL+"?"+logsHandlerRawQuery, nil)
 	assert.NoError(t, err)

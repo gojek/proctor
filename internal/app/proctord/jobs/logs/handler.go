@@ -9,6 +9,7 @@ import (
 	"proctor/internal/app/service/infra/kubernetes"
 	_logger "proctor/internal/app/service/infra/logger"
 	"strings"
+	"time"
 
 	"proctor/internal/pkg/constant"
 
@@ -63,7 +64,8 @@ func (l *logger) Stream() http.HandlerFunc {
 			return
 		}
 
-		logStream, err := l.kubeClient.StreamJobLogs(jobName)
+		waitTime := config.KubePodsListWaitTime() * time.Second
+		logStream, err := l.kubeClient.StreamJobLogs(jobName, waitTime)
 		if err != nil {
 			_logger.Error("Error streaming logs from kube client: ", err)
 			raven.CaptureError(err, map[string]string{"job_name": jobName})

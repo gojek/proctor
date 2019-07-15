@@ -12,6 +12,7 @@ import (
 	kubeHttpClient "proctor/internal/app/service/infra/kubernetes/http"
 	"proctor/internal/pkg/constant"
 	"testing"
+	"time"
 )
 
 type IntegrationTestSuite struct {
@@ -97,7 +98,8 @@ func (suite *IntegrationTestSuite) TestStreamLogsSuccess() {
 	executedJobname, err := suite.testClient.ExecuteJobWithCommand(sampleImageName, envVarsForContainer, []string{"echo", "Bimo Horizon"})
 	assert.NoError(t, err)
 
-	logStream, err := suite.testClient.StreamJobLogs(executedJobname)
+	waitTime := config.KubePodsListWaitTime() * time.Second
+	logStream, err := suite.testClient.StreamJobLogs(executedJobname, waitTime)
 	assert.NoError(t, err)
 
 	defer logStream.Close()

@@ -23,6 +23,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const JobFailed = int32(0)
+
 var typeMeta meta.TypeMeta
 var namespace string
 
@@ -36,9 +38,12 @@ func init() {
 
 type KubernetesClient interface {
 	ExecuteJobWithCommand(imageName string, args map[string]string, commands []string) (string, error)
-	ExecuteJob(executionName string, args map[string]string) (string, error)
-	StreamJobLogs(executionName string) (io.ReadCloser, error)
+	ExecuteJob(imageName string, args map[string]string) (string, error)
+	StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error)
 	JobExecutionStatus(executionName string) (string, error)
+	WaitForReadyJob(executionName string, waitTime time.Duration) error
+	WaitForReadyPod(executionName string, waitTime time.Duration) (*v1.Pod, error)
+	GetPodLogs(pod *v1.Pod) (io.ReadCloser, error)
 }
 
 type kubernetesClient struct {
@@ -178,18 +183,18 @@ func (client *kubernetesClient) ExecuteJobWithCommand(imageName string, envMap m
 	return executionName, nil
 }
 
-func (client *kubernetesClient) StreamJobLogs(executionName string) (io.ReadCloser, error) {
-	err := client.waitForReadyJob(executionName)
+func (client *kubernetesClient) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {
+	err := client.WaitForReadyJob(executionName, waitTime)
 	if err != nil {
 		return nil, err
 	}
 
-	pod, err := client.waitForReadyPod(executionName)
+	pod, err := client.WaitForReadyPod(executionName, waitTime)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := client.getPodLogs(pod)
+	result, err := client.GetPodLogs(pod)
 
 	if err != nil {
 		return nil, err
@@ -198,7 +203,7 @@ func (client *kubernetesClient) StreamJobLogs(executionName string) (io.ReadClos
 	return result, nil
 }
 
-func (client *kubernetesClient) waitForReadyJob(executionName string) error {
+func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime time.Duration) error {
 	batchV1 := client.clientSet.BatchV1()
 	jobs := batchV1.Jobs(namespace)
 	listOptions := meta.ListOptions{
@@ -211,7 +216,7 @@ func (client *kubernetesClient) waitForReadyJob(executionName string) error {
 		return err
 	}
 
-	timeoutChan := time.After(config.KubePodsListWaitTime() * time.Second)
+	timeoutChan := time.After(waitTime)
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 
@@ -240,7 +245,7 @@ func (client *kubernetesClient) waitForReadyJob(executionName string) error {
 	return fmt.Errorf("job never reach the active status")
 }
 
-func (client *kubernetesClient) waitForReadyPod(executionName string) (*v1.Pod, error) {
+func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime time.Duration) (*v1.Pod, error) {
 	coreV1 := client.clientSet.CoreV1()
 	kubernetesPods := coreV1.Pods(namespace)
 	listOptions := meta.ListOptions{
@@ -253,7 +258,7 @@ func (client *kubernetesClient) waitForReadyPod(executionName string) (*v1.Pod, 
 		return nil, err
 	}
 
-	timeoutChan := time.After(config.KubePodsListWaitTime() * time.Second)
+	timeoutChan := time.After(waitTime)
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 	var pod *v1.Pod
@@ -316,7 +321,7 @@ func (client *kubernetesClient) JobExecutionStatus(executionName string) (string
 	return constant.NoDefinitiveJobExecutionStatusFound, nil
 }
 
-func (client *kubernetesClient) getPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
+func (client *kubernetesClient) GetPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
 	logger.Debug("reading pod logs for: ", pod.Name)
 	podLogOpts := v1.PodLogOptions{
 		Follow: true,

@@ -1,8 +1,11 @@
 package service
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/jmoiron/sqlx/types"
 	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/execution/repository"
 	"proctor/internal/app/service/execution/status"
@@ -10,6 +13,7 @@ import (
 	"proctor/internal/app/service/infra/logger"
 	svcMetadataRepository "proctor/internal/app/service/metadata/repository"
 	svcSecretRepository "proctor/internal/app/service/secret/repository"
+	"time"
 )
 
 type ExecutionService interface {
@@ -93,7 +97,54 @@ func (service *executionService) Execute(jobName string, userEmail string, args 
 		return context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", jobName, args, err.Error()))
 	}
 
+	service.watchProcess(executionName, context)
+
 	return context, executionName, nil
+}
+
+func (service *executionService) watchProcess(executionName string, context *model.ExecutionContext) {
+	waitTime := 15 * time.Minute
+	err := service.kubernetesClient.WaitForReadyJob(executionName, waitTime)
+
+	if err != nil {
+		context.Status = status.JobCreationFailed
+		return
+	}
+
+	context.Status = status.JobReady
+	logger.Info("Job Ready for ", context.ExecutionID)
+
+	pod, err := service.kubernetesClient.WaitForReadyPod(executionName, waitTime)
+	if err != nil {
+		context.Status = status.PodCreationFailed
+		return
+	}
+
+	context.Status = status.PodReady
+	logger.Info("Job Ready for ", context.ExecutionID)
+
+	podLog, err := service.kubernetesClient.GetPodLogs(pod)
+	if err != nil {
+		context.Status = status.FetchPodLogFailed
+		return
+	}
+
+	scanner := bufio.NewScanner(podLog)
+	scanner.Split(bufio.ScanLines)
+
+	var buffer bytes.Buffer
+	for scanner.Scan() {
+		buffer.WriteString(scanner.Text())
+	}
+
+	output := types.GzippedText(buffer.Bytes())
+
+	context.Output = output
+	logger.Info("Execution Output Produced ", context.ExecutionID, " with length ", len(output))
+
+	context.Status = status.Finished
+
+	return
 }
 
 func mergeArgs(argsOne, argsTwo map[string]string) map[string]string {
