@@ -23,8 +23,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-const JobFailed = int32(0)
-
 var typeMeta meta.TypeMeta
 var namespace string
 
@@ -220,36 +218,27 @@ func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime t
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 
-	select {
-	case <-timeoutChan:
-		return fmt.Errorf("timeout when waiting job to be available")
-	case <-resultChan:
-		for event := range resultChan {
-			if event.Type == watch.Error {
+	for {
+		select {
+		case watchEvent := <-resultChan:
+			if watchEvent.Type == watch.Error {
 				return fmt.Errorf("watch error when waiting for job with list option %v", listOptions)
 			}
-			job := event.Object.(*batch.Job)
+
+			job := watchEvent.Object.(*batch.Job)
 			if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
 				return nil
 			}
-
-			select {
-			case <-timeoutChan:
-				return fmt.Errorf("timeout when waiting job to be ready")
-			case <-resultChan:
-				continue
-			}
+		case <-timeoutChan:
+			return fmt.Errorf("timeout when waiting job to be available")
 		}
 	}
-
-	return fmt.Errorf("job never reach the active status")
 }
 
 func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime time.Duration) (*v1.Pod, error) {
 	coreV1 := client.clientSet.CoreV1()
 	kubernetesPods := coreV1.Pods(namespace)
 	listOptions := meta.ListOptions{
-		TypeMeta:      typeMeta,
 		LabelSelector: jobLabelSelector(executionName),
 	}
 
@@ -263,11 +252,9 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 	defer watchJob.Stop()
 	var pod *v1.Pod
 
-	select {
-	case <-timeoutChan:
-		return nil, fmt.Errorf("timeout when waiting pod to be available")
-	case <-resultChan:
-		for event := range resultChan {
+	for {
+		select {
+		case event := <-resultChan:
 			if event.Type == watch.Error {
 				return nil, fmt.Errorf("watch error when waiting for pod with list option %v", listOptions)
 			}
@@ -275,16 +262,11 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 			if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
 				return pod, nil
 			}
-			select {
-			case <-timeoutChan:
-				return nil, fmt.Errorf("timeout when waiting pod to be ready")
-			case <-resultChan:
-				continue
-			}
+		case <-timeoutChan:
+			return nil, fmt.Errorf("timeout when waiting pod to be available")
 		}
 	}
 
-	return nil, fmt.Errorf("pod never get the intended state")
 }
 
 func (client *kubernetesClient) JobExecutionStatus(executionName string) (string, error) {

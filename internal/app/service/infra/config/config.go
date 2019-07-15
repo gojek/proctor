@@ -17,7 +17,7 @@ func KubeConfig() string {
 }
 
 func KubeContext() string {
-	viper.SetDefault("KUBE_CONTEXT","default")
+	viper.SetDefault("KUBE_CONTEXT", "default")
 	return viper.GetString("KUBE_CONTEXT")
 }
 
@@ -63,6 +63,10 @@ func LogsStreamWriteBufferSize() int {
 
 func KubePodsListWaitTime() time.Duration {
 	return time.Duration(viper.GetInt("KUBE_POD_LIST_WAIT_TIME"))
+}
+
+func KubeLogProcessWaitTime() time.Duration {
+	return time.Duration(viper.GetInt("KUBE_LOG_PROCESS_WAIT_TIME"))
 }
 
 func KubeJobActiveDeadlineSeconds() *int64 {

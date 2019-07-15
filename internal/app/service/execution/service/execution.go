@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx/types"
+	v1 "k8s.io/api/core/v1"
 	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/execution/repository"
 	"proctor/internal/app/service/execution/status"
+	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/kubernetes"
 	"proctor/internal/app/service/infra/logger"
 	svcMetadataRepository "proctor/internal/app/service/metadata/repository"
@@ -102,13 +104,15 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 		return context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", jobName, args, err.Error()))
 	}
 
-	service.watchProcess(executionName, context)
+	go service.watchProcess(executionName, context)
 
 	return context, executionName, nil
 }
 
 func (service *executionService) watchProcess(executionName string, context *model.ExecutionContext) {
-	waitTime := 15 * time.Minute
+	defer service.save(context)
+
+	waitTime := config.KubeLogProcessWaitTime() * time.Second
 	err := service.kubernetesClient.WaitForReadyJob(executionName, waitTime)
 
 	if err != nil {
@@ -125,8 +129,13 @@ func (service *executionService) watchProcess(executionName string, context *mod
 		return
 	}
 
-	context.Status = status.PodReady
-	logger.Info("Job Ready for ", context.ExecutionID)
+	if pod.Status.Phase == v1.PodFailed {
+		context.Status = status.PodFailed
+		logger.Info("Pod Failed for ", context.ExecutionID, " reason: ", pod.Status.Reason, " message: ", pod.Status.Message)
+	} else {
+		context.Status = status.PodReady
+		logger.Info("Pod Ready for ", context.ExecutionID)
+	}
 
 	podLog, err := service.kubernetesClient.GetPodLogs(pod)
 	if err != nil {
@@ -139,7 +148,7 @@ func (service *executionService) watchProcess(executionName string, context *mod
 
 	var buffer bytes.Buffer
 	for scanner.Scan() {
-		buffer.WriteString(scanner.Text())
+		buffer.WriteString(scanner.Text() + "\n")
 	}
 
 	output := types.GzippedText(buffer.Bytes())
@@ -147,7 +156,9 @@ func (service *executionService) watchProcess(executionName string, context *mod
 	context.Output = output
 	logger.Info("Execution Output Produced ", context.ExecutionID, " with length ", len(output))
 
-	context.Status = status.Finished
+	if context.Status == status.PodReady {
+		context.Status = status.Finished
+	}
 
 	return
 }
