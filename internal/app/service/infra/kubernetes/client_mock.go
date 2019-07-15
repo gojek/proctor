@@ -19,7 +19,7 @@ func (m *MockKubernetesClient) ExecuteJob(jobName string, envMap map[string]stri
 }
 
 func (m *MockKubernetesClient) ExecuteJobWithCommand(jobName string, envMap map[string]string, command []string) (string, error) {
-	args := m.Called(jobName, envMap)
+	args := m.Called(jobName, envMap, command)
 	return args.String(0), args.Error(1)
 }
 

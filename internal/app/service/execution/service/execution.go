@@ -18,6 +18,7 @@ import (
 
 type ExecutionService interface {
 	Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error)
+	ExecuteWithCommand(jobName string, userEmail string, args map[string]string, commands []string) (*model.ExecutionContext, string, error)
 	save(executionContext *model.ExecutionContext) error
 }
 
@@ -66,6 +67,10 @@ func (service *executionService) save(executionContext *model.ExecutionContext) 
 }
 
 func (service *executionService) Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error) {
+	return service.ExecuteWithCommand(jobName, userEmail, args, []string{})
+}
+
+func (service *executionService) ExecuteWithCommand(jobName string, userEmail string, args map[string]string, commands []string) (*model.ExecutionContext, string, error) {
 	context := &model.ExecutionContext{
 		UserEmail: userEmail,
 		JobName:   jobName,
@@ -90,7 +95,7 @@ func (service *executionService) Execute(jobName string, userEmail string, args 
 	executionArgs := mergeArgs(args, secret)
 
 	context.Status = status.Created
-	executionName, err := service.kubernetesClient.ExecuteJob(metadata.ImageName, executionArgs)
+	executionName, err := service.kubernetesClient.ExecuteJobWithCommand(metadata.ImageName, executionArgs, commands)
 	logger.Info("Executed Job on Kubernetes got ", executionName, " execution jobName and ", err, "errors")
 	if err != nil {
 		context.Status = status.CreationFailed

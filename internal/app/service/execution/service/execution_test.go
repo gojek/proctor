@@ -7,6 +7,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"io/ioutil"
+	v1 "k8s.io/api/core/v1"
 	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/execution/repository"
 	"proctor/internal/app/service/execution/status"
@@ -15,6 +17,7 @@ import (
 	svcMetadataRepository "proctor/internal/app/service/metadata/repository"
 	svcSecretRepository "proctor/internal/app/service/secret/repository"
 	"proctor/internal/pkg/model/metadata"
+	"strings"
 	"testing"
 )
 
@@ -55,24 +58,24 @@ func (suite *TestExecutionServiceSuite) TestSaveNoExecutionId() {
 
 func (suite *TestExecutionServiceSuite) TestSaveWithExecutionId() {
 	t := suite.T()
-	id, _ := id.NextId()
+	_id, _ := id.NextId()
 	context := &model.ExecutionContext{
-		ExecutionID: id,
+		ExecutionID: _id,
 		Status:      status.Created,
 	}
 
-	suite.mockRepository.On("GetById", id).Return(context, errors.New("Get By Id Error")).Once()
+	suite.mockRepository.On("GetById", _id).Return(context, errors.New("Get By Id Error")).Once()
 	suite.mockRepository.On("Insert", context).Return(0, errors.New("Insert Failed")).Once()
 	err := suite.service.save(context)
 	assert.Error(t, err, "Insert Failed")
 
-	suite.mockRepository.On("GetById", id).Return(context, nil).Once()
+	suite.mockRepository.On("GetById", _id).Return(context, nil).Once()
 	suite.mockRepository.On("UpdateStatus", context.ExecutionID, context.Status).Return(errors.New("Update Status Failed")).Once()
 	err = suite.service.save(context)
 	assert.Error(t, err, "Update Status Failed")
 
 	context.Output = types.GzippedText("This is some output")
-	suite.mockRepository.On("GetById", id).Return(context, nil).Once()
+	suite.mockRepository.On("GetById", _id).Return(context, nil).Once()
 	suite.mockRepository.On("UpdateStatus", context.ExecutionID, context.Status).Return(nil).Once()
 	suite.mockRepository.On("UpdateJobOutput", context.ExecutionID, context.Output).Return(errors.New("Update Output Failed")).Once()
 	err = suite.service.save(context)
@@ -140,7 +143,7 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobFailed() {
 	suite.mockMetadataRepository.On("GetByName", jobName).Return(fakeMetadata, nil).Once()
 	suite.mockSecretRepository.On("GetByJobName", jobName).Return(map[string]string{}, nil).Once()
 	suite.mockRepository.On("Insert", mock.Anything).Return(0, nil).Once()
-	suite.mockKubernetesClient.On("ExecuteJob", imageName, jobArgs).Return("", errors.New("Execution Failed"))
+	suite.mockKubernetesClient.On("ExecuteJobWithCommand", imageName, jobArgs, []string{}).Return("", errors.New("Execution Failed"))
 
 	context, _, err := suite.service.Execute(jobName, userEmail, jobArgs)
 	assert.Error(t, err, "error when executing image")
@@ -167,12 +170,19 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobSuccess() {
 	suite.mockMetadataRepository.On("GetByName", jobName).Return(fakeMetadata, nil).Once()
 	suite.mockSecretRepository.On("GetByJobName", jobName).Return(map[string]string{}, nil).Once()
 	suite.mockRepository.On("Insert", mock.Anything).Return(0, nil).Once()
-	suite.mockKubernetesClient.On("ExecuteJob", imageName, jobArgs).Return("", nil)
+
+	executionName := "execution-name"
+	suite.mockKubernetesClient.On("ExecuteJobWithCommand", imageName, jobArgs, []string{}).Return(executionName, nil)
+	suite.mockKubernetesClient.On("WaitForReadyJob", executionName, mock.Anything).Return(nil)
+	podDetail := &v1.Pod{}
+	suite.mockKubernetesClient.On("WaitForReadyPod", executionName, mock.Anything).Return(podDetail, nil)
+	mockLog := ioutil.NopCloser(strings.NewReader("hello world"))
+	suite.mockKubernetesClient.On("GetPodLogs", podDetail).Return(mockLog, nil)
 
 	context, _, err := suite.service.Execute(jobName, userEmail, jobArgs)
 	assert.NilError(t, err)
 	assert.NotNil(t, context)
-	assert.Equal(t, context.Status, status.Created)
+	assert.Equal(t, context.Status, status.Finished)
 }
 
 func TestExecutionServiceSuiteTest(t *testing.T) {
