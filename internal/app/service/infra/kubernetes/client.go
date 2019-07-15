@@ -37,7 +37,6 @@ func init() {
 type KubernetesClient interface {
 	ExecuteJobWithCommand(imageName string, args map[string]string, commands []string) (string, error)
 	ExecuteJob(imageName string, args map[string]string) (string, error)
-	StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error)
 	JobExecutionStatus(executionName string) (string, error)
 	WaitForReadyJob(executionName string, waitTime time.Duration) error
 	WaitForReadyPod(executionName string, waitTime time.Duration) (*v1.Pod, error)
@@ -179,26 +178,6 @@ func (client *kubernetesClient) ExecuteJobWithCommand(imageName string, envMap m
 		return "", err
 	}
 	return executionName, nil
-}
-
-func (client *kubernetesClient) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {
-	err := client.WaitForReadyJob(executionName, waitTime)
-	if err != nil {
-		return nil, err
-	}
-
-	pod, err := client.WaitForReadyPod(executionName, waitTime)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := client.GetPodLogs(pod)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
 
 func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime time.Duration) error {

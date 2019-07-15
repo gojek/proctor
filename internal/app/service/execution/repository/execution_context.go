@@ -35,7 +35,7 @@ func NewExecutionContextRepository(client postgresql.Client) ExecutionContextRep
 func (repository *executionContextRepository) Insert(context *model.ExecutionContext) (uint64, error) {
 	snowflakeId, _ := id.NextId()
 	context.ExecutionID = snowflakeId
-	sql := "INSERT INTO execution_context (id, job_name, user_email, image_tag, args, output, status) VALUES (:id, :job_name, :user_email, :image_tag, :args, :output, :status)"
+	sql := "INSERT INTO execution_context (id, job_name,name, user_email, image_tag, args, output, status) VALUES (:id, :job_name, :name, :user_email, :image_tag, :args, :output, :status)"
 	_, err := repository.postgresqlClient.NamedExec(sql, &context)
 	if err != nil {
 		return 0, nil
@@ -75,7 +75,7 @@ func (repository *executionContextRepository) Delete(executionId uint64) error {
 }
 
 func (repository *executionContextRepository) GetById(executionId uint64) (*model.ExecutionContext, error) {
-	sql := "SELECT id, job_name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE id=$1 "
+	sql := "SELECT id, job_name, name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE id=$1 "
 	var contexts []model.ExecutionContext
 	err := repository.postgresqlClient.Select(&contexts, sql, executionId)
 	if err != nil {
@@ -90,7 +90,7 @@ func (repository *executionContextRepository) GetById(executionId uint64) (*mode
 }
 
 func (repository *executionContextRepository) GetByEmail(userEmail string) ([]model.ExecutionContext, error) {
-	sql := "SELECT id, job_name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE user_email=$1 "
+	sql := "SELECT id, job_name, name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE user_email=$1 "
 	var contexts []model.ExecutionContext
 	err := repository.postgresqlClient.Select(&contexts, sql, userEmail)
 	if err != nil {
@@ -101,7 +101,7 @@ func (repository *executionContextRepository) GetByEmail(userEmail string) ([]mo
 }
 
 func (repository *executionContextRepository) GetByJobName(jobName string) ([]model.ExecutionContext, error) {
-	sql := "SELECT id, job_name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE job_name=$1 "
+	sql := "SELECT id, job_name, name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE job_name=$1 "
 	var contexts []model.ExecutionContext
 	err := repository.postgresqlClient.Select(&contexts, sql, jobName)
 	if err != nil {
@@ -112,7 +112,7 @@ func (repository *executionContextRepository) GetByJobName(jobName string) ([]mo
 }
 
 func (repository *executionContextRepository) GetByStatus(status string) ([]model.ExecutionContext, error) {
-	sql := "SELECT id, job_name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE status=$1 "
+	sql := "SELECT id, job_name, name, user_email, image_tag, args, output, status, created_at, updated_at FROM execution_context WHERE status=$1 "
 	var contexts []model.ExecutionContext
 	err := repository.postgresqlClient.Select(&contexts, sql, status)
 	if err != nil {

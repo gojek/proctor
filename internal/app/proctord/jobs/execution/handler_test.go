@@ -14,6 +14,7 @@ import (
 	"net/http/httptest"
 	"proctor/internal/app/proctord/audit"
 	"proctor/internal/app/proctord/storage"
+	"proctor/internal/app/service/execution/handler/parameter"
 	"proctor/internal/pkg/constant"
 	"testing"
 )
@@ -68,7 +69,7 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandler() {
 	remoteCallerURL := fmt.Sprintf("%s/status", ts.URL)
 
 	userEmail := "mrproctor@example.com"
-	job := Job{
+	job := parameter.Job{
 		Name:        "sample-job-name",
 		Args:        map[string]string{"argOne": "sample-arg"},
 		CallbackURL: remoteCallerURL,
@@ -112,7 +113,7 @@ func (suite *ExecutionHandlerTestSuite) TestSuccessfulJobExecutionHandlerWithout
 	defer ts.Close()
 
 	userEmail := "mrproctor@example.com"
-	job := Job{
+	job := parameter.Job{
 		Name: "sample-job-name",
 		Args: map[string]string{"argOne": "sample-arg"},
 	}
@@ -167,7 +168,7 @@ func (suite *ExecutionHandlerTestSuite) TestJobExecutionOnMalformedRequest() {
 func (suite *ExecutionHandlerTestSuite) TestJobExecutionServerFailure() {
 	t := suite.T()
 
-	job := Job{
+	job := parameter.Job{
 		Name: "sample-job-name",
 		Args: map[string]string{"argOne": "sample-arg"},
 	}

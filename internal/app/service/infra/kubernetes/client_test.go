@@ -111,14 +111,6 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	assert.Equal(t, expectedEnvVars, container.Env)
 }
 
-func (suite *ClientTestSuite) TestStreamLogsPodNotFoundFailure() {
-	t := suite.T()
-
-	waitTime := 3 * time.Second
-	_, err := suite.testClientStreaming.StreamJobLogs("unknown-job", waitTime)
-	assert.Error(t, err)
-}
-
 func (suite *ClientTestSuite) TestShouldReturnSuccessJobExecutionStatus() {
 	t := suite.T()
 

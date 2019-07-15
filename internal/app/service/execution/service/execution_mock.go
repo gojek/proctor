@@ -2,7 +2,10 @@ package service
 
 import (
 	"github.com/stretchr/testify/mock"
+	"io"
 	"proctor/internal/app/service/execution/model"
+	"proctor/internal/pkg/utility"
+	"time"
 )
 
 type MockExecutionService struct {
@@ -21,4 +24,9 @@ func (mockService *MockExecutionService) ExecuteWithCommand(jobName string, user
 
 func (mockService *MockExecutionService) save(executionContext *model.ExecutionContext) {
 	mockService.Called(executionContext)
+}
+
+func (mockService *MockExecutionService) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {
+	args := mockService.Called(executionName, waitTime)
+	return args.Get(0).(*utility.Buffer), args.Error(1)
 }

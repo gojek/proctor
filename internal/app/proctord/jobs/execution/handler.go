@@ -10,6 +10,7 @@ import (
 	"proctor/internal/app/proctord/audit"
 	"proctor/internal/app/proctord/storage"
 	"proctor/internal/app/proctord/storage/postgres"
+	"proctor/internal/app/service/execution/handler/parameter"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/pkg/constant"
 	"time"
@@ -66,7 +67,7 @@ func (handler *executionHandler) Handle() http.HandlerFunc {
 		userEmail := req.Header.Get(constant.UserEmailHeaderKey)
 		jobsExecutionAuditLog.UserEmail = userEmail
 
-		var job Job
+		var job parameter.Job
 		err := json.NewDecoder(req.Body).Decode(&job)
 		defer req.Body.Close()
 		if err != nil {

@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"bufio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/api/core/v1"
@@ -12,7 +11,6 @@ import (
 	kubeHttpClient "proctor/internal/app/service/infra/kubernetes/http"
 	"proctor/internal/pkg/constant"
 	"testing"
-	"time"
 )
 
 type IntegrationTestSuite struct {
@@ -88,30 +86,6 @@ func (suite *IntegrationTestSuite) TestJobExecutionStatus() {
 	assert.Equal(t, status, constant.JobSucceeded)
 }
 
-func (suite *IntegrationTestSuite) TestStreamLogsSuccess() {
-	t := suite.T()
-
-	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
-	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
-	sampleImageName := "busybox"
-
-	executedJobname, err := suite.testClient.ExecuteJobWithCommand(sampleImageName, envVarsForContainer, []string{"echo", "Bimo Horizon"})
-	assert.NoError(t, err)
-
-	waitTime := config.KubePodsListWaitTime() * time.Second
-	logStream, err := suite.testClient.StreamJobLogs(executedJobname, waitTime)
-	assert.NoError(t, err)
-
-	defer logStream.Close()
-
-	bufioReader := bufio.NewReader(logStream)
-
-	jobLogSingleLine, _, err := bufioReader.ReadLine()
-	assert.NoError(t, err)
-
-	assert.Equal(t, "Bimo Horizon", string(jobLogSingleLine[:]))
-
-}
 
 func TestIntegrationTestSuite(t *testing.T) {
 	value, available := os.LookupEnv("ENABLE_INTEGRATION_TEST")

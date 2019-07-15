@@ -10,7 +10,7 @@ import (
 	modelMetadata "proctor/internal/pkg/model/metadata"
 )
 
-type handler struct {
+type metadataHttpHandler struct {
 	repository repository.MetadataRepository
 }
 
@@ -20,12 +20,12 @@ type MetadataHttpHandler interface {
 }
 
 func NewMetadataHttpHandler(repository repository.MetadataRepository) MetadataHttpHandler {
-	return &handler{
+	return &metadataHttpHandler{
 		repository: repository,
 	}
 }
 
-func (handler *handler) Post() http.HandlerFunc {
+func (handler *metadataHttpHandler) Post() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		var metadata []modelMetadata.Metadata
 		err := json.NewDecoder(request.Body).Decode(&metadata)
@@ -54,7 +54,7 @@ func (handler *handler) Post() http.HandlerFunc {
 	}
 }
 
-func (handler *handler) GetAll() http.HandlerFunc {
+func (handler *metadataHttpHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 
 		metadataSlice, err := handler.repository.GetAll()

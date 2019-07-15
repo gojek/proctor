@@ -1,4 +1,4 @@
-package execution
+package parameter
 
 type Job struct {
 	Name        string            `json:"name"`

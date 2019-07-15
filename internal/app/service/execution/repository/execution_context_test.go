@@ -112,6 +112,7 @@ func TestExecutionContextRepository_UpdateJobOutput(t *testing.T) {
 	fake.Seed(0)
 	context := &model.ExecutionContext{
 		JobName:   fake.BuzzWord(),
+		Name:      fake.HackerAdjective(),
 		UserEmail: fake.Email(),
 		ImageTag:  fake.BeerStyle(),
 		Args: map[string]string{
@@ -174,6 +175,7 @@ func populateSeedDataForTest(repository ExecutionContextRepository, count int, s
 
 		context := &model.ExecutionContext{
 			JobName:   jobName,
+			Name:      fake.HackerAdjective(),
 			UserEmail: email,
 			ImageTag:  fake.BeerStyle(),
 			Args: map[string]string{

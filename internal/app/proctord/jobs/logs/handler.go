@@ -1,17 +1,13 @@
 package logs
 
 import (
-	"bufio"
 	"github.com/getsentry/raven-go"
-	"io"
 	"net/http"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/kubernetes"
 	_logger "proctor/internal/app/service/infra/logger"
-	"strings"
-	"time"
-
 	"proctor/internal/pkg/constant"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -64,44 +60,8 @@ func (l *logger) Stream() http.HandlerFunc {
 			return
 		}
 
-		waitTime := config.KubePodsListWaitTime() * time.Second
-		logStream, err := l.kubeClient.StreamJobLogs(jobName, waitTime)
-		if err != nil {
-			_logger.Error("Error streaming logs from kube client: ", err)
-			raven.CaptureError(err, map[string]string{"job_name": jobName})
+		CloseWebSocket("No job name provided while requesting for logs", conn)
+		return
 
-			CloseWebSocket("Something went wrong", conn)
-			return
-		}
-		defer logStream.Close()
-
-		bufioReader := bufio.NewReader(logStream)
-
-		for {
-			jobLogSingleLine, _, err := bufioReader.ReadLine()
-			if err != nil {
-				if err == io.EOF {
-					_logger.Debug("Finished streaming logs for job: ", jobName)
-					CloseWebSocket("All logs are read", conn)
-					return
-				}
-
-				_logger.Error("Error reading from reader: ", err.Error())
-				raven.CaptureError(err, nil)
-
-				CloseWebSocket("Something went wrong", conn)
-				return
-			}
-
-			_logger.Debug("writing to web socket ", string(jobLogSingleLine[:]))
-			err = conn.WriteMessage(websocket.TextMessage, jobLogSingleLine[:])
-			if err != nil {
-				_logger.Error("Error writing logs to client: ", err)
-				raven.CaptureError(err, nil)
-
-				CloseWebSocket("Something went wrong", conn)
-				return
-			}
-		}
 	}
 }

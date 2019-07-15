@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/mock"
-	"proctor/internal/pkg/utility"
 )
 
 type MockKubernetesClient struct {
@@ -21,11 +20,6 @@ func (m *MockKubernetesClient) ExecuteJob(jobName string, envMap map[string]stri
 func (m *MockKubernetesClient) ExecuteJobWithCommand(jobName string, envMap map[string]string, command []string) (string, error) {
 	args := m.Called(jobName, envMap, command)
 	return args.String(0), args.Error(1)
-}
-
-func (m *MockKubernetesClient) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {
-	args := m.Called(executionName, waitTime)
-	return args.Get(0).(*utility.Buffer), args.Error(1)
 }
 
 func (m *MockKubernetesClient) JobExecutionStatus(executionName string) (string, error) {

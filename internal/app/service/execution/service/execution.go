@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx/types"
+	"io"
 	v1 "k8s.io/api/core/v1"
 	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/execution/repository"
@@ -21,6 +22,7 @@ import (
 type ExecutionService interface {
 	Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error)
 	ExecuteWithCommand(jobName string, userEmail string, args map[string]string, commands []string) (*model.ExecutionContext, string, error)
+	StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error)
 	save(executionContext *model.ExecutionContext) error
 }
 
@@ -68,6 +70,26 @@ func (service *executionService) save(executionContext *model.ExecutionContext) 
 	return err
 }
 
+func (service *executionService) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {
+	err := service.kubernetesClient.WaitForReadyJob(executionName, waitTime)
+	if err != nil {
+		return nil, err
+	}
+
+	pod, err := service.kubernetesClient.WaitForReadyPod(executionName, waitTime)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := service.kubernetesClient.GetPodLogs(pod)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (service *executionService) Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error) {
 	return service.ExecuteWithCommand(jobName, userEmail, args, []string{})
 }
@@ -103,6 +125,8 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 		context.Status = status.CreationFailed
 		return context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", jobName, args, err.Error()))
 	}
+
+	context.Name = executionName
 
 	go service.watchProcess(executionName, context)
 

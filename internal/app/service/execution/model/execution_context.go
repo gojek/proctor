@@ -10,6 +10,7 @@ import (
 type ExecutionContext struct {
 	ExecutionID uint64                 `db:"id"`
 	JobName     string                 `db:"job_name"`
+	Name        string                 `db:"name"`
 	UserEmail   string                 `db:"user_email"`
 	ImageTag    string                 `db:"image_tag"`
 	Args        dbTypes.Base64Map      `db:"args"`

@@ -1,12 +1,14 @@
 package service
 
 import (
+	"bufio"
 	fake "github.com/brianvoe/gofakeit"
-	"github.com/docker/docker/pkg/testutil/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
 	"proctor/internal/app/service/execution/repository"
 	"proctor/internal/app/service/execution/status"
+	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/kubernetes"
 	"proctor/internal/app/service/infra/kubernetes/http"
@@ -21,7 +23,7 @@ import (
 type TestExecutionIntegrationSuite struct {
 	suite.Suite
 	service                ExecutionService
-	mockKubernetesClient   kubernetes.KubernetesClient
+	kubernetesClient       kubernetes.KubernetesClient
 	repository             repository.ExecutionContextRepository
 	mockMetadataRepository *svcMetadataRepository.MockMetadataRepository
 	mockSecretRepository   *svcSecretRepository.MockSecretRepository
@@ -29,13 +31,13 @@ type TestExecutionIntegrationSuite struct {
 
 func (suite *TestExecutionIntegrationSuite) SetupTest() {
 	httpClient, _ := http.NewClient()
-	suite.mockKubernetesClient = kubernetes.NewKubernetesClient(httpClient)
+	suite.kubernetesClient = kubernetes.NewKubernetesClient(httpClient)
 	pgClient := postgresql.NewClient()
 	suite.repository = repository.NewExecutionContextRepository(pgClient)
 	suite.mockMetadataRepository = &svcMetadataRepository.MockMetadataRepository{}
 	suite.mockSecretRepository = &svcSecretRepository.MockSecretRepository{}
 	suite.service = NewExecutionService(
-		suite.mockKubernetesClient,
+		suite.kubernetesClient,
 		suite.repository,
 		suite.mockMetadataRepository,
 		suite.mockSecretRepository,
@@ -75,15 +77,40 @@ func (suite *TestExecutionIntegrationSuite) TestExecuteJobSuccess() {
 	suite.mockSecretRepository.On("GetByJobName", jobName).Return(map[string]string{}, nil).Once()
 
 	context, _, err := suite.service.ExecuteWithCommand(jobName, userEmail, jobArgs, []string{"bash", "-c", "for run in {1..10}; do sleep 1 && echo bimo; done"})
-	assert.NilError(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, context)
 
 	time.Sleep(30 * time.Second)
 	expectedContext, err := suite.repository.GetById(context.ExecutionID)
-	assert.NilError(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, expectedContext)
 	assert.Equal(t, expectedContext.Status, status.Finished)
 	assert.NotNil(t, expectedContext.Output)
+}
+
+func (suite *TestExecutionIntegrationSuite) TestStreamLogsSuccess() {
+	t := suite.T()
+
+	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
+	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
+	sampleImageName := "busybox"
+
+	executedJobname, err := suite.kubernetesClient.ExecuteJobWithCommand(sampleImageName, envVarsForContainer, []string{"echo", "Bimo Horizon"})
+	assert.NoError(t, err)
+
+	waitTime := config.KubePodsListWaitTime() * time.Second
+	logStream, err := suite.service.StreamJobLogs(executedJobname, waitTime)
+	assert.NoError(t, err)
+
+	defer logStream.Close()
+
+	bufioReader := bufio.NewReader(logStream)
+
+	jobLogSingleLine, _, err := bufioReader.ReadLine()
+	assert.NoError(t, err)
+
+	assert.Equal(t, "Bimo Horizon", string(jobLogSingleLine[:]))
+
 }
 
 func TestExecutionIntegrationSuiteTest(t *testing.T) {
