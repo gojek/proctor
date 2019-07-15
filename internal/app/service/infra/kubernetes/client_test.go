@@ -114,7 +114,7 @@ func (suite *ClientTestSuite) TestJobExecution() {
 func (suite *ClientTestSuite) TestStreamLogsPodNotFoundFailure() {
 	t := suite.T()
 
-	waitTime := config.KubePodsListWaitTime() * time.Second
+	waitTime := 3 * time.Second
 	_, err := suite.testClientStreaming.StreamJobLogs("unknown-job", waitTime)
 	assert.Error(t, err)
 }

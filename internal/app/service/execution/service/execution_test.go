@@ -169,7 +169,8 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobSuccess() {
 
 	suite.mockMetadataRepository.On("GetByName", jobName).Return(fakeMetadata, nil).Once()
 	suite.mockSecretRepository.On("GetByJobName", jobName).Return(map[string]string{}, nil).Once()
-	suite.mockRepository.On("Insert", mock.Anything).Return(0, nil).Once()
+	suite.mockRepository.On("Insert", mock.Anything).Return(0, nil).Times(3)
+	suite.mockRepository.On("GetById", mock.Anything).Return(0, nil).Times(3)
 
 	executionName := "execution-name"
 	suite.mockKubernetesClient.On("ExecuteJobWithCommand", imageName, jobArgs, []string{}).Return(executionName, nil)
@@ -182,7 +183,7 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobSuccess() {
 	context, _, err := suite.service.Execute(jobName, userEmail, jobArgs)
 	assert.NilError(t, err)
 	assert.NotNil(t, context)
-	assert.Equal(t, context.Status, status.Finished)
+	assert.Equal(t, context.Status, status.Created)
 }
 
 func TestExecutionServiceSuiteTest(t *testing.T) {
