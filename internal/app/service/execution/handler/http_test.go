@@ -107,8 +107,8 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionLogsWhenFi
 	buffer := utility.NewBuffer()
 	buffer.Write([]byte("test\n"))
 
-	suite.mockExecutionerService.On("StreamJobLogs", "1", time.Duration(10)).Return(buffer, nil).Once()
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
+	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
 
 	c, _, err := websocket.DefaultDialer.Dial(s.URL+"?"+logsHandlerRawQuery, nil)
 	assert.NoError(t, err)
@@ -117,8 +117,6 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionLogsWhenFi
 	_, firstMessage, err := c.ReadMessage()
 	assert.NoError(t, err)
 	assert.Equal(t, "test", string(firstMessage))
-
-	suite.mockKubernetesClient.AssertExpectations(t)
 }
 
 func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionLogsWhenReadyHttpHandler() {
@@ -149,7 +147,9 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionLogsWhenRe
 	buffer.Write([]byte("test1\ntest2\ntest3\n"))
 
 	suite.mockExecutionerService.On("StreamJobLogs", "1", time.Duration(30)*time.Second).Return(buffer, nil).Once()
+	defer suite.mockExecutionerService.AssertExpectations(t)
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
+	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
 
 	c, _, err := websocket.DefaultDialer.Dial(s.URL+"?"+logsHandlerRawQuery, nil)
 	assert.NoError(t, err)
@@ -166,8 +166,6 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionLogsWhenRe
 	_, thirdMessage, err := c.ReadMessage()
 	assert.NoError(t, err)
 	assert.Equal(t, "test3", string(thirdMessage))
-
-	suite.mockKubernetesClient.AssertExpectations(t)
 }
 
 func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionStatusHttpHandler() {
@@ -204,9 +202,9 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionStatusHttp
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
+	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
 
 	suite.testExecutionHttpHandler.Status()(responseRecorder, req)
-	suite.mockExecutionerService.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 	assert.Equal(t, string(responseBody), responseRecorder.Body.String())
@@ -261,9 +259,9 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionPostHttpHa
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockExecutionerService.On("Execute", job.Name, userEmail, job.Args).Return(context, "test", nil).Once()
+	defer suite.mockExecutionerService.AssertExpectations(t)
 
 	suite.testExecutionHttpHandler.Post()(responseRecorder, req)
-	suite.mockExecutionerService.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
 	assert.Equal(t, string(responseBody), responseRecorder.Body.String())
@@ -305,9 +303,9 @@ func (suite *ExecutionHttpHandlerTestSuite) TestGenericErrorJobExecutionPostHttp
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockExecutionerService.On("Execute", job.Name, userEmail, job.Args).Return(context, "test", genericError).Once()
+	defer suite.mockExecutionerService.AssertExpectations(t)
 
 	suite.testExecutionHttpHandler.Post()(responseRecorder, req)
-	suite.mockExecutionerService.AssertExpectations(t)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	assert.Equal(t, fmt.Sprintf("%s , Errors Detail %s", handlerStatus.JobExecutionError, genericError), responseRecorder.Body.String())
