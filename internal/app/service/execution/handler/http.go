@@ -119,7 +119,7 @@ func (httpHandler *executionHttpHandler) Status() http.HandlerFunc {
 		executionContextId, err := strconv.ParseUint(contextId, 10, 64)
 		logger.LogErrors(err, "parse execution context id from path parameter:", contextId)
 		if err != nil {
-			response.WriteHeader(http.StatusNotFound)
+			response.WriteHeader(http.StatusBadRequest)
 			_, _ = response.Write([]byte(status.PathParameterError))
 			return
 		}
@@ -134,7 +134,7 @@ func (httpHandler *executionHttpHandler) Status() http.HandlerFunc {
 		}
 
 		responseMap := map[string]string{
-			"ExecutionId": string(context.ExecutionID),
+			"ExecutionId": fmt.Sprint(context.ExecutionID),
 			"JobName":     context.JobName,
 			"ImageTag":    context.ImageTag,
 			"CreatedAt":   context.CreatedAt.String(),
@@ -179,7 +179,7 @@ func (httpHandler *executionHttpHandler) Post() http.HandlerFunc {
 		}
 
 		responseMap := map[string]string{
-			"ExecutionId":   string(context.ExecutionID),
+			"ExecutionId":   fmt.Sprint(context.ExecutionID),
 			"JobName":       context.JobName,
 			"ExecutionName": executionName,
 			"ImageTag":      context.ImageTag,
