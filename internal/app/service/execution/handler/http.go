@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"proctor/internal/app/service/execution/handler/parameter"
 	"proctor/internal/app/service/execution/handler/status"
 	"proctor/internal/app/service/execution/repository"
@@ -14,9 +16,9 @@ import (
 	executionStatus "proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
-	"strconv"
-	"strings"
-	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type ExecutionHttpHandler interface {
