@@ -225,6 +225,39 @@ func (suite *ExecutionHttpHandlerTestSuite) TestMalformedRequestforJobExecutionS
 	assert.Equal(t, string(handlerStatus.PathParameterError), responseRecorder.Body.String())
 }
 
+func (suite *ExecutionHttpHandlerTestSuite) TestNotFoundJobExecutionStatusHttpHandler() {
+	t := suite.T()
+
+	executionContextId := uint64(1)
+	userEmail := "mrproctor@example.com"
+	job := parameter.Job{
+		Name: "sample-job-name",
+		Args: map[string]string{"argOne": "sample-arg"},
+	}
+	context := &model.ExecutionContext{
+		ExecutionID: executionContextId,
+		UserEmail:   userEmail,
+		JobName:     job.Name,
+		ImageTag:    "test",
+		Args:        job.Args,
+		CreatedAt:   time.Now(),
+		Status:      status.Finished,
+	}
+	notFoundErr := errors.New("Execution context not found")
+
+	req := httptest.NewRequest("GET", fmt.Sprintf("/execute/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("")))
+	req = mux.SetURLVars(req, map[string]string{"name": fmt.Sprint(executionContextId)})
+	responseRecorder := httptest.NewRecorder()
+
+	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, notFoundErr).Once()
+	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
+
+	suite.testExecutionHttpHandler.Status()(responseRecorder, req)
+
+	assert.Equal(t, http.StatusNotFound, responseRecorder.Code)
+	assert.Equal(t, string(handlerStatus.ExecutionContextNotFound), responseRecorder.Body.String())
+}
+
 func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionPostHttpHandler() {
 	t := suite.T()
 
