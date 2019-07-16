@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"proctor/internal/app/proctord/audit"
 	"proctor/internal/app/proctord/docs"
 	"proctor/internal/app/proctord/instrumentation"
-	"proctor/internal/app/proctord/jobs/execution"
-	"proctor/internal/app/proctord/jobs/logs"
 	"proctor/internal/app/proctord/jobs/schedule"
 	"proctor/internal/app/proctord/middleware"
 	"proctor/internal/app/proctord/storage"
+	executionHttpHandler "proctor/internal/app/service/execution/handler"
+	executionContextRepository "proctor/internal/app/service/execution/repository"
+	executionService "proctor/internal/app/service/execution/service"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/db/redis"
@@ -32,21 +32,20 @@ func NewRouter() (*mux.Router, error) {
 
 	redisClient := redis.NewClient()
 	postgresClient = postgresql.NewClient()
-
-	store := storage.New(postgresClient)
-	metadataStore := metadataRepository.NewMetadataRepository(redisClient)
-	secretsStore := secretRepository.NewSecretRepository(redisClient)
-
 	httpClient, err := kubernetesHttpClient.NewClient()
 	if err != nil {
 		return router, err
 	}
 	kubeClient := kubernetes.NewKubernetesClient(httpClient)
 
-	auditor := audit.New(store, kubeClient)
-	jobExecutioner := execution.NewExecutioner(kubeClient, metadataStore, secretsStore)
-	jobExecutionHandler := execution.NewExecutionHandler(auditor, store, jobExecutioner)
-	jobLogger := logs.NewLogger(kubeClient)
+	store := storage.New(postgresClient)
+	executionStore := executionContextRepository.NewExecutionContextRepository(postgresClient)
+	metadataStore := metadataRepository.NewMetadataRepository(redisClient)
+	secretsStore := secretRepository.NewSecretRepository(redisClient)
+
+	executionService := executionService.NewExecutionService(kubeClient, executionStore, metadataStore, secretsStore)
+
+	jobExecutionHandler := executionHttpHandler.NewExecutionHttpHandler(executionService, executionStore)
 	jobMetadataHandler := metadataHandler.NewMetadataHttpHandler(metadataStore)
 	jobSecretsHandler := secretHttpHandler.NewSecretHttpHandler(secretsStore)
 
@@ -62,9 +61,9 @@ func NewRouter() (*mux.Router, error) {
 		http.ServeFile(w, r, path.Join(config.DocsPath(), "swagger.yml"))
 	})
 
-	router.HandleFunc(instrumentation.Wrap("/jobs/execute", middleware.ValidateClientVersion(jobExecutionHandler.Handle()))).Methods("POST")
+	router.HandleFunc(instrumentation.Wrap("/jobs/execute", middleware.ValidateClientVersion(jobExecutionHandler.Post()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/execute/{name}/status", middleware.ValidateClientVersion(jobExecutionHandler.Status()))).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/logs", middleware.ValidateClientVersion(jobLogger.Stream()))).Methods("GET")
+	router.HandleFunc(instrumentation.Wrap("/jobs/logs", middleware.ValidateClientVersion(jobExecutionHandler.Logs()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.Post()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.GetAll()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/secrets", middleware.ValidateClientVersion(jobSecretsHandler.Post()))).Methods("POST")
