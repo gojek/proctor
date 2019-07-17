@@ -19,26 +19,26 @@ import (
 	"proctor/internal/pkg/status"
 )
 
-type scheduler struct {
+type scheduleHttpHandler struct {
 	repository         scheduleRepository.ScheduleRepository
 	metadataRepository metadataRepository.MetadataRepository
 }
 
-type Scheduler interface {
-	Schedule() http.HandlerFunc
-	GetScheduledJobs() http.HandlerFunc
-	GetScheduledJob() http.HandlerFunc
-	RemoveScheduledJob() http.HandlerFunc
+type ScheduleHttpHandler interface {
+	Post() http.HandlerFunc
+	GetAll() http.HandlerFunc
+	Get() http.HandlerFunc
+	Delete() http.HandlerFunc
 }
 
-func NewScheduler(repository scheduleRepository.ScheduleRepository, metadataRepository metadataRepository.MetadataRepository) Scheduler {
-	return &scheduler{
-		metadataRepository: metadataRepository,
+func NewScheduleHttpHandler(repository scheduleRepository.ScheduleRepository, metadataRepository metadataRepository.MetadataRepository) ScheduleHttpHandler {
+	return &scheduleHttpHandler{
 		repository:         repository,
+		metadataRepository: metadataRepository,
 	}
 }
 
-func (scheduler *scheduler) Schedule() http.HandlerFunc {
+func (httpHandler *scheduleHttpHandler) Post() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		var schedule modelSchedule.Schedule
 		err := json.NewDecoder(request.Body).Decode(&schedule)
@@ -88,7 +88,7 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 			return
 		}
 
-		_, err = scheduler.metadataRepository.GetByName(schedule.JobName)
+		_, err = httpHandler.metadataRepository.GetByName(schedule.JobName)
 		if err != nil {
 			if err.Error() == "redigo: nil returned" {
 				logger.Error(fmt.Sprintf("Metadata not found: %s ", schedule.Tags), schedule.JobName)
@@ -107,7 +107,7 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 		}
 
 		schedule.Cron = fmt.Sprintf("0 %s", schedule.Cron)
-		schedule.ID, err = scheduler.repository.Insert(&schedule)
+		schedule.ID, err = httpHandler.repository.Insert(&schedule)
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 				logger.Error(fmt.Sprintf("Duplicate combination of scheduled job name and args: %s ", schedule.Tags), schedule.JobName, schedule.Args)
@@ -145,9 +145,9 @@ func (scheduler *scheduler) Schedule() http.HandlerFunc {
 	}
 }
 
-func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
+func (httpHandler *scheduleHttpHandler) GetAll() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
-		schedules, err := scheduler.repository.GetAllEnabled()
+		scheduleList, err := httpHandler.repository.GetAllEnabled()
 		if err != nil {
 			logger.Error("Error fetching scheduled jobs", err.Error())
 			raven.CaptureError(err, nil)
@@ -164,7 +164,7 @@ func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
 			return
 		}
 
-		schedulesJson, err := json.Marshal(schedules)
+		scheduleListJson, err := json.Marshal(scheduleList)
 		if err != nil {
 			logger.Error("Error marshalling schedule list", err.Error())
 			raven.CaptureError(err, nil)
@@ -174,22 +174,22 @@ func (scheduler *scheduler) GetScheduledJobs() http.HandlerFunc {
 			return
 		}
 
-		_, _ = response.Write(schedulesJson)
+		_, _ = response.Write(scheduleListJson)
 	}
 }
 
-func (scheduler *scheduler) GetScheduledJob() http.HandlerFunc {
+func (httpHandler *scheduleHttpHandler) Get() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
-		jobId := mux.Vars(request)["id"]
-		scheduleId, err := strconv.ParseUint(jobId, 10, 64)
-		logger.LogErrors(err, "parse execution context id from path parameter:", jobId)
+		scheduleIdParam := mux.Vars(request)["scheduleId"]
+		scheduleId, err := strconv.ParseUint(scheduleIdParam, 10, 64)
+		logger.LogErrors(err, "parse execution context id from path parameter:", scheduleIdParam)
 		if err != nil {
 			response.WriteHeader(http.StatusBadRequest)
 			_, _ = response.Write([]byte(status.PathParameterError))
 			return
 		}
 
-		schedule, err := scheduler.repository.GetById(scheduleId)
+		schedule, err := httpHandler.repository.GetById(scheduleId)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid input syntax") {
 				logger.Error(err.Error())
@@ -219,18 +219,18 @@ func (scheduler *scheduler) GetScheduledJob() http.HandlerFunc {
 	}
 }
 
-func (scheduler *scheduler) RemoveScheduledJob() http.HandlerFunc {
+func (httpHandler *scheduleHttpHandler) Delete() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
-		jobId := mux.Vars(request)["id"]
-		scheduleId, err := strconv.ParseUint(jobId, 10, 64)
-		logger.LogErrors(err, "parse execution context id from path parameter:", jobId)
+		scheduleIdParam := mux.Vars(request)["scheduleId"]
+		scheduleId, err := strconv.ParseUint(scheduleIdParam, 10, 64)
+		logger.LogErrors(err, "parse execution context id from path parameter:", scheduleIdParam)
 		if err != nil {
 			response.WriteHeader(http.StatusBadRequest)
 			_, _ = response.Write([]byte(status.PathParameterError))
 			return
 		}
 
-		err = scheduler.repository.Delete(scheduleId)
+		err = httpHandler.repository.Delete(scheduleId)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid input syntax") {
 				logger.Error(err.Error())
