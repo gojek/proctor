@@ -45,7 +45,7 @@ func (suite *TestExecutionServiceSuite) SetupTest() {
 
 func (suite *TestExecutionServiceSuite) TestSaveNoExecutionId() {
 	t := suite.T()
-	context := &model.ExecutionContext{}
+	context := model.ExecutionContext{}
 
 	suite.mockRepository.On("Insert", context).Return(0, errors.New("Insert Failed")).Once()
 	err := suite.service.save(context)
@@ -59,23 +59,23 @@ func (suite *TestExecutionServiceSuite) TestSaveNoExecutionId() {
 func (suite *TestExecutionServiceSuite) TestSaveWithExecutionId() {
 	t := suite.T()
 	_id, _ := id.NextId()
-	context := &model.ExecutionContext{
+	context := model.ExecutionContext{
 		ExecutionID: _id,
 		Status:      status.Created,
 	}
 
-	suite.mockRepository.On("GetById", _id).Return(context, errors.New("Get By Id Error")).Once()
+	suite.mockRepository.On("GetById", _id).Return(&context, errors.New("Get By Id Error")).Once()
 	suite.mockRepository.On("Insert", context).Return(0, errors.New("Insert Failed")).Once()
 	err := suite.service.save(context)
 	assert.Error(t, err, "Insert Failed")
 
-	suite.mockRepository.On("GetById", _id).Return(context, nil).Once()
+	suite.mockRepository.On("GetById", _id).Return(&context, nil).Once()
 	suite.mockRepository.On("UpdateStatus", context.ExecutionID, context.Status).Return(errors.New("Update Status Failed")).Once()
 	err = suite.service.save(context)
 	assert.Error(t, err, "Update Status Failed")
 
 	context.Output = types.GzippedText("This is some output")
-	suite.mockRepository.On("GetById", _id).Return(context, nil).Once()
+	suite.mockRepository.On("GetById", _id).Return(&context, nil).Once()
 	suite.mockRepository.On("UpdateStatus", context.ExecutionID, context.Status).Return(nil).Once()
 	suite.mockRepository.On("UpdateJobOutput", context.ExecutionID, context.Output).Return(errors.New("Update Output Failed")).Once()
 	err = suite.service.save(context)

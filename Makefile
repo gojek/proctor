@@ -24,12 +24,12 @@ test-with-race: test
 .PHONY: test
 test:
 	ENABLE_INTEGRATION_TEST=false \
-	go test $(RACE_FLAG) -coverprofile=$(OUT_DIR)/coverage.out ./...
+	go test -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: itest
 itest:
 	ENABLE_INTEGRATION_TEST=true \
-	go test $(RACE_FLAG) -coverprofile=$(OUT_DIR)/coverage.out ./...
+	go test -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: server
 server:

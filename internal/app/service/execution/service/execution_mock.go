@@ -21,7 +21,7 @@ func (mockService *MockExecutionService) ExecuteWithCommand(jobName string, user
 	return arguments.Get(0).(*model.ExecutionContext), arguments.String(1), arguments.Error(2)
 }
 
-func (mockService *MockExecutionService) save(executionContext *model.ExecutionContext) error {
+func (mockService *MockExecutionService) save(executionContext model.ExecutionContext) error {
 	args := mockService.Called(executionContext)
 	return args.Error(0)
 }
