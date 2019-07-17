@@ -6,15 +6,15 @@ import (
 )
 
 type Schedule struct {
-	ID                 uint64            `db:"id"`
-	JobName            string            `db:"job_name"`
-	Args               dbTypes.Base64Map `db:"args"`
-	Tags               string            `db:"tags"`
-	Cron               string            `db:"cron"`
-	NotificationEmails string            `db:"notification_emails"`
-	UserEmail          string            `db:"user_email"`
-	Group              string            `db:"group"`
-	Enabled            bool              `db:"enabled"`
-	CreatedAt          time.Time         `db:"created_at"`
-	UpdatedAt          time.Time         `db:"updated_at"`
+	ID                 uint64            `json:"id" db:"id"`
+	JobName            string            `json:"jobName" db:"job_name"`
+	Args               dbTypes.Base64Map `json:"args" db:"args"`
+	Tags               string            `json:"tags" db:"tags"`
+	Cron               string            `json:"cron" db:"cron"`
+	NotificationEmails string            `json:"notificationEmails" db:"notification_emails"`
+	UserEmail          string            `json:"userEmail" db:"user_email"`
+	Group              string            `json:"group" db:"group"`
+	Enabled            bool              `json:"enabled" db:"enabled"`
+	CreatedAt          time.Time         `json:"createdAt" db:"created_at"`
+	UpdatedAt          time.Time         `json:"updatedAt" db:"updated_at"`
 }
