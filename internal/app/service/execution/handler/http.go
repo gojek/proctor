@@ -64,7 +64,7 @@ func (httpHandler *executionHttpHandler) Logs() http.HandlerFunc {
 		}
 		defer conn.Close()
 
-		contextIdParam := strings.TrimLeft(request.URL.RawQuery, "job_name=")
+		contextIdParam := strings.TrimLeft(request.URL.RawQuery, "context_id=")
 		executionContextId, err := strconv.ParseUint(contextIdParam, 10, 64)
 		if contextIdParam == "" || err != nil {
 			logger.Error("No valid execution context id provided as part of URL ", request.URL.RawQuery)
@@ -117,7 +117,7 @@ func (httpHandler *executionHttpHandler) Logs() http.HandlerFunc {
 
 func (httpHandler *executionHttpHandler) Status() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
-		contextId := mux.Vars(request)["name"]
+		contextId := mux.Vars(request)["contextId"]
 		executionContextId, err := strconv.ParseUint(contextId, 10, 64)
 		logger.LogErrors(err, "parse execution context id from path parameter:", contextId)
 		if err != nil {

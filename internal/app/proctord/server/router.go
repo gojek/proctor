@@ -45,7 +45,7 @@ func NewRouter() (*mux.Router, error) {
 
 	executionService := executionService.NewExecutionService(kubeClient, executionStore, metadataStore, secretsStore)
 
-	jobExecutionHandler := executionHttpHandler.NewExecutionHttpHandler(executionService, executionStore)
+	executionHandler := executionHttpHandler.NewExecutionHttpHandler(executionService, executionStore)
 	jobMetadataHandler := metadataHandler.NewMetadataHttpHandler(metadataStore)
 	jobSecretsHandler := secretHttpHandler.NewSecretHttpHandler(secretsStore)
 
@@ -61,12 +61,14 @@ func NewRouter() (*mux.Router, error) {
 		http.ServeFile(w, r, path.Join(config.DocsPath(), "swagger.yml"))
 	})
 
-	router.HandleFunc(instrumentation.Wrap("/jobs/execute", middleware.ValidateClientVersion(jobExecutionHandler.Post()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/jobs/execute/{name}/status", middleware.ValidateClientVersion(jobExecutionHandler.Status()))).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/logs", middleware.ValidateClientVersion(jobExecutionHandler.Logs()))).Methods("GET")
+	router.HandleFunc(instrumentation.Wrap("/execute", middleware.ValidateClientVersion(executionHandler.Post()))).Methods("POST")
+	router.HandleFunc(instrumentation.Wrap("/execution/{contextId}/status", middleware.ValidateClientVersion(executionHandler.Status()))).Methods("GET")
+	router.HandleFunc(instrumentation.Wrap("/execution/logs", middleware.ValidateClientVersion(executionHandler.Logs()))).Methods("GET")
+
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.Post()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.GetAll()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/secrets", middleware.ValidateClientVersion(jobSecretsHandler.Post()))).Methods("POST")
+
 	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(scheduledJobsHandler.Schedule()))).Methods("POST")
 	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(scheduledJobsHandler.GetScheduledJobs()))).Methods("GET")
 	router.HandleFunc(instrumentation.Wrap("/jobs/schedule/{id}", middleware.ValidateClientVersion(scheduledJobsHandler.GetScheduledJob()))).Methods("GET")

@@ -5,12 +5,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
+	"github.com/jmoiron/sqlx/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"github.com/urfave/negroni"
 	"proctor/internal/app/service/execution/handler/parameter"
 	handlerStatus "proctor/internal/app/service/execution/handler/status"
 	"proctor/internal/app/service/execution/model"
@@ -19,14 +26,6 @@ import (
 	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/kubernetes"
 	"proctor/internal/pkg/constant"
-	"proctor/internal/pkg/utility"
-
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
-	"github.com/jmoiron/sqlx/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
-	"github.com/urfave/negroni"
 )
 
 type ExecutionHttpHandlerTestSuite struct {
@@ -48,7 +47,7 @@ func (suite *ExecutionHttpHandlerTestSuite) SetupTest() {
 
 	suite.Client = &http.Client{}
 	router := mux.NewRouter()
-	router.HandleFunc("/jobs/execute/{name}/status", suite.testExecutionHttpHandler.Status()).Methods("GET")
+	router.HandleFunc("/execute/{contextId}/status", suite.testExecutionHttpHandler.Status()).Methods("GET")
 	n := negroni.Classic()
 	n.UseHandler(router)
 	suite.TestServer = httptest.NewServer(n)
@@ -64,9 +63,8 @@ var logsHandlerDialer = websocket.Dialer{
 }
 
 const (
-	logsHandlerPath       = "/jobs/logs"
-	logsHandlerRawQuery   = "job_name=1"
-	logsHandlerRequestURI = logsHandlerPath
+	logsHandlerRawQuery   = "context_id=1"
+	logsHandlerRequestURI = "/execution/logs"
 )
 
 func (suite *ExecutionHttpHandlerTestSuite) newServer() *logsHandlerServer {
@@ -104,9 +102,6 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionLogsWhenFi
 		Output:      types.GzippedText("test"),
 	}
 
-	buffer := utility.NewBuffer()
-	buffer.Write([]byte("test\n"))
-
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
 	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
 
@@ -143,10 +138,9 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionLogsWhenRe
 		Output:      types.GzippedText("test"),
 	}
 
-	buffer := utility.NewBuffer()
-	buffer.Write([]byte("test1\ntest2\ntest3\n"))
-
-	suite.mockExecutionerService.On("StreamJobLogs", "1", time.Duration(30)*time.Second).Return(buffer, nil).Once()
+	readCloser := ioutil.NopCloser(bytes.NewReader([]byte("test1\ntest2\ntest3\n")))
+	defer readCloser.Close()
+	suite.mockExecutionerService.On("StreamJobLogs", "1", time.Duration(30)*time.Second).Return(readCloser, nil).Once()
 	defer suite.mockExecutionerService.AssertExpectations(t)
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
 	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
@@ -197,8 +191,8 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionStatusHttp
 	responseBody, err := json.Marshal(responseMap)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest("GET", fmt.Sprintf("/execute/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("")))
-	req = mux.SetURLVars(req, map[string]string{"name": fmt.Sprint(executionContextId)})
+	req := httptest.NewRequest("GET", fmt.Sprintf("/execution/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("")))
+	req = mux.SetURLVars(req, map[string]string{"contextId": fmt.Sprint(executionContextId)})
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
@@ -215,8 +209,8 @@ func (suite *ExecutionHttpHandlerTestSuite) TestMalformedRequestforJobExecutionS
 
 	executionContextId := uint64(1)
 
-	req := httptest.NewRequest("GET", fmt.Sprintf("/execute/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("test")))
-	req = mux.SetURLVars(req, map[string]string{"name": "notfound"})
+	req := httptest.NewRequest("GET", fmt.Sprintf("/execution/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("test")))
+	req = mux.SetURLVars(req, map[string]string{"contextId": "notfound"})
 	responseRecorder := httptest.NewRecorder()
 
 	suite.testExecutionHttpHandler.Status()(responseRecorder, req)
@@ -243,10 +237,10 @@ func (suite *ExecutionHttpHandlerTestSuite) TestNotFoundJobExecutionStatusHttpHa
 		CreatedAt:   time.Now(),
 		Status:      status.Finished,
 	}
-	notFoundErr := errors.New("Execution context not found")
+	notFoundErr := errors.New("execution context not found")
 
-	req := httptest.NewRequest("GET", fmt.Sprintf("/execute/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("")))
-	req = mux.SetURLVars(req, map[string]string{"name": fmt.Sprint(executionContextId)})
+	req := httptest.NewRequest("GET", fmt.Sprintf("/execution/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("")))
+	req = mux.SetURLVars(req, map[string]string{"contextId": fmt.Sprint(executionContextId)})
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, notFoundErr).Once()
