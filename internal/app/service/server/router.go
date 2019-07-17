@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+
+	"github.com/gorilla/mux"
+
 	"proctor/internal/app/proctord/docs"
-	"proctor/internal/app/proctord/jobs/schedule"
-	"proctor/internal/app/proctord/storage"
 	executionHttpHandler "proctor/internal/app/service/execution/handler"
 	executionContextRepository "proctor/internal/app/service/execution/repository"
 	executionService "proctor/internal/app/service/execution/service"
@@ -17,11 +18,11 @@ import (
 	kubernetesHttpClient "proctor/internal/app/service/infra/kubernetes/http"
 	metadataHandler "proctor/internal/app/service/metadata/handler"
 	metadataRepository "proctor/internal/app/service/metadata/repository"
+	scheduleHttpHandler "proctor/internal/app/service/schedule/handler"
+	scheduleRepository "proctor/internal/app/service/schedule/repository"
 	secretHttpHandler "proctor/internal/app/service/secret/handler"
 	secretRepository "proctor/internal/app/service/secret/repository"
 	"proctor/internal/app/service/server/middleware"
-
-	"github.com/gorilla/mux"
 )
 
 var postgresClient postgresql.Client
@@ -37,8 +38,8 @@ func NewRouter() (*mux.Router, error) {
 	}
 	kubeClient := kubernetes.NewKubernetesClient(httpClient)
 
-	store := storage.New(postgresClient)
 	executionStore := executionContextRepository.NewExecutionContextRepository(postgresClient)
+	scheduleStore := scheduleRepository.NewScheduleRepository(postgresClient)
 	metadataStore := metadataRepository.NewMetadataRepository(redisClient)
 	secretsStore := secretRepository.NewSecretRepository(redisClient)
 
@@ -47,8 +48,7 @@ func NewRouter() (*mux.Router, error) {
 	executionHandler := executionHttpHandler.NewExecutionHttpHandler(_executionService, executionStore)
 	jobMetadataHandler := metadataHandler.NewMetadataHttpHandler(metadataStore)
 	jobSecretsHandler := secretHttpHandler.NewSecretHttpHandler(secretsStore)
-
-	scheduledJobsHandler := schedule.NewScheduler(store, metadataStore)
+	scheduleHandler := scheduleHttpHandler.NewScheduleHttpHandler(scheduleStore, metadataStore)
 
 	router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
 		_, _ = fmt.Fprintf(w, "pong")
@@ -71,10 +71,10 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc("/metadata", jobMetadataHandler.GetAll()).Methods("GET")
 	router.HandleFunc("/secrets", jobSecretsHandler.Post()).Methods("POST")
 
-	router.HandleFunc("/jobs/schedule", scheduledJobsHandler.Schedule()).Methods("POST")
-	router.HandleFunc("/jobs/schedule", scheduledJobsHandler.GetScheduledJobs()).Methods("GET")
-	router.HandleFunc("/jobs/schedule/{id}", scheduledJobsHandler.GetScheduledJob()).Methods("GET")
-	router.HandleFunc("/jobs/schedule/{id}", scheduledJobsHandler.RemoveScheduledJob()).Methods("DELETE")
+	router.HandleFunc("/schedule", scheduleHandler.Post()).Methods("POST")
+	router.HandleFunc("/schedule", scheduleHandler.GetAll()).Methods("GET")
+	router.HandleFunc("/schedule/{scheduleId}", scheduleHandler.Get()).Methods("GET")
+	router.HandleFunc("/schedule/{scheduleId}", scheduleHandler.Delete()).Methods("DELETE")
 
 	return router, nil
 }
