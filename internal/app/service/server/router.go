@@ -64,8 +64,8 @@ func NewRouter() (*mux.Router, error) {
 	router.Use(middleware.ValidateClientVersion)
 
 	router.HandleFunc("/execute", executionHandler.Post()).Methods("POST")
-	router.HandleFunc("/execution/{contextId}/status", executionHandler.Status()).Methods("GET")
-	router.HandleFunc("/execution/logs", executionHandler.Logs()).Methods("GET")
+	router.HandleFunc("/execution/{contextId}/status", executionHandler.GetStatus()).Methods("GET")
+	router.HandleFunc("/execution/logs", executionHandler.GetLogs()).Methods("GET")
 
 	router.HandleFunc("/metadata", jobMetadataHandler.Post()).Methods("POST")
 	router.HandleFunc("/metadata", jobMetadataHandler.GetAll()).Methods("GET")

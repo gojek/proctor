@@ -23,8 +23,8 @@ import (
 
 type ExecutionHttpHandler interface {
 	Post() http.HandlerFunc
-	Status() http.HandlerFunc
-	Logs() http.HandlerFunc
+	GetStatus() http.HandlerFunc
+	GetLogs() http.HandlerFunc
 }
 
 type executionHttpHandler struct {
@@ -53,7 +53,7 @@ func (httpHandler *executionHttpHandler) closeWebSocket(message string, conn *we
 	return
 }
 
-func (httpHandler *executionHttpHandler) Logs() http.HandlerFunc {
+func (httpHandler *executionHttpHandler) GetLogs() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		conn, err := upgrader.Upgrade(response, request, nil)
 		logger.LogErrors(err, "upgrade http server connection to WebSocket")
@@ -115,7 +115,7 @@ func (httpHandler *executionHttpHandler) Logs() http.HandlerFunc {
 	}
 }
 
-func (httpHandler *executionHttpHandler) Status() http.HandlerFunc {
+func (httpHandler *executionHttpHandler) GetStatus() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		contextId := mux.Vars(request)["contextId"]
 		executionContextId, err := strconv.ParseUint(contextId, 10, 64)
