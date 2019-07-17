@@ -11,7 +11,7 @@ import (
 )
 
 type ExecutionContextRepository interface {
-	Insert(context *model.ExecutionContext) (uint64, error)
+	Insert(context model.ExecutionContext) (uint64, error)
 	UpdateJobOutput(executionId uint64, output types.GzippedText) error
 	UpdateStatus(executionId uint64, status status.ExecutionStatus) error
 	Delete(executionId uint64) error
@@ -32,7 +32,7 @@ func NewExecutionContextRepository(client postgresql.Client) ExecutionContextRep
 	}
 }
 
-func (repository *executionContextRepository) Insert(context *model.ExecutionContext) (uint64, error) {
+func (repository *executionContextRepository) Insert(context model.ExecutionContext) (uint64, error) {
 	snowflakeId, _ := id.NextId()
 	context.ExecutionID = snowflakeId
 	sql := "INSERT INTO execution_context (id, job_name,name, user_email, image_tag, args, output, status) VALUES (:id, :job_name, :name, :user_email, :image_tag, :args, :output, :status)"

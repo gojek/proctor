@@ -20,7 +20,7 @@ func TestExecutionContextRepository_Insert(t *testing.T) {
 	mapKey := fake.FirstName()
 	mapValue := fake.LastName()
 
-	context := &model.ExecutionContext{
+	context := model.ExecutionContext{
 		JobName:   fake.BuzzWord(),
 		UserEmail: fake.Email(),
 		ImageTag:  fake.BeerStyle(),
@@ -50,7 +50,7 @@ func TestExecutionContextRepository_Delete(t *testing.T) {
 	defer repository.deleteAll()
 
 	fake.Seed(0)
-	context := &model.ExecutionContext{
+	context := model.ExecutionContext{
 		JobName:   fake.BuzzWord(),
 		UserEmail: fake.Email(),
 		ImageTag:  fake.BeerStyle(),
@@ -79,7 +79,7 @@ func TestExecutionContextRepository_UpdateStatus(t *testing.T) {
 	defer repository.deleteAll()
 
 	fake.Seed(0)
-	context := &model.ExecutionContext{
+	context := model.ExecutionContext{
 		JobName:   fake.BuzzWord(),
 		UserEmail: fake.Email(),
 		ImageTag:  fake.BeerStyle(),
@@ -110,7 +110,7 @@ func TestExecutionContextRepository_UpdateJobOutput(t *testing.T) {
 	defer repository.deleteAll()
 
 	fake.Seed(0)
-	context := &model.ExecutionContext{
+	context := model.ExecutionContext{
 		JobName:   fake.BuzzWord(),
 		Name:      fake.HackerAdjective(),
 		UserEmail: fake.Email(),
@@ -173,7 +173,7 @@ func populateSeedDataForTest(repository ExecutionContextRepository, count int, s
 			defaultStatus = status.ExecutionStatus(val)
 		}
 
-		context := &model.ExecutionContext{
+		context := model.ExecutionContext{
 			JobName:   jobName,
 			Name:      fake.HackerAdjective(),
 			UserEmail: email,

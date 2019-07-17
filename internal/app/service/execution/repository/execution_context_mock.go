@@ -11,7 +11,7 @@ type MockExecutionContextRepository struct {
 	mock.Mock
 }
 
-func (mockRepository *MockExecutionContextRepository) Insert(context *model.ExecutionContext) (uint64, error) {
+func (mockRepository *MockExecutionContextRepository) Insert(context model.ExecutionContext) (uint64, error) {
 	args := mockRepository.Called(context)
 	return uint64(args.Int(0)), args.Error(1)
 }

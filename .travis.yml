@@ -18,7 +18,7 @@ jobs:
   include:
     - stage: test
       script:
-        - make db.setup test-with-race
+        - make db.setup test
 
-after_success:
-  - scripts/release.sh
+#after_success:
+#  - scripts/release.sh

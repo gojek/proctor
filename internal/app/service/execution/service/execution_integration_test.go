@@ -84,7 +84,7 @@ func (suite *TestExecutionIntegrationSuite) TestExecuteJobSuccess() {
 	expectedContext, err := suite.repository.GetById(context.ExecutionID)
 	assert.NoError(t, err)
 	assert.NotNil(t, expectedContext)
-	assert.Equal(t, expectedContext.Status, status.Finished)
+	assert.Equal(t, status.Finished, expectedContext.Status)
 	assert.NotNil(t, expectedContext.Output)
 }
 

@@ -23,7 +23,7 @@ type ExecutionService interface {
 	Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error)
 	ExecuteWithCommand(jobName string, userEmail string, args map[string]string, commands []string) (*model.ExecutionContext, string, error)
 	StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error)
-	save(executionContext *model.ExecutionContext) error
+	save(executionContext model.ExecutionContext) error
 }
 
 type executionService struct {
@@ -47,23 +47,23 @@ func NewExecutionService(
 	}
 }
 
-func (service *executionService) save(executionContext *model.ExecutionContext) error {
+func (service *executionService) save(executionContext model.ExecutionContext) error {
 	var err error
 	if executionContext.ExecutionID == 0 {
 		_, err = service.repository.Insert(executionContext)
-		logger.LogErrors(err, "save execution context to db", *executionContext)
+		logger.LogErrors(err, "save execution context to db", executionContext)
 	} else {
 		context, _err := service.repository.GetById(executionContext.ExecutionID)
-		logger.LogErrors(_err, "get context from db by execution id", *executionContext)
+		logger.LogErrors(_err, "get context from db by execution id", executionContext)
 		if _err != nil || context == nil {
 			_, err = service.repository.Insert(executionContext)
-			logger.LogErrors(err, "save execution context to db", *executionContext)
+			logger.LogErrors(err, "save execution context to db", executionContext)
 		} else {
 			err = service.repository.UpdateStatus(executionContext.ExecutionID, executionContext.Status)
-			logger.LogErrors(err, "update execution context status", *executionContext)
+			logger.LogErrors(err, "update execution context status", executionContext)
 			if len(executionContext.Output) > 0 {
 				err = service.repository.UpdateJobOutput(executionContext.ExecutionID, executionContext.Output)
-				logger.LogErrors(err, "update execution context output", *executionContext)
+				logger.LogErrors(err, "update execution context output", executionContext)
 			}
 		}
 	}
@@ -95,7 +95,7 @@ func (service *executionService) Execute(jobName string, userEmail string, args 
 }
 
 func (service *executionService) ExecuteWithCommand(jobName string, userEmail string, args map[string]string, commands []string) (*model.ExecutionContext, string, error) {
-	context := &model.ExecutionContext{
+	context := model.ExecutionContext{
 		UserEmail: userEmail,
 		JobName:   jobName,
 		Args:      args,
@@ -107,13 +107,13 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 	metadata, err := service.metadataRepository.GetByName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
-		return context, "", errors.New(fmt.Sprintf("metadata not found for %v, throws error %v", jobName, err.Error()))
+		return &context, "", errors.New(fmt.Sprintf("metadata not found for %v, throws error %v", jobName, err.Error()))
 	}
 
 	secret, err := service.secretRepository.GetByJobName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
-		return context, "", errors.New(fmt.Sprintf("secret not found for %v, throws error %v", jobName, err.Error()))
+		return &context, "", errors.New(fmt.Sprintf("secret not found for %v, throws error %v", jobName, err.Error()))
 	}
 
 	executionArgs := mergeArgs(args, secret)
@@ -123,18 +123,26 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 	logger.Info("Executed Job on Kubernetes got ", executionName, " execution jobName and ", err, "errors")
 	if err != nil {
 		context.Status = status.CreationFailed
-		return context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", jobName, args, err.Error()))
+		return &context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", jobName, args, err.Error()))
 	}
 
 	context.Name = executionName
 
+	contextId, err := service.repository.Insert(context)
+	logger.LogErrors(err, "save execution context to db", context)
+	if err != nil {
+		context.Status = status.ContextSavingFailed
+		return &context, "", errors.New(fmt.Sprintf("error when saving execution context %v with errors %v", context, err.Error()))
+	}
+
+	context.ExecutionID = contextId
+
 	go service.watchProcess(executionName, context)
 
-	return context, executionName, nil
+	return &context, executionName, nil
 }
 
-func (service *executionService) watchProcess(executionName string, context *model.ExecutionContext) {
-	defer service.save(context)
+func (service *executionService) watchProcess(executionName string, context model.ExecutionContext) {
 
 	waitTime := config.KubeLogProcessWaitTime() * time.Second
 	err := service.kubernetesClient.WaitForReadyJob(executionName, waitTime)
@@ -183,6 +191,8 @@ func (service *executionService) watchProcess(executionName string, context *mod
 	if context.Status == status.PodReady {
 		context.Status = status.Finished
 	}
+
+	defer service.save(context)
 
 	return
 }
