@@ -1,9 +1,9 @@
 package server
 
 import (
-	"proctor/internal/app/proctord/instrumentation"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/server/middleware"
 	"time"
 
 	"github.com/tylerb/graceful"
@@ -11,7 +11,7 @@ import (
 )
 
 func Start() error {
-	err := instrumentation.InitNewRelic()
+	err := middleware.InitNewRelic()
 	if err != nil {
 		logger.Fatal(err)
 	}

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"proctor/internal/pkg/constant"
+	"proctor/internal/app/service/server/middleware/parameter"
 	"testing"
 )
 
@@ -25,8 +25,8 @@ func TestValidClientVersionHttpHeader(t *testing.T) {
 
 	client := &http.Client{}
 
-	req, _ := http.NewRequest("GET", ts.URL+"/jobs/metadata", nil)
-	req.Header.Add(constant.ClientVersionHeaderKey, "0.2.0")
+	req, _ := http.NewRequest("GET", ts.URL+"/metadata", nil)
+	req.Header.Add(parameter.ClientVersionHeader, "0.2.0")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
@@ -43,7 +43,7 @@ func TestEmptyClientVersionHttpHeader(t *testing.T) {
 
 	client := &http.Client{}
 
-	req, _ := http.NewRequest("GET", ts.URL+"/jobs/metadata", nil)
+	req, _ := http.NewRequest("GET", ts.URL+"/metadata", nil)
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
@@ -60,8 +60,8 @@ func TestInvalidClientVersionHttpHeader(t *testing.T) {
 
 	client := &http.Client{}
 
-	req, _ := http.NewRequest("GET", ts.URL+"/jobs/metadata", nil)
-	req.Header.Add(constant.ClientVersionHeaderKey, "0.1.0")
+	req, _ := http.NewRequest("GET", ts.URL+"/metadata", nil)
+	req.Header.Add(parameter.ClientVersionHeader, "0.1.0")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()

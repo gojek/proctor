@@ -1,12 +1,13 @@
-package instrumentation
+package middleware
 
 import (
+	"github.com/gorilla/mux"
 	newrelic "github.com/newrelic/go-agent"
-	"net/http"
+	"github.com/newrelic/go-agent/_integrations/nrgorilla/v1"
 	"proctor/internal/app/service/infra/config"
 )
 
-var NewRelicApp newrelic.Application
+var newRelicApp newrelic.Application
 
 func InitNewRelic() error {
 	appName := config.NewRelicAppName()
@@ -17,10 +18,10 @@ func InitNewRelic() error {
 	if err != nil {
 		return err
 	}
-	NewRelicApp = app
+	newRelicApp = app
 	return nil
 }
 
-func Wrap(pattern string, handlerFunc http.HandlerFunc) (string, func(http.ResponseWriter, *http.Request)) {
-	return newrelic.WrapHandleFunc(NewRelicApp, pattern, handlerFunc)
+func InstrumentNewRelic(r *mux.Router) *mux.Router {
+	return nrgorilla.InstrumentRoutes(r, newRelicApp)
 }

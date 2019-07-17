@@ -4,10 +4,10 @@ import (
 	"github.com/getsentry/raven-go"
 	"os"
 	"proctor/internal/app/proctord/scheduler"
-	"proctor/internal/app/proctord/server"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/migration"
 	"proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/server"
 
 	"github.com/urfave/cli"
 )

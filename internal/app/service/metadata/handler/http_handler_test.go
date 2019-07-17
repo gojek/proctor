@@ -68,7 +68,7 @@ func (s *MetadataHandlerTestSuite) TestSuccessfulMetadataSubmission() {
 
 	metadataSubmissionRequestBody, err := json.Marshal(jobsMetadata)
 	assert.NoError(t, err)
-	req := httptest.NewRequest("PUT", "/jobs/metadata", bytes.NewReader(metadataSubmissionRequestBody))
+	req := httptest.NewRequest("PUT", "/metadata", bytes.NewReader(metadataSubmissionRequestBody))
 	responseRecorder := httptest.NewRecorder()
 
 	s.mockRepository.On("Save", metadata).Return(nil).Once()
@@ -84,7 +84,7 @@ func (s *MetadataHandlerTestSuite) TestJobMetadataSubmissionMalformedRequest() {
 	t := s.T()
 
 	jobMetadataSubmissionRequest := fmt.Sprintf("{ some-malformed-reque")
-	req := httptest.NewRequest("PUT", "/jobs/metadata", bytes.NewReader([]byte(jobMetadataSubmissionRequest)))
+	req := httptest.NewRequest("PUT", "/metadata", bytes.NewReader([]byte(jobMetadataSubmissionRequest)))
 	responseRecorder := httptest.NewRecorder()
 
 	s.metadataHttpHandler.Post()(responseRecorder, req)
@@ -104,7 +104,7 @@ func (s *MetadataHandlerTestSuite) TestJobMetadataSubmissionForStoreFailure() {
 
 	metadataSubmissionRequestBody, err := json.Marshal(jobMetadata)
 	assert.NoError(t, err)
-	req := httptest.NewRequest("PUT", "/jobs/metadata", bytes.NewReader(metadataSubmissionRequestBody))
+	req := httptest.NewRequest("PUT", "/metadata", bytes.NewReader(metadataSubmissionRequestBody))
 	responseRecorder := httptest.NewRecorder()
 
 	s.mockRepository.On("Save", metadata).Return(errors.New("error")).Once()
@@ -120,7 +120,7 @@ func (s *MetadataHandlerTestSuite) TestJobMetadataSubmissionForStoreFailure() {
 func (s *MetadataHandlerTestSuite) TestHandleBulkDisplay() {
 	t := s.T()
 
-	req := httptest.NewRequest("GET", "/jobs/metadata", bytes.NewReader([]byte{}))
+	req := httptest.NewRequest("GET", "/metadata", bytes.NewReader([]byte{}))
 	responseRecorder := httptest.NewRecorder()
 
 	jobsMetadata := []modelMetadata.Metadata{}
@@ -140,7 +140,7 @@ func (s *MetadataHandlerTestSuite) TestHandleBulkDisplay() {
 func (s *MetadataHandlerTestSuite) TestHandleBulkDisplayStoreFailure() {
 	t := s.T()
 
-	req := httptest.NewRequest("GET", "/jobs/metadata", bytes.NewReader([]byte{}))
+	req := httptest.NewRequest("GET", "/metadata", bytes.NewReader([]byte{}))
 	responseRecorder := httptest.NewRecorder()
 
 	jobsMetadata := []modelMetadata.Metadata{}

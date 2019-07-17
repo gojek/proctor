@@ -40,7 +40,7 @@ func (suite *SecretsHandlerTestSuite) TestPostSecretSuccess() {
 	requestBody, err := json.Marshal(secret)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/job-secrets", bytes.NewReader(requestBody))
+	req := httptest.NewRequest("POST", "/secrets", bytes.NewReader(requestBody))
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockSecretRepository.On("Save", secret).Return(nil).Once()
@@ -58,7 +58,7 @@ func (suite *SecretsHandlerTestSuite) TestPostSecretsMalformedData() {
 	requestBody, err := json.Marshal("any-malformed-requ")
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/job-secrets", bytes.NewReader(requestBody))
+	req := httptest.NewRequest("POST", "/secrets", bytes.NewReader(requestBody))
 	responseRecorder := httptest.NewRecorder()
 
 	suite.secretHandler.Post()(responseRecorder, req)
@@ -79,7 +79,7 @@ func (suite *SecretsHandlerTestSuite) TestPostSecretsStoreFailure() {
 	requestBody, err := json.Marshal(secret)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/job-secrets", bytes.NewReader(requestBody))
+	req := httptest.NewRequest("POST", "/secrets", bytes.NewReader(requestBody))
 	responseRecorder := httptest.NewRecorder()
 
 	suite.mockSecretRepository.On("Save", secret).Return(errors.New("error")).Once()

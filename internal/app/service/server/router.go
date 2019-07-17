@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"path"
 	"proctor/internal/app/proctord/docs"
-	"proctor/internal/app/proctord/instrumentation"
 	"proctor/internal/app/proctord/jobs/schedule"
-	"proctor/internal/app/proctord/middleware"
 	"proctor/internal/app/proctord/storage"
 	executionHttpHandler "proctor/internal/app/service/execution/handler"
 	executionContextRepository "proctor/internal/app/service/execution/repository"
@@ -21,6 +19,7 @@ import (
 	metadataRepository "proctor/internal/app/service/metadata/repository"
 	secretHttpHandler "proctor/internal/app/service/secret/handler"
 	secretRepository "proctor/internal/app/service/secret/repository"
+	"proctor/internal/app/service/server/middleware"
 
 	"github.com/gorilla/mux"
 )
@@ -43,9 +42,9 @@ func NewRouter() (*mux.Router, error) {
 	metadataStore := metadataRepository.NewMetadataRepository(redisClient)
 	secretsStore := secretRepository.NewSecretRepository(redisClient)
 
-	executionService := executionService.NewExecutionService(kubeClient, executionStore, metadataStore, secretsStore)
+	_executionService := executionService.NewExecutionService(kubeClient, executionStore, metadataStore, secretsStore)
 
-	executionHandler := executionHttpHandler.NewExecutionHttpHandler(executionService, executionStore)
+	executionHandler := executionHttpHandler.NewExecutionHttpHandler(_executionService, executionStore)
 	jobMetadataHandler := metadataHandler.NewMetadataHttpHandler(metadataStore)
 	jobSecretsHandler := secretHttpHandler.NewSecretHttpHandler(secretsStore)
 
@@ -61,18 +60,21 @@ func NewRouter() (*mux.Router, error) {
 		http.ServeFile(w, r, path.Join(config.DocsPath(), "swagger.yml"))
 	})
 
-	router.HandleFunc(instrumentation.Wrap("/execute", middleware.ValidateClientVersion(executionHandler.Post()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/execution/{contextId}/status", middleware.ValidateClientVersion(executionHandler.Status()))).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/execution/logs", middleware.ValidateClientVersion(executionHandler.Logs()))).Methods("GET")
+	router = middleware.InstrumentNewRelic(router)
+	router.Use(middleware.ValidateClientVersion)
 
-	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.Post()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/jobs/metadata", middleware.ValidateClientVersion(jobMetadataHandler.GetAll()))).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/secrets", middleware.ValidateClientVersion(jobSecretsHandler.Post()))).Methods("POST")
+	router.HandleFunc("/execute", executionHandler.Post()).Methods("POST")
+	router.HandleFunc("/execution/{contextId}/status", executionHandler.Status()).Methods("GET")
+	router.HandleFunc("/execution/logs", executionHandler.Logs()).Methods("GET")
 
-	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(scheduledJobsHandler.Schedule()))).Methods("POST")
-	router.HandleFunc(instrumentation.Wrap("/jobs/schedule", middleware.ValidateClientVersion(scheduledJobsHandler.GetScheduledJobs()))).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/schedule/{id}", middleware.ValidateClientVersion(scheduledJobsHandler.GetScheduledJob()))).Methods("GET")
-	router.HandleFunc(instrumentation.Wrap("/jobs/schedule/{id}", middleware.ValidateClientVersion(scheduledJobsHandler.RemoveScheduledJob()))).Methods("DELETE")
+	router.HandleFunc("/metadata", jobMetadataHandler.Post()).Methods("POST")
+	router.HandleFunc("/metadata", jobMetadataHandler.GetAll()).Methods("GET")
+	router.HandleFunc("/secrets", jobSecretsHandler.Post()).Methods("POST")
+
+	router.HandleFunc("/jobs/schedule", scheduledJobsHandler.Schedule()).Methods("POST")
+	router.HandleFunc("/jobs/schedule", scheduledJobsHandler.GetScheduledJobs()).Methods("GET")
+	router.HandleFunc("/jobs/schedule/{id}", scheduledJobsHandler.GetScheduledJob()).Methods("GET")
+	router.HandleFunc("/jobs/schedule/{id}", scheduledJobsHandler.RemoveScheduledJob()).Methods("DELETE")
 
 	return router, nil
 }

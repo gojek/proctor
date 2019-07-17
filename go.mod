@@ -32,7 +32,7 @@ require (
 	github.com/mattes/migrate v3.0.1+incompatible
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/newrelic/go-agent v1.4.0
+	github.com/newrelic/go-agent v2.9.0+incompatible
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/robfig/cron v1.2.0
