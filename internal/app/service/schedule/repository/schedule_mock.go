@@ -19,7 +19,7 @@ func (repository *MockScheduleRepository) Delete(id uint64) error {
 	return args.Error(0)
 }
 
-func (repository *MockScheduleRepository) GetById(id uint64) (*model.Schedule, error) {
+func (repository *MockScheduleRepository) GetByID(id uint64) (*model.Schedule, error) {
 	args := repository.Called(id)
 	return args.Get(0).(*model.Schedule), args.Error(1)
 }
@@ -54,7 +54,7 @@ func (repository *MockScheduleRepository) GetAll() ([]model.Schedule, error) {
 	return args.Get(0).([]model.Schedule), args.Error(1)
 }
 
-func (repository *MockScheduleRepository) GetEnabledById(id uint64) (*model.Schedule, error) {
+func (repository *MockScheduleRepository) GetEnabledByID(id uint64) (*model.Schedule, error) {
 	args := repository.Called(id)
 	return args.Get(0).(*model.Schedule), args.Error(1)
 }

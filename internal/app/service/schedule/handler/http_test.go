@@ -37,7 +37,7 @@ func (suite *ScheduleHttpHandlerTestSuite) SetupTest() {
 func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulSchedulePostHttpHandler() {
 	t := suite.T()
 
-	scheduleId := uint64(0)
+	scheduleID := uint64(0)
 	argsMap := types.Base64Map{
 		"COMMAND": "test",
 	}
@@ -51,7 +51,7 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulSchedulePostHttpHandler
 		Group:              "mrproctor",
 	}
 	responseSchedule := requestSchedule
-	responseSchedule.ID = scheduleId
+	responseSchedule.ID = scheduleID
 	responseSchedule.Cron = "0 * * * * *"
 
 	requestBody, err := json.Marshal(requestSchedule)
@@ -224,12 +224,12 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetAllHttpHandler() 
 func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleGetHttpHandler() {
 	t := suite.T()
 
-	scheduleId := uint64(1)
+	scheduleID := uint64(1)
 	argsMap := types.Base64Map{
 		"COMMAND": "test",
 	}
 	responseSchedule := model.Schedule{
-		ID:                 scheduleId,
+		ID:                 scheduleID,
 		JobName:            "test1",
 		Args:               argsMap,
 		Tags:               "test",
@@ -243,10 +243,10 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleGetHttpHandler(
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/schedule", bytes.NewReader([]byte("")))
-	req = mux.SetURLVars(req, map[string]string{"scheduleId": fmt.Sprint(scheduleId)})
+	req = mux.SetURLVars(req, map[string]string{"scheduleID": fmt.Sprint(scheduleID)})
 	responseRecorder := httptest.NewRecorder()
 
-	suite.mockScheduleRepository.On("GetById", scheduleId).Return(&responseSchedule, nil).Once()
+	suite.mockScheduleRepository.On("GetByID", scheduleID).Return(&responseSchedule, nil).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
 	suite.testScheduleHttpHandler.Get()(responseRecorder, req)
@@ -258,7 +258,7 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleGetHttpHandler(
 func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetHttpHandler() {
 	t := suite.T()
 
-	scheduleId := uint64(1)
+	scheduleID := uint64(1)
 
 	scheduleGetErrorTests := []struct {
 		requestParams  string
@@ -266,18 +266,18 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetHttpHandler() {
 		responseBody   status.HandlerStatus
 	}{
 		{"test", http.StatusBadRequest, status.PathParameterError},
-		{"1", http.StatusBadRequest, status.ScheduleIdInvalidError},
+		{"1", http.StatusBadRequest, status.ScheduleIDInvalidError},
 		// Schedule fetch error
 		{"1", http.StatusInternalServerError, status.GenericServerError},
 	}
 
-	suite.mockScheduleRepository.On("GetById", scheduleId).Return(&model.Schedule{}, errors.New("invalid input syntax")).Once()
-	suite.mockScheduleRepository.On("GetById", scheduleId).Return(&model.Schedule{}, errors.New("")).Once()
+	suite.mockScheduleRepository.On("GetByID", scheduleID).Return(&model.Schedule{}, errors.New("invalid input syntax")).Once()
+	suite.mockScheduleRepository.On("GetByID", scheduleID).Return(&model.Schedule{}, errors.New("")).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
 	for _, errorTest := range scheduleGetErrorTests {
 		req := httptest.NewRequest("GET", "/schedule", bytes.NewReader([]byte("")))
-		req = mux.SetURLVars(req, map[string]string{"scheduleId": errorTest.requestParams})
+		req = mux.SetURLVars(req, map[string]string{"scheduleID": errorTest.requestParams})
 		responseRecorder := httptest.NewRecorder()
 
 		suite.testScheduleHttpHandler.Get()(responseRecorder, req)
@@ -290,13 +290,13 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetHttpHandler() {
 func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleDeleteHttpHandler() {
 	t := suite.T()
 
-	scheduleId := uint64(1)
+	scheduleID := uint64(1)
 
 	req := httptest.NewRequest("GET", "/schedule", bytes.NewReader([]byte("")))
-	req = mux.SetURLVars(req, map[string]string{"scheduleId": fmt.Sprint(scheduleId)})
+	req = mux.SetURLVars(req, map[string]string{"scheduleID": fmt.Sprint(scheduleID)})
 	responseRecorder := httptest.NewRecorder()
 
-	suite.mockScheduleRepository.On("Delete", scheduleId).Return(nil).Once()
+	suite.mockScheduleRepository.On("Delete", scheduleID).Return(nil).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
 	suite.testScheduleHttpHandler.Delete()(responseRecorder, req)
@@ -308,7 +308,7 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleDeleteHttpHandl
 func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleDeleteHttpHandler() {
 	t := suite.T()
 
-	scheduleId := uint64(1)
+	scheduleID := uint64(1)
 
 	scheduleDeleteErrorTests := []struct {
 		requestParams  string
@@ -316,18 +316,18 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleDeleteHttpHandler() 
 		responseBody   status.HandlerStatus
 	}{
 		{"test", http.StatusBadRequest, status.PathParameterError},
-		{"1", http.StatusBadRequest, status.ScheduleIdInvalidError},
+		{"1", http.StatusBadRequest, status.ScheduleIDInvalidError},
 		// Schedule delete error
 		{"1", http.StatusInternalServerError, status.GenericServerError},
 	}
 
-	suite.mockScheduleRepository.On("Delete", scheduleId).Return(errors.New("invalid input syntax")).Once()
-	suite.mockScheduleRepository.On("Delete", scheduleId).Return(errors.New("")).Once()
+	suite.mockScheduleRepository.On("Delete", scheduleID).Return(errors.New("invalid input syntax")).Once()
+	suite.mockScheduleRepository.On("Delete", scheduleID).Return(errors.New("")).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
 	for _, errorTest := range scheduleDeleteErrorTests {
 		req := httptest.NewRequest("DELETE", "/schedule", bytes.NewReader([]byte("")))
-		req = mux.SetURLVars(req, map[string]string{"scheduleId": errorTest.requestParams})
+		req = mux.SetURLVars(req, map[string]string{"scheduleID": errorTest.requestParams})
 		responseRecorder := httptest.NewRecorder()
 
 		suite.testScheduleHttpHandler.Delete()(responseRecorder, req)

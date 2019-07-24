@@ -9,7 +9,7 @@ func init() {
 	snowflake = sonyflake.NewSonyflake(snowflakeSetting)
 }
 
-func NextId() (uint64, error) {
+func NextID() (uint64, error) {
 	return snowflake.NextID()
 }
 

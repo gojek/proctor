@@ -33,7 +33,7 @@ func NewExecutionContextRepository(client postgresql.Client) ExecutionContextRep
 }
 
 func (repository *executionContextRepository) Insert(context model.ExecutionContext) (uint64, error) {
-	snowflakeId, _ := id.NextId()
+	snowflakeId, _ := id.NextID()
 	context.ExecutionID = snowflakeId
 	sql := "INSERT INTO execution_context (id, job_name,name, user_email, image_tag, args, output, status) VALUES (:id, :job_name, :name, :user_email, :image_tag, :args, :output, :status)"
 	_, err := repository.postgresqlClient.NamedExec(sql, &context)

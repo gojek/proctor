@@ -64,7 +64,7 @@ func NewRouter() (*mux.Router, error) {
 	router.Use(middleware.ValidateClientVersion)
 
 	router.HandleFunc("/execute", executionHandler.Post()).Methods("POST")
-	router.HandleFunc("/execution/{contextId}/status", executionHandler.GetStatus()).Methods("GET")
+	router.HandleFunc("/execution/{contextID}/status", executionHandler.GetStatus()).Methods("GET")
 	router.HandleFunc("/execution/logs", executionHandler.GetLogs()).Methods("GET")
 
 	router.HandleFunc("/metadata", jobMetadataHandler.Post()).Methods("POST")
@@ -73,8 +73,8 @@ func NewRouter() (*mux.Router, error) {
 
 	router.HandleFunc("/schedule", scheduleHandler.Post()).Methods("POST")
 	router.HandleFunc("/schedule", scheduleHandler.GetAll()).Methods("GET")
-	router.HandleFunc("/schedule/{scheduleId}", scheduleHandler.Get()).Methods("GET")
-	router.HandleFunc("/schedule/{scheduleId}", scheduleHandler.Delete()).Methods("DELETE")
+	router.HandleFunc("/schedule/{scheduleID}", scheduleHandler.Get()).Methods("GET")
+	router.HandleFunc("/schedule/{scheduleID}", scheduleHandler.Delete()).Methods("DELETE")
 
 	return router, nil
 }

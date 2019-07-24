@@ -14,7 +14,7 @@ const (
 
 	ScheduleCronFormatInvalidError    HandlerStatus = "Schedule cron format is invalid"
 	ScheduleDuplicateJobNameArgsError HandlerStatus = "Schedule job name and args duplicate is found"
-	ScheduleIdInvalidError            HandlerStatus = "Schedule ID is invalid"
+	ScheduleIDInvalidError            HandlerStatus = "Schedule ID is invalid"
 	ScheduleGroupMissingError         HandlerStatus = "Schedule group is missing"
 	ScheduleListNotFoundError         HandlerStatus = "Schedule list is not found"
 	ScheduleTagMissingError           HandlerStatus = "Schedule tag(s) are missing"

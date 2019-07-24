@@ -50,7 +50,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_Insert() {
 	assert.NotNil(t, id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err := suite.repository.GetById(id)
+	expectedSchedule, err := suite.repository.GetByID(id)
 	assert.NoError(t, err)
 	assert.NotNil(t, expectedSchedule)
 
@@ -84,7 +84,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_Delete() {
 	err = suite.repository.Delete(id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err := suite.repository.GetById(id)
+	expectedSchedule, err := suite.repository.GetByID(id)
 	assert.Error(t, err)
 	assert.Nil(t, expectedSchedule)
 }
@@ -164,7 +164,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetAllEnabled() {
 	}
 }
 
-func (suite *ScheduleTestSuite) TestScheduleRepository_GetEnabledById() {
+func (suite *ScheduleTestSuite) TestScheduleRepository_GetEnabledByID() {
 	t := suite.T()
 	recordCount := 15
 	err := populateSeedDataForTest(suite.repository, recordCount, map[string]string{})
@@ -189,13 +189,13 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetEnabledById() {
 	assert.NotNil(t, id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err := suite.repository.GetEnabledById(id)
+	expectedSchedule, err := suite.repository.GetEnabledByID(id)
 	assert.NoError(t, err)
 	assert.NotNil(t, expectedSchedule)
 	assert.True(t, expectedSchedule.Enabled)
 
-	willNotExistsId := uint64(17777717)
-	unexpectedSchedule, err := suite.repository.GetEnabledById(willNotExistsId)
+	willNotExistsID := uint64(17777717)
+	unexpectedSchedule, err := suite.repository.GetEnabledByID(willNotExistsID)
 	assert.Error(t, err)
 	assert.Nil(t, unexpectedSchedule)
 
@@ -222,7 +222,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_EnableDisable() {
 	assert.NotNil(t, id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err := suite.repository.GetById(id)
+	expectedSchedule, err := suite.repository.GetByID(id)
 	assert.NoError(t, err)
 	assert.NotNil(t, expectedSchedule)
 	assert.True(t, expectedSchedule.Enabled)
@@ -230,7 +230,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_EnableDisable() {
 	err = suite.repository.Disable(id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err = suite.repository.GetById(id)
+	expectedSchedule, err = suite.repository.GetByID(id)
 	assert.NoError(t, err)
 	assert.NotNil(t, expectedSchedule)
 	assert.False(t, expectedSchedule.Enabled)
@@ -238,7 +238,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_EnableDisable() {
 	err = suite.repository.Enable(id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err = suite.repository.GetById(id)
+	expectedSchedule, err = suite.repository.GetByID(id)
 	assert.NoError(t, err)
 	assert.NotNil(t, expectedSchedule)
 	assert.True(t, expectedSchedule.Enabled)

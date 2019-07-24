@@ -11,14 +11,14 @@ import (
 type ScheduleRepository interface {
 	Insert(context *model.Schedule) (uint64, error)
 	Delete(id uint64) error
-	GetById(id uint64) (*model.Schedule, error)
+	GetByID(id uint64) (*model.Schedule, error)
 	Disable(id uint64) error
 	Enable(id uint64) error
 	GetByUserEmail(userEmail string) ([]model.Schedule, error)
 	GetByJobName(jobName string) ([]model.Schedule, error)
 	GetAllEnabled() ([]model.Schedule, error)
 	GetAll() ([]model.Schedule, error)
-	GetEnabledById(id uint64) (*model.Schedule, error)
+	GetEnabledByID(id uint64) (*model.Schedule, error)
 	deleteAll() error
 }
 
@@ -55,14 +55,14 @@ func (repository *scheduleRepository) Disable(id uint64) error {
 }
 
 func (repository *scheduleRepository) Insert(context *model.Schedule) (uint64, error) {
-	snowflakeId, _ := id.NextId()
-	context.ID = snowflakeId
+	snowflakeID, _ := id.NextID()
+	context.ID = snowflakeID
 	sql := "INSERT INTO schedule (id, job_name, args,cron,notification_emails, user_email, \"group\", enabled) VALUES (:id, :job_name, :args, :cron, :notification_emails, :user_email, :group, :enabled)"
 	_, err := repository.postgresqlClient.NamedExec(sql, &context)
 	if err != nil {
 		return 0, nil
 	}
-	return snowflakeId, nil
+	return snowflakeID, nil
 }
 
 func (repository *scheduleRepository) Delete(id uint64) error {
@@ -74,7 +74,7 @@ func (repository *scheduleRepository) Delete(id uint64) error {
 	return err
 }
 
-func (repository *scheduleRepository) GetById(id uint64) (*model.Schedule, error) {
+func (repository *scheduleRepository) GetByID(id uint64) (*model.Schedule, error) {
 	sql := "SELECT id, job_name, args, cron, notification_emails, user_email,\"group\", enabled, created_at, updated_at FROM schedule WHERE id=$1 "
 	var schedules []model.Schedule
 	err := repository.postgresqlClient.Select(&schedules, sql, id)
@@ -133,7 +133,7 @@ func (repository *scheduleRepository) GetAll() ([]model.Schedule, error) {
 	return schedules, nil
 }
 
-func (repository *scheduleRepository) GetEnabledById(id uint64) (*model.Schedule, error) {
+func (repository *scheduleRepository) GetEnabledByID(id uint64) (*model.Schedule, error) {
 	sql := "SELECT id, job_name, args, cron, notification_emails, user_email, \"group\", enabled, created_at, updated_at FROM schedule WHERE enabled=$1 AND id=$2 "
 	var schedules []model.Schedule
 	err := repository.postgresqlClient.Select(&schedules, sql, true, id)

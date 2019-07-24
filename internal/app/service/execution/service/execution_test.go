@@ -58,7 +58,7 @@ func (suite *TestExecutionServiceSuite) TestSaveNoExecutionId() {
 
 func (suite *TestExecutionServiceSuite) TestSaveWithExecutionId() {
 	t := suite.T()
-	_id, _ := id.NextId()
+	_id, _ := id.NextID()
 	context := model.ExecutionContext{
 		ExecutionID: _id,
 		Status:      status.Created,

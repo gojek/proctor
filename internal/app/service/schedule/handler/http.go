@@ -180,21 +180,21 @@ func (httpHandler *scheduleHttpHandler) GetAll() http.HandlerFunc {
 
 func (httpHandler *scheduleHttpHandler) Get() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
-		scheduleIdParam := mux.Vars(request)["scheduleId"]
-		scheduleId, err := strconv.ParseUint(scheduleIdParam, 10, 64)
-		logger.LogErrors(err, "parse execution context id from path parameter:", scheduleIdParam)
+		scheduleIDParam := mux.Vars(request)["scheduleID"]
+		scheduleID, err := strconv.ParseUint(scheduleIDParam, 10, 64)
+		logger.LogErrors(err, "parse schedule id from path parameter:", scheduleIDParam)
 		if err != nil {
 			response.WriteHeader(http.StatusBadRequest)
 			_, _ = response.Write([]byte(status.PathParameterError))
 			return
 		}
 
-		schedule, err := httpHandler.repository.GetById(scheduleId)
+		schedule, err := httpHandler.repository.GetByID(scheduleID)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid input syntax") {
 				logger.Error(err.Error())
 				response.WriteHeader(http.StatusBadRequest)
-				_, _ = response.Write([]byte(status.ScheduleIdInvalidError))
+				_, _ = response.Write([]byte(status.ScheduleIDInvalidError))
 				return
 			}
 			logger.Error("Error fetching scheduled job", err.Error())
@@ -221,22 +221,22 @@ func (httpHandler *scheduleHttpHandler) Get() http.HandlerFunc {
 
 func (httpHandler *scheduleHttpHandler) Delete() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
-		scheduleIdParam := mux.Vars(request)["scheduleId"]
-		scheduleId, err := strconv.ParseUint(scheduleIdParam, 10, 64)
-		logger.LogErrors(err, "parse execution context id from path parameter:", scheduleIdParam)
+		scheduleIDParam := mux.Vars(request)["scheduleID"]
+		scheduleID, err := strconv.ParseUint(scheduleIDParam, 10, 64)
+		logger.LogErrors(err, "parse schedule id from path parameter:", scheduleIDParam)
 		if err != nil {
 			response.WriteHeader(http.StatusBadRequest)
 			_, _ = response.Write([]byte(status.PathParameterError))
 			return
 		}
 
-		err = httpHandler.repository.Delete(scheduleId)
+		err = httpHandler.repository.Delete(scheduleID)
 		if err != nil {
 			if strings.Contains(err.Error(), "invalid input syntax") {
 				logger.Error(err.Error())
 
 				response.WriteHeader(http.StatusBadRequest)
-				_, _ = response.Write([]byte(status.ScheduleIdInvalidError))
+				_, _ = response.Write([]byte(status.ScheduleIDInvalidError))
 				return
 			}
 			logger.Error("Error fetching schedule", err.Error())
