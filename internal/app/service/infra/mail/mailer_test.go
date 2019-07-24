@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"net"
 	"net/textproto"
-	"proctor/internal/app/service/infra/config"
 	"strings"
 	"testing"
 
+	executionContextModel "proctor/internal/app/service/execution/model"
+	executionStatus "proctor/internal/app/service/execution/status"
+	"proctor/internal/app/service/infra/config"
+	scheduleModel "proctor/internal/app/service/schedule/model"
 	"proctor/internal/pkg/utility"
 )
 
@@ -74,12 +77,17 @@ func TestSendMail(t *testing.T) {
 	}(strings.Split(server, "\r\n"))
 
 	mailer := New(strings.Split(l.Addr().String(), ":")[0], strings.Split(l.Addr().String(), ":")[1])
-	jobName := "proc-name"
-	jobExecutionID := "some-id"
-	jobExecutionStatus := "SUCCEEDED"
-	jobArgs := map[string]string{"ARG_ONE": "foo"}
-	recipients := []string{"foo@bar.com", "goo@bar.com"}
-	err = mailer.Send(jobName, jobExecutionID, jobExecutionStatus, jobArgs, recipients)
+	executionContext := executionContextModel.ExecutionContext{
+		JobName:     "proc-name",
+		ExecutionID: uint64(1),
+		Status:      executionStatus.Finished,
+		Args:        map[string]string{"ARG_ONE": "foo"},
+	}
+	schedule := scheduleModel.Schedule{
+		NotificationEmails: "foo@bar.com,goo@bar.com",
+	}
+	recipients := strings.Split(schedule.NotificationEmails, ",")
+	err = mailer.Send(executionContext, schedule)
 	if err != nil {
 		t.Errorf("%v", err)
 	}
@@ -90,21 +98,21 @@ func TestSendMail(t *testing.T) {
 
 	receivedMail := cmdbuf.String()
 
-	stringifiedJobArgs := utility.MapToString(jobArgs)
+	stringifiedJobArgs := utility.MapToString(executionContext.Args)
 	var sendMailClient = `EHLO localhost
 HELO localhost
 MAIL FROM:<` + config.MailUsername() + `>
 RCPT TO:<` + recipients[0] + `>
 RCPT TO:<` + recipients[1] + `>
 DATA
-Subject: ` + jobName + ` | scheduled execution ` + jobExecutionStatus + `
+Subject: ` + executionContext.JobName + ` | scheduled execution ` + string(executionContext.Status) + `
 
 Proc execution details:
 
-Name:	` + jobName + `
+Name:	` + executionContext.JobName + `
 Args:	` + stringifiedJobArgs + `
-ID:	` + jobExecutionID + `
-Status:	` + jobExecutionStatus + `
+ID:	` + fmt.Sprint(executionContext.ExecutionID) + `
+Status:	` + string(executionContext.Status) + `
 
 
 This is an auto-generated email
