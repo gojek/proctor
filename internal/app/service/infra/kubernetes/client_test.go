@@ -27,7 +27,7 @@ type ClientTestSuite struct {
 	jobName                string
 	podName                string
 	fakeClientSetStreaming *fakeclientset.Clientset
-	fakeHttpClient         *http.Client
+	fakeHTTPClient         *http.Client
 	testClientStreaming    KubernetesClient
 }
 
@@ -57,10 +57,10 @@ func (suite *ClientTestSuite) SetupTest() {
 		},
 	})
 
-	suite.fakeHttpClient = &http.Client{}
+	suite.fakeHTTPClient = &http.Client{}
 	suite.testClientStreaming = &kubernetesClient{
 		clientSet:  suite.fakeClientSetStreaming,
-		httpClient: suite.fakeHttpClient,
+		httpClient: suite.fakeHTTPClient,
 	}
 }
 

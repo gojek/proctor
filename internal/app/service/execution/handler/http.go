@@ -21,13 +21,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type ExecutionHttpHandler interface {
+type ExecutionHTTPHandler interface {
 	Post() http.HandlerFunc
 	GetStatus() http.HandlerFunc
 	GetLogs() http.HandlerFunc
 }
 
-type executionHttpHandler struct {
+type executionHTTPHandler struct {
 	service    service.ExecutionService
 	repository repository.ExecutionContextRepository
 }
@@ -37,23 +37,23 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: config.LogsStreamWriteBufferSize(),
 }
 
-func NewExecutionHttpHandler(
+func NewExecutionHTTPHandler(
 	executionService service.ExecutionService,
 	repository repository.ExecutionContextRepository,
-) ExecutionHttpHandler {
-	return &executionHttpHandler{
+) ExecutionHTTPHandler {
+	return &executionHTTPHandler{
 		service:    executionService,
 		repository: repository,
 	}
 }
 
-func (httpHandler *executionHttpHandler) closeWebSocket(message string, conn *websocket.Conn) {
+func (httpHandler *executionHTTPHandler) closeWebSocket(message string, conn *websocket.Conn) {
 	err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, message))
 	logger.LogErrors(err, "close WebSocket")
 	return
 }
 
-func (httpHandler *executionHttpHandler) GetLogs() http.HandlerFunc {
+func (httpHandler *executionHTTPHandler) GetLogs() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		conn, err := upgrader.Upgrade(response, request, nil)
 		logger.LogErrors(err, "upgrade http server connection to WebSocket")
@@ -115,7 +115,7 @@ func (httpHandler *executionHttpHandler) GetLogs() http.HandlerFunc {
 	}
 }
 
-func (httpHandler *executionHttpHandler) GetStatus() http.HandlerFunc {
+func (httpHandler *executionHTTPHandler) GetStatus() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		contextId := mux.Vars(request)["contextId"]
 		executionContextId, err := strconv.ParseUint(contextId, 10, 64)
@@ -153,7 +153,7 @@ func (httpHandler *executionHttpHandler) GetStatus() http.HandlerFunc {
 	}
 }
 
-func (httpHandler *executionHttpHandler) Post() http.HandlerFunc {
+func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		userEmail := request.Header.Get(parameter.UserEmailHeader)
 

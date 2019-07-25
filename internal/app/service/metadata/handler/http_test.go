@@ -22,14 +22,14 @@ import (
 type MetadataHandlerTestSuite struct {
 	suite.Suite
 	mockRepository      *metadataRepository.MockMetadataRepository
-	metadataHttpHandler MetadataHttpHandler
+	metadataHTTPHandler MetadataHTTPHandler
 	serverError         string
 }
 
 func (s *MetadataHandlerTestSuite) SetupTest() {
 	s.mockRepository = &metadataRepository.MockMetadataRepository{}
 
-	s.metadataHttpHandler = NewMetadataHttpHandler(s.mockRepository)
+	s.metadataHTTPHandler = NewMetadataHTTPHandler(s.mockRepository)
 
 	s.serverError = "Something went wrong"
 }
@@ -73,7 +73,7 @@ func (s *MetadataHandlerTestSuite) TestSuccessfulMetadataSubmission() {
 
 	s.mockRepository.On("Save", metadata).Return(nil).Once()
 
-	s.metadataHttpHandler.Post()(responseRecorder, req)
+	s.metadataHTTPHandler.Post()(responseRecorder, req)
 
 	s.mockRepository.AssertExpectations(t)
 
@@ -87,7 +87,7 @@ func (s *MetadataHandlerTestSuite) TestJobMetadataSubmissionMalformedRequest() {
 	req := httptest.NewRequest("PUT", "/metadata", bytes.NewReader([]byte(jobMetadataSubmissionRequest)))
 	responseRecorder := httptest.NewRecorder()
 
-	s.metadataHttpHandler.Post()(responseRecorder, req)
+	s.metadataHTTPHandler.Post()(responseRecorder, req)
 
 	s.mockRepository.AssertNotCalled(t, "Save", mock.Anything)
 
@@ -109,7 +109,7 @@ func (s *MetadataHandlerTestSuite) TestJobMetadataSubmissionForStoreFailure() {
 
 	s.mockRepository.On("Save", metadata).Return(errors.New("error")).Once()
 
-	s.metadataHttpHandler.Post()(responseRecorder, req)
+	s.metadataHTTPHandler.Post()(responseRecorder, req)
 
 	s.mockRepository.AssertExpectations(t)
 
@@ -126,7 +126,7 @@ func (s *MetadataHandlerTestSuite) TestHandleBulkDisplay() {
 	jobsMetadata := []modelMetadata.Metadata{}
 	s.mockRepository.On("GetAll").Return(jobsMetadata, nil).Once()
 
-	s.metadataHttpHandler.GetAll()(responseRecorder, req)
+	s.metadataHTTPHandler.GetAll()(responseRecorder, req)
 
 	s.mockRepository.AssertExpectations(t)
 
@@ -146,7 +146,7 @@ func (s *MetadataHandlerTestSuite) TestHandleBulkDisplayStoreFailure() {
 	jobsMetadata := []modelMetadata.Metadata{}
 	s.mockRepository.On("GetAll").Return(jobsMetadata, errors.New("error")).Once()
 
-	s.metadataHttpHandler.GetAll()(responseRecorder, req)
+	s.metadataHTTPHandler.GetAll()(responseRecorder, req)
 
 	s.mockRepository.AssertExpectations(t)
 

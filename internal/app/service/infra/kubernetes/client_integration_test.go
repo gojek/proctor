@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"os"
 	"proctor/internal/app/service/infra/config"
-	kubeHttpClient "proctor/internal/app/service/infra/kubernetes/http"
+	kubeHTTPClient "proctor/internal/app/service/infra/kubernetes/http"
 	"proctor/internal/pkg/constant"
 	"testing"
 )
@@ -21,9 +21,9 @@ type IntegrationTestSuite struct {
 
 func (suite *IntegrationTestSuite) SetupTest() {
 	t := suite.T()
-	kubeHttpClient, err := kubeHttpClient.NewClient()
+	kubeHTTPClient, err := kubeHTTPClient.NewClient()
 	assert.NoError(t, err)
-	suite.testClient = NewKubernetesClient(kubeHttpClient)
+	suite.testClient = NewKubernetesClient(kubeHTTPClient)
 	suite.clientSet, err = NewClientSet()
 	assert.NoError(t, err)
 }
@@ -85,7 +85,6 @@ func (suite *IntegrationTestSuite) TestJobExecutionStatus() {
 	status, err := suite.testClient.JobExecutionStatus(executedJobname)
 	assert.Equal(t, status, constant.JobSucceeded)
 }
-
 
 func TestIntegrationTestSuite(t *testing.T) {
 	value, available := os.LookupEnv("ENABLE_INTEGRATION_TEST")

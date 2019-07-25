@@ -19,26 +19,26 @@ import (
 	"proctor/internal/pkg/status"
 )
 
-type scheduleHttpHandler struct {
+type scheduleHTTPHandler struct {
 	repository         scheduleRepository.ScheduleRepository
 	metadataRepository metadataRepository.MetadataRepository
 }
 
-type ScheduleHttpHandler interface {
+type ScheduleHTTPHandler interface {
 	Post() http.HandlerFunc
 	GetAll() http.HandlerFunc
 	Get() http.HandlerFunc
 	Delete() http.HandlerFunc
 }
 
-func NewScheduleHttpHandler(repository scheduleRepository.ScheduleRepository, metadataRepository metadataRepository.MetadataRepository) ScheduleHttpHandler {
-	return &scheduleHttpHandler{
+func NewScheduleHTTPHandler(repository scheduleRepository.ScheduleRepository, metadataRepository metadataRepository.MetadataRepository) ScheduleHTTPHandler {
+	return &scheduleHTTPHandler{
 		repository:         repository,
 		metadataRepository: metadataRepository,
 	}
 }
 
-func (httpHandler *scheduleHttpHandler) Post() http.HandlerFunc {
+func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		var schedule modelSchedule.Schedule
 		err := json.NewDecoder(request.Body).Decode(&schedule)
@@ -145,7 +145,7 @@ func (httpHandler *scheduleHttpHandler) Post() http.HandlerFunc {
 	}
 }
 
-func (httpHandler *scheduleHttpHandler) GetAll() http.HandlerFunc {
+func (httpHandler *scheduleHTTPHandler) GetAll() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		scheduleList, err := httpHandler.repository.GetAllEnabled()
 		if err != nil {
@@ -178,7 +178,7 @@ func (httpHandler *scheduleHttpHandler) GetAll() http.HandlerFunc {
 	}
 }
 
-func (httpHandler *scheduleHttpHandler) Get() http.HandlerFunc {
+func (httpHandler *scheduleHTTPHandler) Get() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		scheduleIDParam := mux.Vars(request)["scheduleID"]
 		scheduleID, err := strconv.ParseUint(scheduleIDParam, 10, 64)
@@ -219,7 +219,7 @@ func (httpHandler *scheduleHttpHandler) Get() http.HandlerFunc {
 	}
 }
 
-func (httpHandler *scheduleHttpHandler) Delete() http.HandlerFunc {
+func (httpHandler *scheduleHTTPHandler) Delete() http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		scheduleIDParam := mux.Vars(request)["scheduleID"]
 		scheduleID, err := strconv.ParseUint(scheduleIDParam, 10, 64)

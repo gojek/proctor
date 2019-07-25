@@ -403,7 +403,7 @@ func buildHTTPError(c *client, resp *http.Response) error {
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		return getHttpResponseError(resp.Body)
+		return getHTTPResponseError(resp.Body)
 	}
 
 	if resp.StatusCode == http.StatusNoContent {
@@ -421,7 +421,7 @@ func buildHTTPError(c *client, resp *http.Response) error {
 	return fmt.Errorf("%s\nStatus Code: %d, %s", constant.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
 
-func getHttpResponseError(response ioReader.ReadCloser) error {
+func getHTTPResponseError(response ioReader.ReadCloser) error {
 	body, _ := ioutil.ReadAll(response)
 	bodyString := string(body)
 	return fmt.Errorf(bodyString)

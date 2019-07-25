@@ -28,19 +28,19 @@ import (
 	"proctor/internal/pkg/constant"
 )
 
-type ExecutionHttpHandlerTestSuite struct {
+type ExecutionHTTPHandlerTestSuite struct {
 	suite.Suite
 	mockExecutionerService           *service.MockExecutionService
 	mockExecutionerContextRepository *repository.MockExecutionContextRepository
 	mockKubernetesClient             kubernetes.MockKubernetesClient
-	testExecutionHttpHandler         ExecutionHttpHandler
+	testExecutionHTTPHandler         ExecutionHTTPHandler
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) SetupTest() {
+func (suite *ExecutionHTTPHandlerTestSuite) SetupTest() {
 	suite.mockExecutionerService = &service.MockExecutionService{}
 	suite.mockExecutionerContextRepository = &repository.MockExecutionContextRepository{}
 	suite.mockKubernetesClient = kubernetes.MockKubernetesClient{}
-	suite.testExecutionHttpHandler = NewExecutionHttpHandler(suite.mockExecutionerService, suite.mockExecutionerContextRepository)
+	suite.testExecutionHTTPHandler = NewExecutionHTTPHandler(suite.mockExecutionerService, suite.mockExecutionerContextRepository)
 }
 
 type logsHandlerServer struct {
@@ -57,9 +57,9 @@ const (
 	logsHandlerRequestURI = "/execution/logs"
 )
 
-func (suite *ExecutionHttpHandlerTestSuite) newServer() *logsHandlerServer {
+func (suite *ExecutionHTTPHandlerTestSuite) newServer() *logsHandlerServer {
 	var s logsHandlerServer
-	s.Server = httptest.NewServer(suite.testExecutionHttpHandler.GetLogs())
+	s.Server = httptest.NewServer(suite.testExecutionHTTPHandler.GetLogs())
 	s.Server.URL += logsHandlerRequestURI
 	s.URL = makeWsProto(s.Server.URL)
 	return &s
@@ -69,7 +69,7 @@ func makeWsProto(s string) string {
 	return "ws" + strings.TrimPrefix(s, "http")
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhenFinishedHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhenFinishedHTTPHandler() {
 	t := suite.T()
 
 	s := suite.newServer()
@@ -104,7 +104,7 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhe
 	assert.Equal(t, "test", string(firstMessage))
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhenReadyHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhenReadyHTTPHandler() {
 	t := suite.T()
 
 	s := suite.newServer()
@@ -152,7 +152,7 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhe
 	assert.Equal(t, "test3", string(thirdMessage))
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionGetStatusHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionGetStatusHTTPHandler() {
 	t := suite.T()
 
 	executionContextId := uint64(1)
@@ -188,13 +188,13 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionGetStatusH
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
 	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
 
-	suite.testExecutionHttpHandler.GetStatus()(responseRecorder, req)
+	suite.testExecutionHTTPHandler.GetStatus()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 	assert.Equal(t, string(responseBody), responseRecorder.Body.String())
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestMalformedRequestforJobExecutionGetStatusHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestMalformedRequestforJobExecutionGetStatusHTTPHandler() {
 	t := suite.T()
 
 	executionContextId := uint64(1)
@@ -203,13 +203,13 @@ func (suite *ExecutionHttpHandlerTestSuite) TestMalformedRequestforJobExecutionG
 	req = mux.SetURLVars(req, map[string]string{"contextId": "notfound"})
 	responseRecorder := httptest.NewRecorder()
 
-	suite.testExecutionHttpHandler.GetStatus()(responseRecorder, req)
+	suite.testExecutionHTTPHandler.GetStatus()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	assert.Equal(t, string(handlerStatus.PathParameterError), responseRecorder.Body.String())
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestNotFoundJobExecutionGetStatusHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestNotFoundJobExecutionGetStatusHTTPHandler() {
 	t := suite.T()
 
 	executionContextId := uint64(1)
@@ -236,13 +236,13 @@ func (suite *ExecutionHttpHandlerTestSuite) TestNotFoundJobExecutionGetStatusHtt
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, notFoundErr).Once()
 	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
 
-	suite.testExecutionHttpHandler.GetStatus()(responseRecorder, req)
+	suite.testExecutionHTTPHandler.GetStatus()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusNotFound, responseRecorder.Code)
 	assert.Equal(t, string(handlerStatus.ExecutionContextNotFound), responseRecorder.Body.String())
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionPostHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionPostHTTPHandler() {
 	t := suite.T()
 
 	userEmail := "mrproctor@example.com"
@@ -278,25 +278,25 @@ func (suite *ExecutionHttpHandlerTestSuite) TestSuccessfulJobExecutionPostHttpHa
 	suite.mockExecutionerService.On("Execute", job.Name, userEmail, job.Args).Return(context, "test", nil).Once()
 	defer suite.mockExecutionerService.AssertExpectations(t)
 
-	suite.testExecutionHttpHandler.Post()(responseRecorder, req)
+	suite.testExecutionHTTPHandler.Post()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
 	assert.Equal(t, string(responseBody), responseRecorder.Body.String())
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestMalformedRequestJobExecutionPostHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestMalformedRequestJobExecutionPostHTTPHandler() {
 	t := suite.T()
 
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader([]byte("test")))
 	responseRecorder := httptest.NewRecorder()
 
-	suite.testExecutionHttpHandler.Post()(responseRecorder, req)
+	suite.testExecutionHTTPHandler.Post()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusBadRequest, responseRecorder.Code)
 	assert.Equal(t, string(handlerStatus.MalformedRequest), responseRecorder.Body.String())
 }
 
-func (suite *ExecutionHttpHandlerTestSuite) TestGenericErrorJobExecutionPostHttpHandler() {
+func (suite *ExecutionHTTPHandlerTestSuite) TestGenericErrorJobExecutionPostHTTPHandler() {
 	t := suite.T()
 
 	userEmail := "mrproctor@example.com"
@@ -322,12 +322,12 @@ func (suite *ExecutionHttpHandlerTestSuite) TestGenericErrorJobExecutionPostHttp
 	suite.mockExecutionerService.On("Execute", job.Name, userEmail, job.Args).Return(context, "test", genericError).Once()
 	defer suite.mockExecutionerService.AssertExpectations(t)
 
-	suite.testExecutionHttpHandler.Post()(responseRecorder, req)
+	suite.testExecutionHTTPHandler.Post()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
 	assert.Equal(t, fmt.Sprintf("%s , Errors Detail %s", handlerStatus.JobExecutionError, genericError), responseRecorder.Body.String())
 }
 
-func TestExecutionHttpHandlerTestSuite(t *testing.T) {
-	suite.Run(t, new(ExecutionHttpHandlerTestSuite))
+func TestExecutionHTTPHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(ExecutionHTTPHandlerTestSuite))
 }

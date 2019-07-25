@@ -21,20 +21,20 @@ import (
 	"proctor/internal/pkg/status"
 )
 
-type ScheduleHttpHandlerTestSuite struct {
+type ScheduleHTTPHandlerTestSuite struct {
 	suite.Suite
 	mockScheduleRepository  *scheduleRepository.MockScheduleRepository
 	mockMetadataRepository  *metadataRepository.MockMetadataRepository
-	testScheduleHttpHandler ScheduleHttpHandler
+	testScheduleHTTPHandler ScheduleHTTPHandler
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) SetupTest() {
+func (suite *ScheduleHTTPHandlerTestSuite) SetupTest() {
 	suite.mockScheduleRepository = &scheduleRepository.MockScheduleRepository{}
 	suite.mockMetadataRepository = &metadataRepository.MockMetadataRepository{}
-	suite.testScheduleHttpHandler = NewScheduleHttpHandler(suite.mockScheduleRepository, suite.mockMetadataRepository)
+	suite.testScheduleHTTPHandler = NewScheduleHTTPHandler(suite.mockScheduleRepository, suite.mockMetadataRepository)
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulSchedulePostHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestSuccessfulSchedulePostHTTPHandler() {
 	t := suite.T()
 
 	scheduleID := uint64(0)
@@ -70,13 +70,13 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulSchedulePostHttpHandler
 	suite.mockScheduleRepository.On("Insert", &requestSchedule).Return(0, nil).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
-	suite.testScheduleHttpHandler.Post()(responseRecorder, req)
+	suite.testScheduleHTTPHandler.Post()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusCreated, responseRecorder.Code)
 	assert.Equal(t, string(responseBody), responseRecorder.Body.String())
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestErrorSchedulePostHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestErrorSchedulePostHTTPHandler() {
 	t := suite.T()
 
 	argsMap := types.Base64Map{
@@ -143,14 +143,14 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorSchedulePostHttpHandler() {
 		req := httptest.NewRequest("POST", "/schedule", bytes.NewReader(errorTest.requestBody))
 		responseRecorder := httptest.NewRecorder()
 
-		suite.testScheduleHttpHandler.Post()(responseRecorder, req)
+		suite.testScheduleHTTPHandler.Post()(responseRecorder, req)
 
 		assert.Equal(t, errorTest.responseStatus, responseRecorder.Code)
 		assert.Equal(t, string(errorTest.responseBody), responseRecorder.Body.String())
 	}
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleGetAllHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestSuccessfulScheduleGetAllHTTPHandler() {
 	t := suite.T()
 
 	argsMap := types.Base64Map{
@@ -187,13 +187,13 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleGetAllHttpHandl
 	suite.mockScheduleRepository.On("GetAllEnabled").Return(responseScheduleList, nil).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
-	suite.testScheduleHttpHandler.GetAll()(responseRecorder, req)
+	suite.testScheduleHTTPHandler.GetAll()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 	assert.Equal(t, string(responseBody), responseRecorder.Body.String())
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetAllHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestErrorScheduleGetAllHTTPHandler() {
 	t := suite.T()
 
 	scheduleGetAllErrorTests := []struct {
@@ -214,14 +214,14 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetAllHttpHandler() 
 		req := httptest.NewRequest("GET", "/schedule", bytes.NewReader([]byte("")))
 		responseRecorder := httptest.NewRecorder()
 
-		suite.testScheduleHttpHandler.GetAll()(responseRecorder, req)
+		suite.testScheduleHTTPHandler.GetAll()(responseRecorder, req)
 
 		assert.Equal(t, errorTest.responseStatus, responseRecorder.Code)
 		assert.Equal(t, string(errorTest.responseBody), responseRecorder.Body.String())
 	}
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleGetHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestSuccessfulScheduleGetHTTPHandler() {
 	t := suite.T()
 
 	scheduleID := uint64(1)
@@ -249,13 +249,13 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleGetHttpHandler(
 	suite.mockScheduleRepository.On("GetByID", scheduleID).Return(&responseSchedule, nil).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
-	suite.testScheduleHttpHandler.Get()(responseRecorder, req)
+	suite.testScheduleHTTPHandler.Get()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 	assert.Equal(t, string(responseBody), responseRecorder.Body.String())
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestErrorScheduleGetHTTPHandler() {
 	t := suite.T()
 
 	scheduleID := uint64(1)
@@ -280,14 +280,14 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleGetHttpHandler() {
 		req = mux.SetURLVars(req, map[string]string{"scheduleID": errorTest.requestParams})
 		responseRecorder := httptest.NewRecorder()
 
-		suite.testScheduleHttpHandler.Get()(responseRecorder, req)
+		suite.testScheduleHTTPHandler.Get()(responseRecorder, req)
 
 		assert.Equal(t, errorTest.responseStatus, responseRecorder.Code)
 		assert.Equal(t, string(errorTest.responseBody), responseRecorder.Body.String())
 	}
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleDeleteHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestSuccessfulScheduleDeleteHTTPHandler() {
 	t := suite.T()
 
 	scheduleID := uint64(1)
@@ -299,13 +299,13 @@ func (suite *ScheduleHttpHandlerTestSuite) TestSuccessfulScheduleDeleteHttpHandl
 	suite.mockScheduleRepository.On("Delete", scheduleID).Return(nil).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
-	suite.testScheduleHttpHandler.Delete()(responseRecorder, req)
+	suite.testScheduleHTTPHandler.Delete()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusOK, responseRecorder.Code)
 	assert.Equal(t, string(status.ScheduleDeleteSuccess), responseRecorder.Body.String())
 }
 
-func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleDeleteHttpHandler() {
+func (suite *ScheduleHTTPHandlerTestSuite) TestErrorScheduleDeleteHTTPHandler() {
 	t := suite.T()
 
 	scheduleID := uint64(1)
@@ -330,13 +330,13 @@ func (suite *ScheduleHttpHandlerTestSuite) TestErrorScheduleDeleteHttpHandler() 
 		req = mux.SetURLVars(req, map[string]string{"scheduleID": errorTest.requestParams})
 		responseRecorder := httptest.NewRecorder()
 
-		suite.testScheduleHttpHandler.Delete()(responseRecorder, req)
+		suite.testScheduleHTTPHandler.Delete()(responseRecorder, req)
 
 		assert.Equal(t, errorTest.responseStatus, responseRecorder.Code)
 		assert.Equal(t, string(errorTest.responseBody), responseRecorder.Body.String())
 	}
 }
 
-func TestScheduleHttpHandlerTestSuite(t *testing.T) {
-	suite.Run(t, new(ScheduleHttpHandlerTestSuite))
+func TestScheduleHTTPHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(ScheduleHTTPHandlerTestSuite))
 }

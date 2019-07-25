@@ -8,19 +8,19 @@ import (
 	"github.com/gorilla/mux"
 
 	"proctor/internal/app/service/docs"
-	executionHttpHandler "proctor/internal/app/service/execution/handler"
+	executionHTTPHandler "proctor/internal/app/service/execution/handler"
 	executionContextRepository "proctor/internal/app/service/execution/repository"
 	executionService "proctor/internal/app/service/execution/service"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/postgresql"
 	"proctor/internal/app/service/infra/db/redis"
 	"proctor/internal/app/service/infra/kubernetes"
-	kubernetesHttpClient "proctor/internal/app/service/infra/kubernetes/http"
+	kubernetesHTTPClient "proctor/internal/app/service/infra/kubernetes/http"
 	metadataHandler "proctor/internal/app/service/metadata/handler"
 	metadataRepository "proctor/internal/app/service/metadata/repository"
-	scheduleHttpHandler "proctor/internal/app/service/schedule/handler"
+	scheduleHTTPHandler "proctor/internal/app/service/schedule/handler"
 	scheduleRepository "proctor/internal/app/service/schedule/repository"
-	secretHttpHandler "proctor/internal/app/service/secret/handler"
+	secretHTTPHandler "proctor/internal/app/service/secret/handler"
 	secretRepository "proctor/internal/app/service/secret/repository"
 	"proctor/internal/app/service/server/middleware"
 )
@@ -32,7 +32,7 @@ func NewRouter() (*mux.Router, error) {
 
 	redisClient := redis.NewClient()
 	postgresClient = postgresql.NewClient()
-	httpClient, err := kubernetesHttpClient.NewClient()
+	httpClient, err := kubernetesHTTPClient.NewClient()
 	if err != nil {
 		return router, err
 	}
@@ -45,10 +45,10 @@ func NewRouter() (*mux.Router, error) {
 
 	_executionService := executionService.NewExecutionService(kubeClient, executionStore, metadataStore, secretsStore)
 
-	executionHandler := executionHttpHandler.NewExecutionHttpHandler(_executionService, executionStore)
-	jobMetadataHandler := metadataHandler.NewMetadataHttpHandler(metadataStore)
-	jobSecretsHandler := secretHttpHandler.NewSecretHttpHandler(secretsStore)
-	scheduleHandler := scheduleHttpHandler.NewScheduleHttpHandler(scheduleStore, metadataStore)
+	executionHandler := executionHTTPHandler.NewExecutionHTTPHandler(_executionService, executionStore)
+	jobMetadataHandler := metadataHandler.NewMetadataHTTPHandler(metadataStore)
+	jobSecretsHandler := secretHTTPHandler.NewSecretHTTPHandler(secretsStore)
+	scheduleHandler := scheduleHTTPHandler.NewScheduleHTTPHandler(scheduleStore, metadataStore)
 
 	router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
 		_, _ = fmt.Fprintf(w, "pong")

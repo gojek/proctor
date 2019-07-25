@@ -15,11 +15,11 @@ type handler struct {
 	repository repository.SecretRepository
 }
 
-type SecretHttpHandler interface {
+type SecretHTTPHandler interface {
 	Post() http.HandlerFunc
 }
 
-func NewSecretHttpHandler(repository repository.SecretRepository) SecretHttpHandler {
+func NewSecretHTTPHandler(repository repository.SecretRepository) SecretHTTPHandler {
 	return &handler{
 		repository: repository,
 	}

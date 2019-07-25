@@ -20,13 +20,13 @@ import (
 type SecretsHandlerTestSuite struct {
 	suite.Suite
 	mockSecretRepository *repository.MockSecretRepository
-	secretHandler        SecretHttpHandler
+	secretHandler        SecretHTTPHandler
 }
 
 func (suite *SecretsHandlerTestSuite) SetupTest() {
 	suite.mockSecretRepository = &repository.MockSecretRepository{}
 
-	suite.secretHandler = NewSecretHttpHandler(suite.mockSecretRepository)
+	suite.secretHandler = NewSecretHTTPHandler(suite.mockSecretRepository)
 }
 
 func (suite *SecretsHandlerTestSuite) TestPostSecretSuccess() {

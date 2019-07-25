@@ -16,7 +16,7 @@ func getTestHandler() http.HandlerFunc {
 	return http.HandlerFunc(fn)
 }
 
-func TestValidClientVersionHttpHeader(t *testing.T) {
+func TestValidClientVersionHTTPHeader(t *testing.T) {
 
 	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
@@ -34,7 +34,7 @@ func TestValidClientVersionHttpHeader(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
-func TestEmptyClientVersionHttpHeader(t *testing.T) {
+func TestEmptyClientVersionHTTPHeader(t *testing.T) {
 
 	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
@@ -51,7 +51,7 @@ func TestEmptyClientVersionHttpHeader(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
-func TestInvalidClientVersionHttpHeader(t *testing.T) {
+func TestInvalidClientVersionHTTPHeader(t *testing.T) {
 
 	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.3.0")
 
