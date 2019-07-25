@@ -143,6 +143,7 @@ func (suite *WorkerTestSuite) TestDisableRun() {
 			Tags:               "test",
 		},
 	}
+
 	tickerChan := make(chan time.Time)
 	signalsChan := make(chan os.Signal, 1)
 	toggledOffEnabledJobChan := make(chan bool)

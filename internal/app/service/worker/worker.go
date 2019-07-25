@@ -10,10 +10,17 @@ import (
 
 	executionContextRepository "proctor/internal/app/service/execution/repository"
 	executionService "proctor/internal/app/service/execution/service"
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/db/postgresql"
+	"proctor/internal/app/service/infra/db/redis"
+	"proctor/internal/app/service/infra/kubernetes"
+	"proctor/internal/app/service/infra/kubernetes/http"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/infra/mail"
+	metadataRepository "proctor/internal/app/service/metadata/repository"
 	scheduleModel "proctor/internal/app/service/schedule/model"
 	scheduleRepository "proctor/internal/app/service/schedule/repository"
+	secretRepository "proctor/internal/app/service/secret/repository"
 	"proctor/internal/pkg/constant"
 )
 
@@ -104,4 +111,32 @@ func (worker *worker) Run(tickerChan <-chan time.Time, signalsChan <-chan os.Sig
 			return
 		}
 	}
+}
+
+func Start() error {
+	fmt.Println("started scheduler")
+
+	postgresClient := postgresql.NewClient()
+	redisClient := redis.NewClient()
+
+	executionContextStore := executionContextRepository.NewExecutionContextRepository(postgresClient)
+	metadataStore := metadataRepository.NewMetadataRepository(redisClient)
+	secretStore := secretRepository.NewSecretRepository(redisClient)
+	scheduleStore := scheduleRepository.NewScheduleRepository(postgresClient)
+
+	httpClient, err := http.NewClient()
+	if err != nil {
+		return err
+	}
+	kubeClient := kubernetes.NewKubernetesClient(httpClient)
+	mailer := mail.New(config.MailServerHost(), config.MailServerPort())
+	executionSvc := executionService.NewExecutionService(kubeClient, executionContextStore, metadataStore, secretStore)
+	worker := NewWorker(executionSvc, executionContextStore, scheduleStore, mailer)
+	ticker := time.NewTicker(time.Duration(config.ScheduledJobsFetchIntervalInMins()) * time.Minute)
+	signalsChan := make(chan os.Signal, 1)
+
+	worker.Run(ticker.C, signalsChan)
+
+	_ = postgresClient.Close()
+	return nil
 }
