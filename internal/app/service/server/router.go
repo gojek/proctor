@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"proctor/internal/app/proctord/docs"
+	"proctor/internal/app/service/docs"
 	executionHttpHandler "proctor/internal/app/service/execution/handler"
 	executionContextRepository "proctor/internal/app/service/execution/repository"
 	executionService "proctor/internal/app/service/execution/service"
