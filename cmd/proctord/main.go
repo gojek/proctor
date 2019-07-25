@@ -3,11 +3,11 @@ package main
 import (
 	"github.com/getsentry/raven-go"
 	"os"
-	"proctor/internal/app/proctord/scheduler"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/migration"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/server"
+	"proctor/internal/app/service/worker"
 
 	"github.com/urfave/cli"
 )
@@ -55,7 +55,7 @@ func main() {
 			Name:  "start-scheduler",
 			Usage: "starts scheduler",
 			Action: func(c *cli.Context) error {
-				return scheduler.Start()
+				return worker.Start()
 			},
 		},
 	}
