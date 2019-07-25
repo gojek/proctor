@@ -21,8 +21,9 @@ import (
 	scheduleModel "proctor/internal/app/service/schedule/model"
 	scheduleRepository "proctor/internal/app/service/schedule/repository"
 	secretRepository "proctor/internal/app/service/secret/repository"
-	"proctor/internal/pkg/constant"
 )
+
+const WorkerEmail = "worker@proctor"
 
 type worker struct {
 	executionService           executionService.ExecutionService
@@ -57,7 +58,7 @@ func (worker *worker) enableScheduleIfItDoesNotExist(schedule scheduleModel.Sche
 	if _, ok := worker.inMemorySchedules[schedule.ID]; !ok {
 		cronJob := cron.New()
 		err := cronJob.AddFunc(schedule.Cron, func() {
-			executionContext, _, err := worker.executionService.Execute(schedule.JobName, constant.WorkerEmail, schedule.Args)
+			executionContext, _, err := worker.executionService.Execute(schedule.JobName, WorkerEmail, schedule.Args)
 			if err != nil {
 				logger.Error(fmt.Sprintf("Error submitting job: %s ", schedule.Tags), schedule.JobName, " for execution: ", err.Error())
 				raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags, "job_name": schedule.JobName})
