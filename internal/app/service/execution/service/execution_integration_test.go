@@ -80,7 +80,7 @@ func (suite *TestExecutionIntegrationSuite) TestExecuteJobSuccess() {
 	assert.NoError(t, err)
 	assert.NotNil(t, context)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(40 * time.Second)
 	expectedContext, err := suite.repository.GetById(context.ExecutionID)
 	assert.NoError(t, err)
 	assert.NotNil(t, expectedContext)
