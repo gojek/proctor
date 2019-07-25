@@ -2,12 +2,14 @@ package postgresql
 
 import (
 	"fmt"
-	"proctor/internal/app/proctord/storage/postgres"
-	"proctor/internal/app/service/infra/config"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+
+	executionContextModel "proctor/internal/app/service/execution/model"
+	executionContextStatus "proctor/internal/app/service/execution/status"
+	"proctor/internal/app/service/infra/config"
 )
 
 func TestNamedExec(t *testing.T) {
@@ -19,30 +21,28 @@ func TestNamedExec(t *testing.T) {
 	postgresClient := &client{db: db}
 	defer postgresClient.db.Close()
 
-	jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
-		JobName:             "test-job-name",
-		ImageName:           "test-image-name",
-		ExecutionID:         postgres.StringToSQLString("test-submission-name"),
-		JobArgs:             "test-job-args",
-		JobSubmissionStatus: "test-job-status",
-		JobExecutionStatus:  "test-job-execution-status",
+	executionContext := &executionContextModel.ExecutionContext{
+		JobName:     "test-job-name",
+		ImageTag:    "test-image-name",
+		ExecutionID: uint64(1),
+		Args:        map[string]string{"foo": "bar"},
+		Status:      executionContextStatus.Finished,
 	}
 
-	_, err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
+	_, err = postgresClient.NamedExec("INSERT INTO execution_context (id, job_name, image_tag, args, status) VALUES (:id, :job_name, :image_tag, :args, :status)", executionContext)
 	assert.NoError(t, err)
 
-	var persistedJobsExecutionAuditLog postgres.JobsExecutionAuditLog
-	err = postgresClient.db.Get(&persistedJobsExecutionAuditLog, `SELECT job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status FROM jobs_execution_audit_log WHERE job_name='test-job-name'`)
+	var persistedExecutionContext executionContextModel.ExecutionContext
+	err = postgresClient.db.Get(&persistedExecutionContext, `SELECT id, job_name, image_tag, args, status FROM execution_context WHERE job_name='test-job-name'`)
 	assert.NoError(t, err)
 
-	assert.Equal(t, jobsExecutionAuditLog.JobName, persistedJobsExecutionAuditLog.JobName)
-	assert.Equal(t, jobsExecutionAuditLog.ImageName, persistedJobsExecutionAuditLog.ImageName)
-	assert.Equal(t, jobsExecutionAuditLog.ExecutionID.String, persistedJobsExecutionAuditLog.ExecutionID.String)
-	assert.Equal(t, jobsExecutionAuditLog.JobArgs, persistedJobsExecutionAuditLog.JobArgs)
-	assert.Equal(t, jobsExecutionAuditLog.JobSubmissionStatus, persistedJobsExecutionAuditLog.JobSubmissionStatus)
-	assert.Equal(t, jobsExecutionAuditLog.JobExecutionStatus, persistedJobsExecutionAuditLog.JobExecutionStatus)
+	assert.Equal(t, executionContext.JobName, persistedExecutionContext.JobName)
+	assert.Equal(t, executionContext.ImageTag, persistedExecutionContext.ImageTag)
+	assert.Equal(t, executionContext.ExecutionID, persistedExecutionContext.ExecutionID)
+	assert.Equal(t, executionContext.Args, persistedExecutionContext.Args)
+	assert.Equal(t, executionContext.Status, persistedExecutionContext.Status)
 
-	_, err = postgresClient.db.Exec("DELETE FROM jobs_execution_audit_log WHERE job_name='test-job-name'")
+	_, err = postgresClient.db.Exec("DELETE FROM execution_context WHERE job_name='test-job-name'")
 	assert.NoError(t, err)
 }
 
@@ -56,25 +56,24 @@ func TestSelect(t *testing.T) {
 	defer postgresClient.db.Close()
 	jobName := "test-job-name"
 
-	jobsExecutionAuditLog := &postgres.JobsExecutionAuditLog{
-		JobName:             jobName,
-		ImageName:           "test-image-name",
-		ExecutionID:         postgres.StringToSQLString("test-submission-name"),
-		JobArgs:             "test-job-args",
-		JobSubmissionStatus: "test-job-status",
-		JobExecutionStatus:  "test-job-execution-status",
+	executionContext := &executionContextModel.ExecutionContext{
+		JobName:     jobName,
+		ImageTag:    "test-image-name",
+		ExecutionID: uint64(1),
+		Args:        map[string]string{"foo": "bar"},
+		Status:      executionContextStatus.Finished,
 	}
 
-	_, err = postgresClient.NamedExec("INSERT INTO jobs_execution_audit_log (job_name, image_name, job_name_submitted_for_execution, job_args, job_submission_status, job_execution_status) VALUES (:job_name, :image_name, :job_name_submitted_for_execution, :job_args, :job_submission_status, :job_execution_status)", jobsExecutionAuditLog)
+	_, err = postgresClient.NamedExec("INSERT INTO execution_context (job_name, image_tag, args, status) VALUES (:job_name, :image_tag, :args, :status)", executionContext)
 	assert.NoError(t, err)
 
-	jobsExecutionAuditLogResult := []postgres.JobsExecutionAuditLog{}
-	err = postgresClient.db.Select(&jobsExecutionAuditLogResult, "SELECT job_execution_status from jobs_execution_audit_log where job_name = $1", jobName)
+	executionContextResult := []executionContextModel.ExecutionContext{}
+	err = postgresClient.db.Select(&executionContextResult, "SELECT status from execution_context where job_name = $1", jobName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, jobsExecutionAuditLog.JobExecutionStatus, jobsExecutionAuditLogResult[0].JobExecutionStatus)
+	assert.Equal(t, executionContext.Status, executionContextResult[0].Status)
 
-	_, err = postgresClient.db.Exec("DELETE FROM jobs_execution_audit_log WHERE job_name='test-job-name'")
+	_, err = postgresClient.db.Exec("DELETE FROM execution_context WHERE job_name='test-job-name'")
 	assert.NoError(t, err)
 }
 
@@ -88,11 +87,11 @@ func TestSelectForNoRows(t *testing.T) {
 	defer postgresClient.db.Close()
 	jobName := "test-job-name"
 
-	jobsExecutionAuditLogResult := []postgres.JobsExecutionAuditLog{}
-	err = postgresClient.db.Select(&jobsExecutionAuditLogResult, "SELECT job_execution_status from jobs_execution_audit_log where job_name = $1", jobName)
+	executionContextResult := []executionContextModel.ExecutionContext{}
+	err = postgresClient.db.Select(&executionContextResult, "SELECT status from execution_context where job_name = $1", jobName)
 	assert.NoError(t, err)
 
-	assert.Equal(t, 0, len(jobsExecutionAuditLogResult))
+	assert.Equal(t, 0, len(executionContextResult))
 
 	assert.NoError(t, err)
 }
