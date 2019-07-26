@@ -71,7 +71,7 @@ func (s *ClientTestSuite) TestListProcsReturnsListOfProcsWithDetails() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/metadata",
+			"http://"+proctorConfig.Host+MetadataRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, body), nil
 			},
@@ -104,7 +104,7 @@ func (s *ClientTestSuite) TestListProcsReturnErrorFromResponseBody() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/metadata",
+			"http://"+proctorConfig.Host+MetadataRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, `{}`), nil
 			},
@@ -138,7 +138,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/metadata",
+			"http://"+proctorConfig.Host+MetadataRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
 			},
@@ -155,7 +155,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
 
 	procList, err := s.testClient.ListProcs()
 
-	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	assert.Equal(t, []modelMetadata.Metadata{}, procList)
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -171,7 +171,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideConnectionError() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/metadata",
+			"http://"+proctorConfig.Host+MetadataRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
 			},
@@ -188,7 +188,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideConnectionError() {
 
 	procList, err := s.testClient.ListProcs()
 
-	assert.Equal(t, errors.New("Network Error!!!\nGet http://proctor.example.com/jobs/metadata: Unknown Error"), err)
+	assert.Equal(t, errors.New("Network Error!!!\nGet http://proctor.example.com/metadata: Unknown Error"), err)
 	assert.Equal(t, []modelMetadata.Metadata{}, procList)
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -204,7 +204,7 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedUser() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/metadata",
+			"http://"+proctorConfig.Host+MetadataRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(401, `{}`), nil
 			},
@@ -236,7 +236,7 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedErrorWithConfigMissing() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/metadata",
+			"http://"+proctorConfig.Host+MetadataRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(401, `{}`), nil
 			},
@@ -272,7 +272,7 @@ func (s *ClientTestSuite) TestExecuteProc() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+proctorConfig.Host+"/jobs/execute",
+			"http://"+proctorConfig.Host+ExecutionRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(201, body), nil
 			},
@@ -314,7 +314,7 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+proctorConfig.Host+"/jobs/schedule",
+			"http://"+proctorConfig.Host+ScheduleRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(201, body), nil
 			},
@@ -353,7 +353,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+proctorConfig.Host+"/jobs/schedule",
+			"http://"+proctorConfig.Host+ScheduleRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(409, "Server Error!!!\nStatus Code: 409, Conflict"), nil
 			},
@@ -386,7 +386,7 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+proctorConfig.Host+"/jobs/execute",
+			"http://"+proctorConfig.Host+ExecutionRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, ""), nil
 			},
@@ -417,7 +417,7 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorized() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+proctorConfig.Host+"/jobs/execute",
+			"http://"+proctorConfig.Host+ExecutionRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(401, ""), nil
 			},
@@ -449,7 +449,7 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotS
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+proctorConfig.Host+"/jobs/execute",
+			"http://"+proctorConfig.Host+ExecutionRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(401, ""), nil
 			},
@@ -481,7 +481,7 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"POST",
-			"http://"+proctorConfig.Host+"/jobs/execute",
+			"http://"+proctorConfig.Host+ExecutionRoute,
 			func(req *http.Request) (*http.Response, error) {
 				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
 			},
@@ -499,7 +499,7 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 	response, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
 	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("Network Error!!!\nPost http://proctor.example.com/jobs/execute: Unknown Error"), err)
+	assert.Equal(t, errors.New("Network Error!!!\nPost http://proctor.example.com/execution: Unknown Error"), err)
 	s.mockConfigLoader.AssertExpectations(t)
 }
 
@@ -579,7 +579,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, responseBody), nil
 			},
@@ -615,7 +615,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, responseBody), nil
 			},
@@ -648,7 +648,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
 			func(req *http.Request) (*http.Response, error) {
 				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
 			},
@@ -665,7 +665,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 
 	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
 
-	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/execute/some-proc-name/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/execution/some-proc-name/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, "", procExecutionStatus)
 }
@@ -681,7 +681,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse()
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, ""), nil
 			},
@@ -720,7 +720,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+"/jobs/execute/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
 			func(req *http.Request) (*http.Response, error) {
 				requestsToProctorDCount += 1
 				return httpmock.NewStringResponse(200, responseBody), nil
@@ -757,7 +757,7 @@ func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, body), nil
 			},
@@ -793,7 +793,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWithInvalidJobID() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(400, body), nil
 			},
@@ -826,7 +826,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWhenJobIDNotFound() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(404, "Job not found"), nil
 			},
@@ -859,7 +859,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWitInternalServerError() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, ""), nil
 			},
@@ -893,7 +893,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobs() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule"),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, body), nil
 			},
@@ -928,7 +928,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenNoJobsScheduled() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule"),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(204, body), nil
 			},
@@ -960,7 +960,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenServerReturnInternal
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule"),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, ""), nil
 			},
@@ -994,7 +994,7 @@ func (s *ClientTestSuite) TestSuccessRemoveScheduledJob() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, body), nil
 			},
@@ -1027,7 +1027,7 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWithInvalidJobID() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(400, "Invalid Job ID"), nil
 			},
@@ -1060,7 +1060,7 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWhenJobIDNotFound() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(404, "Job not found"), nil
 			},
@@ -1093,7 +1093,7 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+"/jobs/schedule/%s", jobID),
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, ""), nil
 			},

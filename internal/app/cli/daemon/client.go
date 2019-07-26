@@ -25,6 +25,14 @@ import (
 	modelSchedule "proctor/internal/pkg/model/schedule"
 )
 
+const (
+	ExecutionRoute     string = "/execution"
+	ExecutionLogsRoute string = "/execution/logs"
+	MetadataRoute      string = "/metadata"
+	SecretRoute        string = "/secret"
+	ScheduleRoute      string = "/schedule"
+)
+
 type Client interface {
 	ListProcs() ([]modelMetadata.Metadata, error)
 	ExecuteProc(string, map[string]string) (string, error)
@@ -90,7 +98,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", "http://"+c.proctordHost+"/jobs/schedule", bytes.NewReader(requestBody))
+	req, err := http.NewRequest("POST", "http://"+c.proctordHost+ScheduleRoute, bytes.NewReader(requestBody))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
@@ -138,7 +146,7 @@ func (c *client) ListProcs() ([]modelMetadata.Metadata, error) {
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
-	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/metadata", nil)
+	req, err := http.NewRequest("GET", "http://"+c.proctordHost+MetadataRoute, nil)
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
 	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
@@ -167,7 +175,7 @@ func (c *client) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) {
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
-	req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/schedule", nil)
+	req, err := http.NewRequest("GET", "http://"+c.proctordHost+ScheduleRoute, nil)
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
 	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
@@ -196,7 +204,7 @@ func (c *client) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
-	url := fmt.Sprintf("http://"+c.proctordHost+"/jobs/schedule/%s", jobID)
+	url := fmt.Sprintf("http://"+c.proctordHost+ScheduleRoute+"/%s", jobID)
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
@@ -226,7 +234,7 @@ func (c *client) RemoveScheduledProc(jobID string) error {
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
-	url := fmt.Sprintf("http://"+c.proctordHost+"/jobs/schedule/%s", jobID)
+	url := fmt.Sprintf("http://"+c.proctordHost+ScheduleRoute+"/%s", jobID)
 	req, err := http.NewRequest("DELETE", url, nil)
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
@@ -262,7 +270,7 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", "http://"+c.proctordHost+"/jobs/execute", bytes.NewReader(requestBody))
+	req, err := http.NewRequest("POST", "http://"+c.proctordHost+ExecutionRoute, bytes.NewReader(requestBody))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
@@ -296,7 +304,7 @@ func (c *client) StreamProcLogs(name string) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	proctodWebsocketURL := url.URL{Scheme: "ws", Host: c.proctordHost, Path: "/jobs/logs"}
+	proctodWebsocketURL := url.URL{Scheme: "ws", Host: c.proctordHost, Path: ExecutionLogsRoute}
 	proctodWebsocketURLWithProcName := proctodWebsocketURL.String() + "?" + "job_name=" + name
 
 	headers := make(map[string][]string)
@@ -357,7 +365,7 @@ func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, erro
 			Timeout: c.connectionTimeoutSecs,
 		}
 
-		req, err := http.NewRequest("GET", "http://"+c.proctordHost+"/jobs/execute/"+procName+"/status", nil)
+		req, err := http.NewRequest("GET", "http://"+c.proctordHost+ExecutionRoute+"/"+procName+"/status", nil)
 		req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 		req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
 		req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
