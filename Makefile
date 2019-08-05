@@ -73,4 +73,7 @@ ftest.update.metadata:
 	PROCTOR_URI=http://localhost:$(PROCTOR_APP_PORT)/metadata \
 	ruby ./test/update_metadata.rb
 
+ftest.proctor.list:
+	$(BIN_DIR)/cli list
+
 

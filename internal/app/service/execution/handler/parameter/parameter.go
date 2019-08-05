@@ -1,6 +1,5 @@
 package parameter
 
-
 const (
-	UserEmailHeader     string = "Email-Id"
+	UserEmailHeader string = "Email-Id"
 )
