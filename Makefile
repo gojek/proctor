@@ -33,7 +33,7 @@ itest:
 
 .PHONY: server
 server:
-	go build -o $(BIN_DIR)/server ./cmd/proctord/main.go
+	go build -o $(BIN_DIR)/server ./cmd/server/main.go
 
 .PHONY: start-server
 start-server:
