@@ -1,4 +1,5 @@
 {
+  "name": "say-hello-world",
   "description":"This proc says hello world",
   "env_vars":{
     "secrets": [

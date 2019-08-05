@@ -9,6 +9,7 @@ export $(shell sed 's/=.*//' .env.test)
 SRC_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 OUT_DIR := $(SRC_DIR)/_output
 BIN_DIR := $(OUT_DIR)/bin
+FTEST_DIR := test/procs
 GOPROXY ?= https://proxy.golang.org
 GO111MODULE := on
 
@@ -60,3 +61,16 @@ db.rollback: server
 
 db.teardown:
 	-PGPASSWORD=$(PROCTOR_POSTGRES_PASSWORD) psql -h $(PROCTOR_POSTGRES_HOST) -p $(PROCTOR_POSTGRES_PORT) -c 'drop database $(PROCTOR_POSTGRES_DATABASE);' -U $(PROCTOR_POSTGRES_USER)
+
+.PHONY: ftest.package.procs
+ftest.package.procs:
+	PROCTOR_JOBS_PATH=$(FTEST_DIR) \
+	ruby ./test/package_procs.rb
+
+ftest.update.metadata:
+	$(BIN_DIR)/server s & \
+	PROCTOR_JOBS_PATH=$(FTEST_DIR) \
+	PROCTOR_URI=http://localhost:$(PROCTOR_APP_PORT)/metadata \
+	ruby ./test/update_metadata.rb
+
+
