@@ -1,6 +1,7 @@
 package mail
 
 import (
+	"bytes"
 	"fmt"
 	"net/smtp"
 	"strings"
@@ -8,7 +9,6 @@ import (
 	executionContextModel "proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/infra/config"
 	scheduleModel "proctor/internal/app/service/schedule/model"
-	"proctor/internal/pkg/utility"
 )
 
 type Mailer interface {
@@ -42,10 +42,18 @@ func constructMessage(jobName string, executionID uint64, executionStatus string
 	subject := "Subject: " + jobName + " | scheduled execution " + executionStatus
 	body := "Proc execution details:\n" +
 		"\nName:\t" + jobName +
-		"\nArgs:\t" + utility.MapToString(executionArgs) +
+		"\nArgs:\t" + MapToString(executionArgs) +
 		"\nID:\t" + fmt.Sprint(executionID) +
 		"\nStatus:\t" + executionStatus +
 		"\n\n\nThis is an auto-generated email"
 
 	return []byte(subject + "\n\n" + body)
+}
+
+func MapToString(someMap map[string]string) string {
+	b := new(bytes.Buffer)
+	for key, value := range someMap {
+		_, _ = fmt.Fprintf(b, "%s=\"%s\",", key, value)
+	}
+	return strings.TrimRight(b.String(), ",")
 }

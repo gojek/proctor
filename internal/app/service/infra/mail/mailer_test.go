@@ -13,7 +13,6 @@ import (
 	executionStatus "proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/config"
 	scheduleModel "proctor/internal/app/service/schedule/model"
-	"proctor/internal/pkg/utility"
 )
 
 func TestSendMail(t *testing.T) {
@@ -98,7 +97,7 @@ func TestSendMail(t *testing.T) {
 
 	receivedMail := cmdbuf.String()
 
-	stringifiedJobArgs := utility.MapToString(executionContext.Args)
+	stringifiedJobArgs := MapToString(executionContext.Args)
 	var sendMailClient = `EHLO localhost
 HELO localhost
 MAIL FROM:<` + config.MailUsername() + `>
