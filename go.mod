@@ -25,14 +25,11 @@ require (
 	github.com/goware/urlx v0.2.0 // indirect
 	github.com/hashicorp/go-version v1.2.0
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/jarcoal/httpmock v1.0.4
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/json-iterator/go v1.1.6 // indirect
-	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/lib/pq v1.1.1
 	github.com/mattes/migrate v3.0.1+incompatible
 	github.com/mattn/go-colorable v0.1.2 // indirect
-	github.com/mdempsky/gocode v0.0.0-20190203001940-7fb65232883f // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/newrelic/go-agent v2.9.0+incompatible
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
@@ -45,7 +42,6 @@ require (
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.3.0
 	github.com/thingful/httpmock v0.0.2
-	github.com/tylerb/graceful v1.2.15
 	github.com/urfave/cli v1.20.0
 	github.com/urfave/negroni v1.0.0
 	gopkg.in/inf.v0 v0.9.1 // indirect
