@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"proctor/internal/pkg/model/execution"
 	"strconv"
 	"strings"
 	"time"
@@ -135,18 +136,19 @@ func (httpHandler *executionHTTPHandler) GetStatus() http.HandlerFunc {
 			return
 		}
 
-		responseMap := map[string]string{
-			"ExecutionId": fmt.Sprint(context.ExecutionID),
-			"JobName":     context.JobName,
-			"ImageTag":    context.ImageTag,
-			"CreatedAt":   context.CreatedAt.String(),
-			"Status":      string(context.Status),
+		responseBody := &execution.ExecutionResult{
+			ExecutionId:   context.ExecutionID,
+			JobName:       context.JobName,
+			ExecutionName: context.Name,
+			ImageTag:      context.ImageTag,
+			CreatedAt:     context.CreatedAt.String(),
+			Status:        string(context.Status),
 		}
 
 		response.WriteHeader(http.StatusOK)
 
-		responseJson, err := json.Marshal(responseMap)
-		logger.LogErrors(err, "marshal json from: ", responseMap)
+		responseJson, err := json.Marshal(responseBody)
+		logger.LogErrors(err, "marshal json from: ", responseBody)
 
 		_, _ = response.Write(responseJson)
 
@@ -180,19 +182,19 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 			return
 		}
 
-		responseMap := map[string]string{
-			"ExecutionId":   fmt.Sprint(context.ExecutionID),
-			"JobName":       context.JobName,
-			"ExecutionName": executionName,
-			"ImageTag":      context.ImageTag,
-			"CreatedAt":     context.CreatedAt.String(),
-			"Status":        string(context.Status),
+		responseBody := &execution.ExecutionResult{
+			ExecutionId:   context.ExecutionID,
+			JobName:       context.JobName,
+			ExecutionName: executionName,
+			ImageTag:      context.ImageTag,
+			CreatedAt:     context.CreatedAt.String(),
+			Status:        string(context.Status),
 		}
 
 		response.WriteHeader(http.StatusCreated)
 
-		responseJson, err := json.Marshal(responseMap)
-		logger.LogErrors(err, "marshal json from: ", responseMap)
+		responseJson, err := json.Marshal(responseBody)
+		logger.LogErrors(err, "marshal json from: ", responseBody)
 
 		_, _ = response.Write(responseJson)
 		return

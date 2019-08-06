@@ -16,6 +16,7 @@ import (
 	"proctor/internal/app/cli/config"
 	"proctor/internal/pkg/constant"
 	"proctor/internal/pkg/io"
+	"proctor/internal/pkg/model/execution"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -29,15 +30,14 @@ const (
 	ExecutionRoute     string = "/execution"
 	ExecutionLogsRoute string = "/execution/logs"
 	MetadataRoute      string = "/metadata"
-	SecretRoute        string = "/secret"
 	ScheduleRoute      string = "/schedule"
 )
 
 type Client interface {
 	ListProcs() ([]modelMetadata.Metadata, error)
-	ExecuteProc(string, map[string]string) (string, error)
-	StreamProcLogs(string) error
-	GetDefinitiveProcExecutionStatus(string) (string, error)
+	ExecuteProc(string, map[string]string) (*execution.ExecutionResult, error)
+	StreamProcLogs(executionId uint64) error
+	GetDefinitiveProcExecutionStatus(executionId uint64) (string, error)
 	ScheduleJob(string, string, string, string, string, map[string]string) (string, error)
 	ListScheduledProcs() ([]modelSchedule.ScheduledJob, error)
 	DescribeScheduledProc(string) (modelSchedule.ScheduledJob, error)
@@ -253,10 +253,10 @@ func (c *client) RemoveScheduledProc(jobID string) error {
 	return nil
 }
 
-func (c *client) ExecuteProc(name string, args map[string]string) (string, error) {
+func (c *client) ExecuteProc(name string, args map[string]string) (*execution.ExecutionResult, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	procToExecute := ProcToExecute{
@@ -266,7 +266,7 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 
 	requestBody, err := json.Marshal(procToExecute)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	client := &http.Client{}
@@ -277,21 +277,21 @@ func (c *client) ExecuteProc(name string, args map[string]string) (string, error
 	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", buildNetworkError(err)
+		return nil, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
-		return "", buildHTTPError(c, resp)
+		return nil, buildHTTPError(c, resp)
 	}
 
-	var executedProc ProcToExecute
-	err = json.NewDecoder(resp.Body).Decode(&executedProc)
+	var executionResult execution.ExecutionResult
+	err = json.NewDecoder(resp.Body).Decode(&executionResult)
 
-	return executedProc.Name, err
+	return &executionResult, err
 }
 
-func (c *client) StreamProcLogs(name string) error {
+func (c *client) StreamProcLogs(executionId uint64) error {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return err
@@ -305,7 +305,7 @@ func (c *client) StreamProcLogs(name string) error {
 	signal.Notify(interrupt, os.Interrupt)
 
 	proctodWebsocketURL := url.URL{Scheme: "ws", Host: c.proctordHost, Path: ExecutionLogsRoute}
-	proctodWebsocketURLWithProcName := proctodWebsocketURL.String() + "?" + "job_name=" + name
+	proctodWebsocketURLWithProcName := fmt.Sprintf("%s?context_id=%v", proctodWebsocketURL.String(), executionId)
 
 	headers := make(map[string][]string)
 	token := []string{c.accessToken}
@@ -354,7 +354,7 @@ func (c *client) StreamProcLogs(name string) error {
 	}
 }
 
-func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, error) {
+func (c *client) GetDefinitiveProcExecutionStatus(executionId uint64) (string, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return "", err
@@ -365,7 +365,7 @@ func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, erro
 			Timeout: c.connectionTimeoutSecs,
 		}
 
-		req, err := http.NewRequest("GET", "http://"+c.proctordHost+ExecutionRoute+"/"+procName+"/status", nil)
+		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s%s/%v/status", c.proctordHost, ExecutionRoute, executionId), nil)
 		req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 		req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
 		req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
@@ -392,7 +392,7 @@ func (c *client) GetDefinitiveProcExecutionStatus(procName string) (string, erro
 
 		time.Sleep(time.Duration(count) * 100 * time.Millisecond)
 	}
-	return "", errors.New(fmt.Sprintf("No definitive status received for proc name %s from proctord", procName))
+	return "", errors.New(fmt.Sprintf("No definitive status received for execution with id %v from proctord", executionId))
 }
 
 func buildNetworkError(err error) error {

@@ -43,7 +43,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 				printer.Println("With No Variables", color.FgRed)
 			}
 
-			executedProcName, err := proctorDClient.ExecuteProc(procName, procArgs)
+			executionResult, err := proctorDClient.ExecuteProc(procName, procArgs)
 			if err != nil {
 				printer.Println(err.Error(), color.FgRed)
 				print()
@@ -52,7 +52,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 			}
 
 			printer.Println("Proc submitted for execution. \nStreaming logs:", color.FgGreen)
-			err = proctorDClient.StreamProcLogs(executedProcName)
+			err = proctorDClient.StreamProcLogs(executionResult.ExecutionId)
 			if err != nil {
 				printer.Println("Error Streaming Logs", color.FgRed)
 				osExitFunc(1)
@@ -61,7 +61,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 
 			printer.Println("Log stream of proc completed.", color.FgGreen)
 
-			procExecutionStatus, err := proctorDClient.GetDefinitiveProcExecutionStatus(executedProcName)
+			procExecutionStatus, err := proctorDClient.GetDefinitiveProcExecutionStatus(executionResult.ExecutionId)
 			if err != nil {
 				printer.Println("Error Fetching Proc execution status", color.FgRed)
 				osExitFunc(1)

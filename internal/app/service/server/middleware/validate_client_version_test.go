@@ -69,5 +69,5 @@ func TestInvalidClientVersionHTTPHeader(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	body, _ := ioutil.ReadAll(resp.Body)
 	bodyString := string(body)
-	assert.Equal(t, bodyString, "Your Proctor client is using an outdated version: 0.1.0 . To continue using proctor, please upgrade to latest version.")
+	assert.Equal(t, bodyString, "Your Proctor client is using an outdated version: 0.1.0. To continue using proctor, please upgrade to latest version.")
 }

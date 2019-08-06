@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"proctor/internal/pkg/model/execution"
 	"strings"
 	"testing"
 	"time"
@@ -165,20 +166,23 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionGetStatusH
 		ExecutionID: executionContextId,
 		UserEmail:   userEmail,
 		JobName:     job.Name,
+		Name:        "execution_name",
 		ImageTag:    "test",
 		Args:        job.Args,
 		CreatedAt:   time.Now(),
 		Status:      status.Finished,
 	}
-	responseMap := map[string]string{
-		"ExecutionId": fmt.Sprint(executionContextId),
-		"JobName":     context.JobName,
-		"ImageTag":    context.ImageTag,
-		"CreatedAt":   context.CreatedAt.String(),
-		"Status":      string(context.Status),
+
+	expectedResponse := &execution.ExecutionResult{
+		ExecutionId:   context.ExecutionID,
+		JobName:       context.JobName,
+		ExecutionName: context.Name,
+		ImageTag:      context.ImageTag,
+		CreatedAt:     context.CreatedAt.String(),
+		Status:        string(context.Status),
 	}
 
-	responseBody, err := json.Marshal(responseMap)
+	responseBody, err := json.Marshal(expectedResponse)
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("GET", fmt.Sprintf("/execution/%s/status", fmt.Sprint(executionContextId)), bytes.NewReader([]byte("")))
@@ -253,22 +257,23 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionPostHTTPHa
 	context := &model.ExecutionContext{
 		UserEmail: userEmail,
 		JobName:   job.Name,
+		Name:      "test",
 		Args:      job.Args,
 		Status:    status.Finished,
 	}
-	responseMap := map[string]string{
-		"CreatedAt":     context.CreatedAt.String(),
-		"ExecutionId":   "0",
-		"ExecutionName": "test",
-		"ImageTag":      "",
-		"JobName":       context.JobName,
-		"Status":        string(context.Status),
+	expectedResponse := &execution.ExecutionResult{
+		ExecutionId:   context.ExecutionID,
+		JobName:       context.JobName,
+		ExecutionName: context.Name,
+		ImageTag:      context.ImageTag,
+		CreatedAt:     context.CreatedAt.String(),
+		Status:        string(context.Status),
 	}
 
 	requestBody, err := json.Marshal(job)
 	assert.NoError(t, err)
 
-	responseBody, err := json.Marshal(responseMap)
+	responseBody, err := json.Marshal(expectedResponse)
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest("POST", "/execute", bytes.NewReader(requestBody))

@@ -102,8 +102,6 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 		Status:    status.Created,
 	}
 
-	defer service.save(context)
-
 	metadata, err := service.metadataRepository.GetByName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
@@ -139,6 +137,7 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 
 	go service.watchProcess(executionName, context)
 
+	defer service.save(context)
 	return &context, executionName, nil
 }
 

@@ -62,6 +62,7 @@ db.rollback: server
 
 db.teardown:
 	-PGPASSWORD=$(PROCTOR_POSTGRES_PASSWORD) psql -h $(PROCTOR_POSTGRES_HOST) -p $(PROCTOR_POSTGRES_PORT) -c 'drop database $(PROCTOR_POSTGRES_DATABASE);' -U $(PROCTOR_POSTGRES_USER)
+	redis-cli FLUSHALL
 
 .PHONY: ftest.package.procs
 ftest.package.procs:
@@ -69,12 +70,21 @@ ftest.package.procs:
 	ruby ./test/package_procs.rb
 
 ftest.update.metadata:
-	$(BIN_DIR)/server s & \
 	PROCTOR_JOBS_PATH=$(FTEST_DIR) \
 	PROCTOR_URI=http://localhost:$(PROCTOR_APP_PORT)/metadata \
 	ruby ./test/update_metadata.rb
 
+ftest.update.secret:
+	curl -X POST \
+	  http://localhost:5000/secret \
+	  -H 'Content-Type: application/json' \
+	  -d '{"job_name": "say-hello-world","secrets": {"SAMPLE_SECRET_ONE": "Secret One :*","SAMPLE_SECRET_TWO": "Secret Two :V"}}'
+
 ftest.proctor.list:
 	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli list
 
+ftest.proctor.describe:
+	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli describe say-hello-world
 
+ftest.proctor.execute:
+	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli execute say-hello-world SAMPLE_ARG_ONE=foo SAMPLE_ARG_TWO=bar

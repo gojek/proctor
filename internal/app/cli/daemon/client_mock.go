@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"github.com/stretchr/testify/mock"
+	"proctor/internal/pkg/model/execution"
 	modelMetadata "proctor/internal/pkg/model/metadata"
 	modelSchedule "proctor/internal/pkg/model/schedule"
 )
@@ -20,18 +21,18 @@ func (m *MockClient) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) 
 	return args.Get(0).([]modelSchedule.ScheduledJob), args.Error(1)
 }
 
-func (m *MockClient) ExecuteProc(name string, procArgs map[string]string) (string, error) {
+func (m *MockClient) ExecuteProc(name string, procArgs map[string]string) (*execution.ExecutionResult, error) {
 	args := m.Called(name, procArgs)
-	return args.Get(0).(string), args.Error(1)
+	return args.Get(0).(*execution.ExecutionResult), args.Error(1)
 }
 
-func (m *MockClient) StreamProcLogs(name string) error {
-	args := m.Called(name)
+func (m *MockClient) StreamProcLogs(executionId uint64) error {
+	args := m.Called(executionId)
 	return args.Error(0)
 }
 
-func (m *MockClient) GetDefinitiveProcExecutionStatus(name string) (string, error) {
-	args := m.Called(name)
+func (m *MockClient) GetDefinitiveProcExecutionStatus(executionId uint64) (string, error) {
+	args := m.Called(executionId)
 	return args.Get(0).(string), args.Error(1)
 }
 

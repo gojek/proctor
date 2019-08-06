@@ -525,7 +525,7 @@ func (s *ClientTestSuite) TestLogStreamForAuthorizedUser() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	err := s.testClient.StreamProcLogs("test-job-id")
+	err := s.testClient.StreamProcLogs(uint64(42))
 	assert.NoError(t, err)
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -541,7 +541,7 @@ func (s *ClientTestSuite) TestLogStreamForBadWebSocketHandshake() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	errStreamLogs := s.testClient.StreamProcLogs("test-job-id")
+	errStreamLogs := s.testClient.StreamProcLogs(uint64(42))
 	assert.Equal(t, errors.New("websocket: bad handshake"), errStreamLogs)
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -559,7 +559,7 @@ func (s *ClientTestSuite) TestLogStreamForUnauthorizedUser() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	errStreamLogs := s.testClient.StreamProcLogs("test-job-id")
+	errStreamLogs := s.testClient.StreamProcLogs(uint64(42))
 	assert.Error(t, errors.New(http.StatusText(http.StatusUnauthorized)), errStreamLogs)
 	s.mockConfigLoader.AssertExpectations(t)
 
@@ -594,7 +594,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
 	assert.NoError(t, err)
 	s.mockConfigLoader.AssertExpectations(t)
@@ -630,7 +630,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
 	assert.NoError(t, err)
 	s.mockConfigLoader.AssertExpectations(t)
@@ -663,7 +663,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
 	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/execution/some-proc-name/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	s.mockConfigLoader.AssertExpectations(t)
@@ -696,7 +696,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse()
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
 	assert.Equal(t, errors.New("Server Error!!!\nStatus Code: 500, Internal Server Error"), err)
 	s.mockConfigLoader.AssertExpectations(t)
@@ -736,7 +736,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
+	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
 	assert.Equal(t, errors.New("No definitive status received for proc name some-proc-name from proctord"), err)
 	s.mockConfigLoader.AssertExpectations(t)

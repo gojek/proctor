@@ -44,11 +44,11 @@ func Start() error {
 		if shutdownErr := httpServer.Shutdown(context.Background()); shutdownErr != nil {
 			logger.Error("Received an Interrupt Signal", shutdownErr)
 		}
-		close(idleConnsClosed)
 	}()
 
-	if err = httpServer.ListenAndServe(); err != http.ErrServerClosed {
+	if err = httpServer.ListenAndServe(); err != nil {
 		logger.Error("HTTP Server Failed ", err)
+		close(idleConnsClosed)
 	}
 
 	<-idleConnsClosed
