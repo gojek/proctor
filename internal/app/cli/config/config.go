@@ -86,7 +86,10 @@ func (loader *loader) Load() (ProctorConfig, ConfigError) {
 // Returns Config file directory
 // This allows to test on dev environment without conflicting with installed proctor config file
 func ConfigFileDir() string {
-	if os.Getenv(Environment) == "test" {
+	localConfigDir, localConfigAvailable := os.LookupEnv("LOCAL_CONFIG_DIR")
+	if localConfigAvailable {
+		return localConfigDir
+	} else if os.Getenv(Environment) == "test" {
 		return "/tmp"
 	} else {
 		return fmt.Sprintf("%s/.proctor", os.Getenv("HOME"))

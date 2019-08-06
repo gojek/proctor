@@ -19,18 +19,25 @@ func ValidateClientVersion(next http.Handler) http.Handler {
 			clientVersion, err := version.NewVersion(requestHeaderClientVersion)
 			if err != nil {
 				logger.Error("Error while creating requestHeaderClientVersion", err.Error())
+				w.WriteHeader(http.StatusForbidden)
+				_, _ = w.Write([]byte(fmt.Sprintf(status.ClientVersionInvalidMessage, "Minimum Client Version Config is Missing")))
+				return
 			}
 
 			minClientVersion, err := version.NewVersion(config.MinClientVersion())
 			if err != nil {
-				logger.Error("Error while creating minClientVersion", err.Error())
+				logger.Error("Error while creating minClientVersion ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(fmt.Sprintf(status.ServerConfigErrorMessage, "Minimum Client Version Config is Missing")))
+				return
 			}
 
 			if clientVersion.LessThan(minClientVersion) {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusForbidden)
 				_, _ = w.Write([]byte(fmt.Sprintf(status.ClientOutdatedErrorMessage, clientVersion)))
 				return
 			}
+
 			next.ServeHTTP(w, r)
 		} else {
 			next.ServeHTTP(w, r)

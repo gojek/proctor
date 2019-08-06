@@ -10,6 +10,7 @@ SRC_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 OUT_DIR := $(SRC_DIR)/_output
 BIN_DIR := $(OUT_DIR)/bin
 FTEST_DIR := test/procs
+CONFIG_DIR := test/config
 GOPROXY ?= https://proxy.golang.org
 GO111MODULE := on
 
@@ -74,6 +75,6 @@ ftest.update.metadata:
 	ruby ./test/update_metadata.rb
 
 ftest.proctor.list:
-	$(BIN_DIR)/cli list
+	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli list
 
 
