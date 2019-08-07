@@ -50,8 +50,8 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmd() {
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "SAMPLE_ARG_TWO", "variable"), color.Reset).Once()
 
 	executionResult := &execution.ExecutionResult{
-		ExecutionId: uint64(42),
-		ExecutionName: "Mantoel",
+		ExecutionId:   uint64(42),
+		ExecutionName: "Test",
 	}
 
 	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
