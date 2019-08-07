@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"proctor/internal/app/cli/daemon"
 	"proctor/internal/pkg/io"
+	"proctor/internal/pkg/model/execution"
 	"testing"
 
 	"github.com/fatih/color"
@@ -49,14 +50,18 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmd() {
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "SAMPLE_ARG_ONE", "any"), color.Reset).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "SAMPLE_ARG_TWO", "variable"), color.Reset).Once()
 
-	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("executed-proc-name", nil).Once()
+	executionResult := &execution.ExecutionResult{
+		ExecutionId: uint64(42),
+	}
+
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
 
 	s.mockPrinter.On("Println", "Proc submitted for execution. \nStreaming logs:", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
+	s.mockProctorDClient.On("StreamProcLogs", executionResult.ExecutionId).Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobSucceeded, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", executionResult.ExecutionId).Return(constant.JobSucceeded, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution successful", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
@@ -71,15 +76,19 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForNoProcVariables() {
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
 	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
 
+	executionResult := &execution.ExecutionResult{
+		ExecutionId: uint64(42),
+	}
+
 	procArgs := make(map[string]string)
-	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("executed-proc-name", nil).Once()
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
 
 	s.mockPrinter.On("Println", "Proc submitted for execution. \nStreaming logs:", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
+	s.mockProctorDClient.On("StreamProcLogs", executionResult.ExecutionId).Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobSucceeded, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", executionResult.ExecutionId).Return(constant.JobSucceeded, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution successful", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
@@ -95,15 +104,19 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForIncorrectVariableFormat() {
 	s.mockPrinter.On("Println", "With Variables", color.FgMagenta).Once()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "\nIncorrect variable format\n", "incorrect-format"), color.FgRed).Once()
 
+	executionResult := &execution.ExecutionResult{
+		ExecutionId: uint64(42),
+	}
+
 	procArgs := make(map[string]string)
-	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("executed-proc-name", nil).Once()
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
 
 	s.mockPrinter.On("Println", "Proc submitted for execution. \nStreaming logs:", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
+	s.mockProctorDClient.On("StreamProcLogs", executionResult.ExecutionId).Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobSucceeded, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", executionResult.ExecutionId).Return(constant.JobSucceeded, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution successful", color.FgGreen).Once()
 
 	s.testExecutionCmd.Run(&cobra.Command{}, args)
@@ -118,8 +131,11 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDExecutionFailure() {
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
 	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
 
+	executionResult := &execution.ExecutionResult{
+		ExecutionId: uint64(42),
+	}
 	procArgs := make(map[string]string)
-	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("", errors.New("test error")).Once()
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, errors.New("test error")).Once()
 
 	s.mockPrinter.On("Println", mock.Anything, color.FgRed).Once()
 
@@ -139,12 +155,15 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDLogStreamingFailure()
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
 	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
 
+	executionResult := &execution.ExecutionResult{
+		ExecutionId: uint64(42),
+	}
 	procArgs := make(map[string]string)
-	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("executed-proc-name", nil).Once()
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
 
 	s.mockPrinter.On("Println", "Proc submitted for execution. \nStreaming logs:", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(errors.New("error")).Once()
+	s.mockProctorDClient.On("StreamProcLogs", executionResult.ExecutionId).Return(errors.New("error")).Once()
 	s.mockPrinter.On("Println", "Error Streaming Logs", color.FgRed).Once()
 
 	osExitFunc := func(exitCode int) {
@@ -163,15 +182,18 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDGetDefinitiveProcExec
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
 	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
 
+	executionResult := &execution.ExecutionResult{
+		ExecutionId: uint64(42),
+	}
 	procArgs := make(map[string]string)
-	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("executed-proc-name", nil).Once()
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
 
 	s.mockPrinter.On("Println", "Proc submitted for execution. \nStreaming logs:", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
+	s.mockProctorDClient.On("StreamProcLogs", executionResult.ExecutionId).Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return("", errors.New("some error")).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", executionResult.ExecutionId).Return("", errors.New("some error")).Once()
 	s.mockPrinter.On("Println", "Error Fetching Proc execution status", color.FgRed).Once()
 
 	osExitFunc := func(exitCode int) {
@@ -190,15 +212,18 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDGetDefinitiveProcExec
 	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
 	s.mockPrinter.On("Println", "With No Variables", color.FgRed).Once()
 
+	executionResult := &execution.ExecutionResult{
+		ExecutionId: uint64(42),
+	}
 	procArgs := make(map[string]string)
-	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return("executed-proc-name", nil).Once()
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
 
 	s.mockPrinter.On("Println", "Proc submitted for execution. \nStreaming logs:", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("StreamProcLogs", "executed-proc-name").Return(nil).Once()
+	s.mockProctorDClient.On("StreamProcLogs", executionResult.ExecutionId).Return(nil).Once()
 	s.mockPrinter.On("Println", "Log stream of proc completed.", color.FgGreen).Once()
 
-	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", "executed-proc-name").Return(constant.JobFailed, nil).Once()
+	s.mockProctorDClient.On("GetDefinitiveProcExecutionStatus", executionResult.ExecutionId).Return(constant.JobFailed, nil).Once()
 	s.mockPrinter.On("Println", "Proc execution failed", color.FgRed).Once()
 
 	osExitFunc := func(exitCode int) {

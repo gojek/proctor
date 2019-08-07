@@ -592,7 +592,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/42/status",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, responseBody), nil
 			},
@@ -628,7 +628,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/42/status",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(200, responseBody), nil
 			},
@@ -661,7 +661,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/42/status",
 			func(req *http.Request) (*http.Response, error) {
 				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
 			},
@@ -678,7 +678,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 
 	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
-	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/execution/some-proc-name/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/execution/42/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, "", procExecutionStatus)
 }
@@ -694,7 +694,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse()
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/42/status",
 			func(req *http.Request) (*http.Response, error) {
 				return httpmock.NewStringResponse(500, ""), nil
 			},
@@ -733,7 +733,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
 			"GET",
-			"http://"+proctorConfig.Host+ExecutionRoute+"/some-proc-name/status",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/42/status",
 			func(req *http.Request) (*http.Response, error) {
 				requestsToProctorDCount += 1
 				return httpmock.NewStringResponse(200, responseBody), nil
@@ -751,7 +751,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 
 	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
-	assert.Equal(t, errors.New("No definitive status received for proc name some-proc-name from proctord"), err)
+	assert.Equal(t, errors.New("No definitive status received for execution with id 42 from proctord"), err)
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, expectedRequestsToProctorDCount, requestsToProctorDCount)
 	assert.Equal(t, "", procExecutionStatus)
