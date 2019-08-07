@@ -3,11 +3,15 @@ package command
 import (
 	"fmt"
 	"os"
+
+	"github.com/spf13/cobra"
+
 	"proctor/internal/app/cli/command/config"
 	"proctor/internal/app/cli/command/config/view"
 	"proctor/internal/app/cli/command/description"
 	"proctor/internal/app/cli/command/execution"
 	"proctor/internal/app/cli/command/list"
+	"proctor/internal/app/cli/command/log"
 	"proctor/internal/app/cli/command/schedule"
 	scheduleDescribe "proctor/internal/app/cli/command/schedule/describe"
 	scheduleList "proctor/internal/app/cli/command/schedule/list"
@@ -16,8 +20,6 @@ import (
 	"proctor/internal/app/cli/command/version/github"
 	"proctor/internal/app/cli/daemon"
 	"proctor/internal/pkg/io"
-
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -38,6 +40,9 @@ func Execute(printer io.Printer, proctorDClient daemon.Client, githubClient gith
 	//TODO: Test execution.NewCmd is given os.Exit function as params
 	executionCmd := execution.NewCmd(printer, proctorDClient, os.Exit)
 	rootCmd.AddCommand(executionCmd)
+
+	logCmd := log.NewCmd(printer, proctorDClient, os.Exit)
+	rootCmd.AddCommand(logCmd)
 
 	listCmd := list.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(listCmd)
