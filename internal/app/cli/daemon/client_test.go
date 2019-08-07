@@ -108,7 +108,7 @@ func (s *ClientTestSuite) TestListProcsReturnErrorFromResponseBody() {
 			"GET",
 			"http://"+proctorConfig.Host+MetadataRoute,
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, `{}`), nil
+				return httpmock.NewStringResponse(500, "list proc error"), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -126,7 +126,7 @@ func (s *ClientTestSuite) TestListProcsReturnErrorFromResponseBody() {
 	assert.Equal(t, []modelMetadata.Metadata{}, procList)
 	assert.Error(t, err)
 	s.mockConfigLoader.AssertExpectations(t)
-	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	assert.Equal(t, "list proc error", err.Error())
 }
 
 func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
@@ -397,7 +397,7 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 			"POST",
 			"http://"+proctorConfig.Host+ExecutionRoute,
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, ""), nil
+				return httpmock.NewStringResponse(500, "Execute Error"), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -412,7 +412,7 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 	executeProcResponse, err := s.testClient.ExecuteProc(procName, procArgs)
 
 	var expectedProcResponse *execution.ExecutionResult
-	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	assert.Equal(t, "Execute Error", err.Error())
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -696,7 +696,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse()
 			"GET",
 			"http://"+proctorConfig.Host+ExecutionRoute+"/42/status",
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, ""), nil
+				return httpmock.NewStringResponse(500, "execute Error"), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -711,7 +711,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse()
 
 	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
 
-	assert.Equal(t, errors.New("Server Error!!!\nStatus Code: 500, Internal Server Error"), err)
+	assert.Equal(t, errors.New("execute Error"), err)
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, "", procExecutionStatus)
 }
@@ -874,7 +874,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWitInternalServerError() {
 			"GET",
 			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, ""), nil
+				return httpmock.NewStringResponse(500, "Schedule Failed"), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -889,7 +889,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWitInternalServerError() {
 
 	_, err := s.testClient.DescribeScheduledProc(jobID)
 
-	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	assert.Equal(t, "Schedule Failed", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
 
@@ -975,7 +975,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenServerReturnInternal
 			"GET",
 			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute),
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, ""), nil
+				return httpmock.NewStringResponse(500, "Schedule Error"), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -990,7 +990,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenServerReturnInternal
 
 	_, err := s.testClient.ListScheduledProcs()
 
-	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	assert.Equal(t, "Schedule Error", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
 
@@ -1108,7 +1108,7 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 			"DELETE",
 			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
 			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, ""), nil
+				return httpmock.NewStringResponse(500, "Schedule Error"), nil
 			},
 		).WithHeader(
 			&http.Header{
@@ -1123,6 +1123,6 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 
 	err := s.testClient.RemoveScheduledProc(jobID)
 
-	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
+	assert.Equal(t, "Schedule Error", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }

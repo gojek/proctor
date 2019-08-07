@@ -50,7 +50,7 @@ func NewExecutionHTTPHandler(
 
 func (httpHandler *executionHTTPHandler) closeWebSocket(message string, conn *websocket.Conn) {
 	err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, message))
-	logger.LogErrors(err, "close WebSocket")
+	logger.LogErrors(err, "close WebSocket ", message)
 	return
 }
 
@@ -74,7 +74,7 @@ func (httpHandler *executionHTTPHandler) GetLogs() http.HandlerFunc {
 		}
 
 		context, err := httpHandler.repository.GetById(executionContextId)
-
+		logger.LogErrors(err, "fetch context from repository ", *context)
 		if err != nil {
 			logger.Error("No execution context id found ", executionContextId)
 			httpHandler.closeWebSocket(fmt.Sprintf("No execution context found with id %v", executionContextId), conn)
@@ -82,13 +82,15 @@ func (httpHandler *executionHTTPHandler) GetLogs() http.HandlerFunc {
 		}
 
 		if context.Status == executionStatus.Finished {
+			logger.Debug("Execution is Finished, return output from repository")
 			err = conn.WriteMessage(websocket.TextMessage, context.Output)
 			logger.LogErrors(err, "write output to socket:", string(context.Output))
-			httpHandler.closeWebSocket("Finished Streaming log", conn)
+			httpHandler.closeWebSocket("Finished Streaming log from repository", conn)
 			return
 		}
 
-		if context.Status == executionStatus.PodReady {
+		if context.Status == executionStatus.Created {
+			logger.Debug("Execution is Created, Stream output from pod")
 			waitTime := config.KubeLogProcessWaitTime() * time.Second
 			podLog, _err := httpHandler.service.StreamJobLogs(context.Name, waitTime)
 
@@ -107,7 +109,7 @@ func (httpHandler *executionHTTPHandler) GetLogs() http.HandlerFunc {
 			for scanner.Scan() {
 				_ = conn.WriteMessage(websocket.TextMessage, scanner.Bytes())
 			}
-			httpHandler.closeWebSocket("Finished Streaming log", conn)
+			httpHandler.closeWebSocket("Finished Streaming log from pod", conn)
 			return
 		}
 
@@ -178,7 +180,7 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 
 		if err != nil {
 			response.WriteHeader(http.StatusInternalServerError)
-			_, _ = response.Write([]byte(fmt.Sprintf("%s , Errors Detail %s", status.JobExecutionError, err.Error())))
+			_, _ = response.Write([]byte(fmt.Sprintf("%s, Errors Detail %s", status.JobExecutionError, err.Error())))
 			return
 		}
 

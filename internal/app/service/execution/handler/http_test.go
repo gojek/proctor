@@ -125,7 +125,7 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhe
 		ImageTag:    "test",
 		Args:        job.Args,
 		CreatedAt:   time.Now(),
-		Status:      status.PodReady,
+		Status:      status.Created,
 		Output:      types.GzippedText("test"),
 	}
 
@@ -330,7 +330,7 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestGenericErrorJobExecutionPostHTTP
 	suite.testExecutionHTTPHandler.Post()(responseRecorder, req)
 
 	assert.Equal(t, http.StatusInternalServerError, responseRecorder.Code)
-	assert.Equal(t, fmt.Sprintf("%s , Errors Detail %s", handlerStatus.JobExecutionError, genericError), responseRecorder.Body.String())
+	assert.Equal(t, fmt.Sprintf("%s, Errors Detail %s", handlerStatus.JobExecutionError, genericError), responseRecorder.Body.String())
 }
 
 func TestExecutionHTTPHandlerTestSuite(t *testing.T) {

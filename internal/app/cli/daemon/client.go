@@ -426,6 +426,10 @@ func buildHTTPError(c *client, resp *http.Response) error {
 		return fmt.Errorf(constant.JobForbiddenErrorHeader)
 	}
 
+	if resp.StatusCode == http.StatusInternalServerError {
+		return getHTTPResponseError(resp.Body)
+	}
+
 	return fmt.Errorf("%s\nStatus Code: %d, %s", constant.GenericResponseErrorHeader, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
 

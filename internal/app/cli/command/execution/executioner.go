@@ -8,7 +8,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"proctor/internal/pkg/constant"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(int)) *cobra.Command {
@@ -51,30 +50,19 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 				return
 			}
 
-			printer.Println("Proc submitted for execution. \nStreaming logs:", color.FgGreen)
+			printer.Println("\nExecution Created", color.FgGreen)
+			printer.Println(fmt.Sprintf("%-40s %-100v", "ID", executionResult.ExecutionId), color.FgGreen)
+			printer.Println(fmt.Sprintf("%-40s %-100s", "Name", executionResult.ExecutionName), color.FgGreen)
+
+			printer.Println("\nStreaming logs", color.FgGreen)
 			err = proctorDClient.StreamProcLogs(executionResult.ExecutionId)
 			if err != nil {
-				printer.Println("Error Streaming Logs", color.FgRed)
+				printer.Println("Error while Streaming Log.", color.FgRed)
 				osExitFunc(1)
 				return
 			}
 
-			printer.Println("Log stream of proc completed.", color.FgGreen)
-
-			procExecutionStatus, err := proctorDClient.GetDefinitiveProcExecutionStatus(executionResult.ExecutionId)
-			if err != nil {
-				printer.Println("Error Fetching Proc execution status", color.FgRed)
-				osExitFunc(1)
-				return
-			}
-
-			if procExecutionStatus != constant.JobSucceeded {
-				printer.Println("Proc execution failed", color.FgRed)
-				osExitFunc(1)
-				return
-			}
-
-			printer.Println("Proc execution successful", color.FgGreen)
+			printer.Println("Execution completed.", color.FgGreen)
 		},
 	}
 }
