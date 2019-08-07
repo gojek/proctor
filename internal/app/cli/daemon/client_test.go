@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"proctor/internal/app/cli/command/version"
 	"proctor/internal/app/cli/config"
 	"proctor/internal/pkg/io"
-	"strings"
-	"testing"
+	"proctor/internal/pkg/model/execution"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -260,8 +262,16 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedErrorWithConfigMissing() {
 func (s *ClientTestSuite) TestExecuteProc() {
 	t := s.T()
 
+	executionName := "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	expectedProcResponse := "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"
+	expectedProcResponse := &execution.ExecutionResult{
+		ExecutionId:   uint64(0),
+		JobName:       "",
+		ExecutionName: executionName,
+		ImageTag:      "",
+		CreatedAt:     "",
+		Status:        "",
+	}
 	body := `{ "name": "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"}`
 	procName := "run-sample"
 	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
@@ -376,7 +386,6 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 	t := s.T()
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	expectedProcResponse := ""
 	procName := "run-sample"
 	procArgs := map[string]string{"SAMPLE_ARG1": "sample-value"}
 
@@ -402,6 +411,7 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 	executeProcResponse, err := s.testClient.ExecuteProc(procName, procArgs)
 
+	var expectedProcResponse *execution.ExecutionResult
 	assert.Equal(t, "Server Error!!!\nStatus Code: 500, Internal Server Error", err.Error())
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	s.mockConfigLoader.AssertExpectations(t)
@@ -434,7 +444,8 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorized() {
 
 	executeProcResponse, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	assert.Equal(t, "", executeProcResponse)
+	var expectedProcResponse *execution.ExecutionResult
+	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -466,7 +477,8 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotS
 
 	executeProcResponse, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	assert.Equal(t, "", executeProcResponse)
+	var expectedProcResponse *execution.ExecutionResult
+	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	assert.Equal(t, "Unauthorized Access!!!\nEMAIL_ID or ACCESS_TOKEN is not present in proctor config file.", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -498,7 +510,8 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 
 	response, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	assert.Equal(t, "", response)
+	var expectedProcResponse *execution.ExecutionResult
+	assert.Equal(t, expectedProcResponse, response)
 	assert.Equal(t, errors.New("Network Error!!!\nPost http://proctor.example.com/execution: Unknown Error"), err)
 	s.mockConfigLoader.AssertExpectations(t)
 }
