@@ -108,6 +108,7 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 		return &context, "", errors.New(fmt.Sprintf("metadata not found for %v, throws error %v", jobName, err.Error()))
 	}
 
+	context.ImageTag = metadata.ImageName
 	secret, err := service.secretRepository.GetByJobName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
