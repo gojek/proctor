@@ -33,7 +33,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_Insert() {
 	t := suite.T()
 	mapKey := fake.FirstName()
 	mapValue := fake.LastName()
-	schedule := &model.Schedule{
+	schedule := model.Schedule{
 		JobName:   fake.BuzzWord(),
 		UserEmail: fake.Email(),
 		Args: map[string]string{
@@ -64,7 +64,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_Delete() {
 	t := suite.T()
 	mapKey := fake.FirstName()
 	mapValue := fake.LastName()
-	schedule := &model.Schedule{
+	schedule := model.Schedule{
 		JobName:   fake.BuzzWord(),
 		UserEmail: fake.Email(),
 		Args: map[string]string{
@@ -172,7 +172,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetEnabledByID() {
 
 	mapKey := fake.FirstName()
 	mapValue := fake.LastName()
-	schedule := &model.Schedule{
+	schedule := model.Schedule{
 		JobName:   fake.BuzzWord(),
 		UserEmail: fake.Email(),
 		Args: map[string]string{
@@ -205,7 +205,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_EnableDisable() {
 	t := suite.T()
 	mapKey := fake.FirstName()
 	mapValue := fake.LastName()
-	schedule := &model.Schedule{
+	schedule := model.Schedule{
 		JobName:   fake.BuzzWord(),
 		UserEmail: fake.Email(),
 		Args: map[string]string{
@@ -263,7 +263,7 @@ func populateSeedDataForTest(repository ScheduleRepository, count int, seedField
 			enabled, _ = strconv.ParseBool(val)
 		}
 
-		schedule := &model.Schedule{
+		schedule := model.Schedule{
 			JobName:   jobName,
 			UserEmail: email,
 			Args: map[string]string{

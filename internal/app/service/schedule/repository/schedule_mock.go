@@ -9,7 +9,7 @@ type MockScheduleRepository struct {
 	mock.Mock
 }
 
-func (repository *MockScheduleRepository) Insert(context *model.Schedule) (uint64, error) {
+func (repository *MockScheduleRepository) Insert(context model.Schedule) (uint64, error) {
 	args := repository.Called(context)
 	return uint64(args.Int(0)), args.Error(1)
 }

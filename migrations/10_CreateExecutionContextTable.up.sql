@@ -1,6 +1,6 @@
 CREATE TABLE execution_context
 (
-    id         bigint,
+    id         bigint not null primary key,
     job_name   varchar(255),
     user_email varchar(255),
     image_tag  text,

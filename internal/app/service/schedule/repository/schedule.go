@@ -9,7 +9,7 @@ import (
 )
 
 type ScheduleRepository interface {
-	Insert(context *model.Schedule) (uint64, error)
+	Insert(context model.Schedule) (uint64, error)
 	Delete(id uint64) error
 	GetByID(id uint64) (*model.Schedule, error)
 	Disable(id uint64) error
@@ -54,7 +54,7 @@ func (repository *scheduleRepository) Disable(id uint64) error {
 	return err
 }
 
-func (repository *scheduleRepository) Insert(context *model.Schedule) (uint64, error) {
+func (repository *scheduleRepository) Insert(context model.Schedule) (uint64, error) {
 	snowflakeID, _ := id.NextID()
 	context.ID = snowflakeID
 	sql := "INSERT INTO schedule (id, job_name, args,cron,notification_emails, user_email, \"group\", enabled) VALUES (:id, :job_name, :args, :cron, :notification_emails, :user_email, :group, :enabled)"

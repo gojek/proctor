@@ -67,7 +67,7 @@ func (suite *ScheduleHTTPHandlerTestSuite) TestSuccessfulSchedulePostHTTPHandler
 	defer suite.mockMetadataRepository.AssertExpectations(t)
 
 	requestSchedule.Cron = "0 * * * * *"
-	suite.mockScheduleRepository.On("Insert", &requestSchedule).Return(0, nil).Once()
+	suite.mockScheduleRepository.On("Insert", requestSchedule).Return(0, nil).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
 	suite.testScheduleHTTPHandler.Post()(responseRecorder, req)
@@ -136,7 +136,7 @@ func (suite *ScheduleHTTPHandlerTestSuite) TestErrorSchedulePostHTTPHandler() {
 	suite.mockMetadataRepository.On("GetByName", requestSchedule.JobName).Return(&metadataModel.Metadata{}, nil).Once()
 	defer suite.mockMetadataRepository.AssertExpectations(t)
 	// Schedule duplicate job name and args error
-	suite.mockScheduleRepository.On("Insert", &requestSchedule).Return(0, errors.New("duplicate key value violates unique constraint")).Once()
+	suite.mockScheduleRepository.On("Insert", requestSchedule).Return(0, errors.New("duplicate key value violates unique constraint")).Once()
 	defer suite.mockScheduleRepository.AssertExpectations(t)
 
 	for _, errorTest := range schedulePostErrorTests {

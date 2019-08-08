@@ -1,6 +1,6 @@
 CREATE TABLE schedule
 (
-    id                  bigint,
+    id                  bigint not null primary key,
     job_name            varchar(255),
     args                text,
     cron                varchar(255),

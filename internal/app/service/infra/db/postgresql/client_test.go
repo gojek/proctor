@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"fmt"
+	"proctor/internal/app/service/infra/id"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -56,15 +57,16 @@ func TestSelect(t *testing.T) {
 	defer postgresClient.db.Close()
 	jobName := "test-job-name"
 
+	snowflakeID, _ := id.NextID()
 	executionContext := &executionContextModel.ExecutionContext{
+		ExecutionID: snowflakeID,
 		JobName:     jobName,
 		ImageTag:    "test-image-name",
-		ExecutionID: uint64(1),
 		Args:        map[string]string{"foo": "bar"},
 		Status:      executionContextStatus.Finished,
 	}
 
-	_, err = postgresClient.NamedExec("INSERT INTO execution_context (job_name, image_tag, args, status) VALUES (:job_name, :image_tag, :args, :status)", executionContext)
+	_, err = postgresClient.NamedExec("INSERT INTO execution_context (id,job_name, image_tag, args, status) VALUES (:id, :job_name, :image_tag, :args, :status)", executionContext)
 	assert.NoError(t, err)
 
 	executionContextResult := []executionContextModel.ExecutionContext{}
