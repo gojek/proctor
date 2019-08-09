@@ -19,7 +19,7 @@ type ExecutionContextRepository interface {
 	GetByEmail(userEmail string) ([]model.ExecutionContext, error)
 	GetByJobName(jobName string) ([]model.ExecutionContext, error)
 	GetByStatus(status string) ([]model.ExecutionContext, error)
-	deleteAll() error
+	DeleteAll() error
 }
 
 type executionContextRepository struct {
@@ -122,7 +122,7 @@ func (repository *executionContextRepository) GetByStatus(status string) ([]mode
 	return contexts, nil
 }
 
-func (repository *executionContextRepository) deleteAll() error {
+func (repository *executionContextRepository) DeleteAll() error {
 	sql := "DELETE FROM execution_context"
 	context := model.ExecutionContext{}
 	_, err := repository.postgresqlClient.NamedExec(sql, context)

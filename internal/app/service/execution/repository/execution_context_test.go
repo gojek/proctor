@@ -14,7 +14,7 @@ func TestExecutionContextRepository_Insert(t *testing.T) {
 	postgresqlClient := postgresql.NewClient()
 	defer postgresqlClient.Close()
 	repository := NewExecutionContextRepository(postgresqlClient)
-	defer repository.deleteAll()
+	defer repository.DeleteAll()
 
 	fake.Seed(0)
 	mapKey := fake.FirstName()
@@ -47,7 +47,7 @@ func TestExecutionContextRepository_Delete(t *testing.T) {
 	postgresqlClient := postgresql.NewClient()
 	defer postgresqlClient.Close()
 	repository := NewExecutionContextRepository(postgresqlClient)
-	defer repository.deleteAll()
+	defer repository.DeleteAll()
 
 	fake.Seed(0)
 	context := model.ExecutionContext{
@@ -76,7 +76,7 @@ func TestExecutionContextRepository_UpdateStatus(t *testing.T) {
 	postgresqlClient := postgresql.NewClient()
 	defer postgresqlClient.Close()
 	repository := NewExecutionContextRepository(postgresqlClient)
-	defer repository.deleteAll()
+	defer repository.DeleteAll()
 
 	fake.Seed(0)
 	context := model.ExecutionContext{
@@ -107,7 +107,7 @@ func TestExecutionContextRepository_UpdateJobOutput(t *testing.T) {
 	postgresqlClient := postgresql.NewClient()
 	defer postgresqlClient.Close()
 	repository := NewExecutionContextRepository(postgresqlClient)
-	defer repository.deleteAll()
+	defer repository.DeleteAll()
 
 	fake.Seed(0)
 	context := model.ExecutionContext{
@@ -197,7 +197,7 @@ func TestExecutionContextRepository_GetByEmail(t *testing.T) {
 	postgresqlClient := postgresql.NewClient()
 	defer postgresqlClient.Close()
 	repository := NewExecutionContextRepository(postgresqlClient)
-	defer repository.deleteAll()
+	defer repository.DeleteAll()
 
 	recordCount := 15
 	userEmail := "bimo.horizon@go-pay.co.id"
@@ -214,7 +214,7 @@ func TestExecutionContextRepository_GetByJobName(t *testing.T) {
 	postgresqlClient := postgresql.NewClient()
 	defer postgresqlClient.Close()
 	repository := NewExecutionContextRepository(postgresqlClient)
-	defer repository.deleteAll()
+	defer repository.DeleteAll()
 
 	recordCount := 15
 	jobName := "some_job_that_only_exists_in_your_past"
@@ -231,7 +231,7 @@ func TestExecutionContextRepository_GetByStatus(t *testing.T) {
 	postgresqlClient := postgresql.NewClient()
 	defer postgresqlClient.Close()
 	repository := NewExecutionContextRepository(postgresqlClient)
-	defer repository.deleteAll()
+	defer repository.DeleteAll()
 
 	recordCount := 15
 	status := "well_execution_status_here_must_be_cool"

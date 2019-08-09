@@ -51,7 +51,7 @@ func (mockRepository *MockExecutionContextRepository) GetByStatus(status string)
 	return args.Get(0).([]model.ExecutionContext), args.Error(1)
 }
 
-func (mockRepository *MockExecutionContextRepository) deleteAll() error {
+func (mockRepository *MockExecutionContextRepository) DeleteAll() error {
 	args := mockRepository.Called()
 	return args.Error(0)
 }

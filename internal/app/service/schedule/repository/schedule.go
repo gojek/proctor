@@ -60,7 +60,7 @@ func (repository *scheduleRepository) Insert(context model.Schedule) (uint64, er
 	sql := "INSERT INTO schedule (id, job_name, args,cron,notification_emails, user_email, \"group\", enabled) VALUES (:id, :job_name, :args, :cron, :notification_emails, :user_email, :group, :enabled)"
 	_, err := repository.postgresqlClient.NamedExec(sql, &context)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	return snowflakeID, nil
 }
