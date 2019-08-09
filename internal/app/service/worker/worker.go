@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/getsentry/raven-go"
 	"github.com/robfig/cron"
 
 	executionContextRepository "proctor/internal/app/service/execution/repository"
@@ -29,6 +28,7 @@ type worker struct {
 	executionService           executionService.ExecutionService
 	executionContextRepository executionContextRepository.ExecutionContextRepository
 	scheduleRepository         scheduleRepository.ScheduleRepository
+	scheduleContextRepository  scheduleRepository.ScheduleContextRepository
 	mailer                     mail.Mailer
 	inMemorySchedules          map[uint64]*cron.Cron
 }
@@ -37,11 +37,17 @@ type Worker interface {
 	Run(<-chan time.Time, <-chan os.Signal)
 }
 
-func NewWorker(executionSvc executionService.ExecutionService, executionContextRepo executionContextRepository.ExecutionContextRepository, scheduleRepo scheduleRepository.ScheduleRepository, mailer mail.Mailer) Worker {
+func NewWorker(executionSvc executionService.ExecutionService,
+	executionContextRepo executionContextRepository.ExecutionContextRepository,
+	scheduleRepo scheduleRepository.ScheduleRepository,
+	scheduleContextRepository scheduleRepository.ScheduleContextRepository,
+	mailer mail.Mailer,
+) Worker {
 	return &worker{
 		executionService:           executionSvc,
 		executionContextRepository: executionContextRepo,
 		scheduleRepository:         scheduleRepo,
+		scheduleContextRepository:  scheduleContextRepository,
 		mailer:                     mailer,
 		inMemorySchedules:          make(map[uint64]*cron.Cron),
 	}
@@ -61,8 +67,6 @@ func (worker *worker) enableScheduleIfItDoesNotExist(schedule scheduleModel.Sche
 			executionContext, _, err := worker.executionService.Execute(schedule.JobName, WorkerEmail, schedule.Args)
 			if err != nil {
 				logger.Error(fmt.Sprintf("Error submitting job: %s ", schedule.Tags), schedule.JobName, " for execution: ", err.Error())
-				raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags, "job_name": schedule.JobName})
-
 				return
 			}
 
@@ -70,14 +74,12 @@ func (worker *worker) enableScheduleIfItDoesNotExist(schedule scheduleModel.Sche
 
 			if err != nil {
 				logger.Error(fmt.Sprintf("Error notifying job: %s `", schedule.Tags), schedule.JobName, "` ID: `", executionContext.ExecutionID, "` execution status: `", executionContext.Status, "` to users: ", err.Error())
-				raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags, "job_name": schedule.JobName, "job_id": fmt.Sprint(executionContext.ExecutionID), "job_execution_status": string(executionContext.Status)})
 				return
 			}
 		})
 
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error adding cron job: %s", schedule.Tags), err.Error())
-			raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags})
 			return
 		}
 
@@ -93,7 +95,6 @@ func (worker *worker) Run(tickerChan <-chan time.Time, signalsChan <-chan os.Sig
 			schedules, err := worker.scheduleRepository.GetAll()
 			if err != nil {
 				logger.Error("Error getting scheduled jobs from store: ", err.Error())
-				raven.CaptureError(err, nil)
 				continue
 			}
 
@@ -124,6 +125,7 @@ func Start() error {
 	metadataStore := metadataRepository.NewMetadataRepository(redisClient)
 	secretStore := secretRepository.NewSecretRepository(redisClient)
 	scheduleStore := scheduleRepository.NewScheduleRepository(postgresClient)
+	scheduleContextStore := scheduleRepository.NewScheduleContextRepository(postgresClient)
 
 	httpClient, err := http.NewClient()
 	if err != nil {
@@ -132,7 +134,7 @@ func Start() error {
 	kubeClient := kubernetes.NewKubernetesClient(httpClient)
 	mailer := mail.New(config.MailServerHost(), config.MailServerPort())
 	executionSvc := executionService.NewExecutionService(kubeClient, executionContextStore, metadataStore, secretStore)
-	worker := NewWorker(executionSvc, executionContextStore, scheduleStore, mailer)
+	worker := NewWorker(executionSvc, executionContextStore, scheduleStore, scheduleContextStore, mailer)
 	ticker := time.NewTicker(time.Duration(config.ScheduledJobsFetchIntervalInMins()) * time.Minute)
 	signalsChan := make(chan os.Signal, 1)
 

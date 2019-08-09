@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/getsentry/raven-go"
 	"net/http"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/metadata/repository"
@@ -42,7 +41,6 @@ func (handler *metadataHTTPHandler) Post() http.HandlerFunc {
 			err = handler.repository.Save(metadata)
 			if err != nil {
 				logger.Error("updating metadata to storage, failed", err.Error())
-				raven.CaptureError(err, nil)
 
 				response.WriteHeader(http.StatusInternalServerError)
 				_, _ = response.Write([]byte(constant.ServerError))
@@ -60,7 +58,6 @@ func (handler *metadataHTTPHandler) GetAll() http.HandlerFunc {
 		metadataSlice, err := handler.repository.GetAll()
 		if err != nil {
 			logger.Error("Error fetching metadata", err.Error())
-			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(constant.ServerError))
@@ -70,7 +67,6 @@ func (handler *metadataHTTPHandler) GetAll() http.HandlerFunc {
 		metadataByte, err := json.Marshal(metadataSlice)
 		if err != nil {
 			logger.Error("Error marshalling jobs metadata in json", err.Error())
-			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(constant.ServerError))

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/getsentry/raven-go"
 	"net/http"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/secret/model"
@@ -41,7 +40,6 @@ func (handler *handler) Post() http.HandlerFunc {
 		err = handler.repository.Save(secret)
 		if err != nil {
 			logger.Error("saving secret to storage, failed", err.Error())
-			raven.CaptureError(err, nil)
 
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte(constant.ServerError))

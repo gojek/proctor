@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/badoux/checkmail"
-	"github.com/getsentry/raven-go"
 	"github.com/gorilla/mux"
 	"github.com/robfig/cron"
 
@@ -45,7 +44,6 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 		defer request.Body.Close()
 		if err != nil {
 			logger.Error("Error parsing request body for schedule: ", err.Error())
-			raven.CaptureError(err, nil)
 
 			response.WriteHeader(http.StatusBadRequest)
 			_, _ = response.Write([]byte(status.MalformedRequestError))
@@ -97,7 +95,6 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 				_, _ = response.Write([]byte(status.MetadataNotFoundError))
 			} else {
 				logger.Error(fmt.Sprintf("Error fetching metadata for proc %s ", schedule.Tags), schedule.JobName, err.Error())
-				raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags, "job_name": schedule.JobName})
 
 				response.WriteHeader(http.StatusInternalServerError)
 				_, _ = response.Write([]byte(status.GenericServerError))
@@ -111,7 +108,6 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 				logger.Error(fmt.Sprintf("Duplicate combination of scheduled job name and args: %s ", schedule.Tags), schedule.JobName, schedule.Args)
-				raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags, "job_name": schedule.JobName})
 
 				response.WriteHeader(http.StatusConflict)
 				_, _ = response.Write([]byte(status.ScheduleDuplicateJobNameArgsError))
@@ -119,7 +115,6 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 				return
 			} else {
 				logger.Error(fmt.Sprintf("Error persisting scheduled job %s ", schedule.Tags), schedule.JobName, err.Error())
-				raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags, "job_name": schedule.JobName})
 
 				response.WriteHeader(http.StatusInternalServerError)
 				_, _ = response.Write([]byte(status.GenericServerError))
@@ -131,7 +126,6 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 		responseBody, err := json.Marshal(schedule)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Error marshaling response body %s ", schedule.Tags), schedule.JobName, err.Error())
-			raven.CaptureError(err, map[string]string{"job_tags": schedule.Tags, "job_name": schedule.JobName})
 
 			response.WriteHeader(http.StatusInternalServerError)
 			_, _ = response.Write([]byte(status.GenericServerError))
@@ -150,7 +144,6 @@ func (httpHandler *scheduleHTTPHandler) GetAll() http.HandlerFunc {
 		scheduleList, err := httpHandler.repository.GetAllEnabled()
 		if err != nil {
 			logger.Error("Error fetching scheduled jobs", err.Error())
-			raven.CaptureError(err, nil)
 
 			response.WriteHeader(http.StatusInternalServerError)
 			_, _ = response.Write([]byte(status.GenericServerError))
@@ -167,7 +160,6 @@ func (httpHandler *scheduleHTTPHandler) GetAll() http.HandlerFunc {
 		scheduleListJson, err := json.Marshal(scheduleList)
 		if err != nil {
 			logger.Error("Error marshalling schedule list", err.Error())
-			raven.CaptureError(err, nil)
 
 			response.WriteHeader(http.StatusInternalServerError)
 			_, _ = response.Write([]byte(status.GenericServerError))
@@ -198,7 +190,6 @@ func (httpHandler *scheduleHTTPHandler) Get() http.HandlerFunc {
 				return
 			}
 			logger.Error("Error fetching scheduled job", err.Error())
-			raven.CaptureError(err, nil)
 
 			response.WriteHeader(http.StatusInternalServerError)
 			_, _ = response.Write([]byte(status.GenericServerError))
@@ -208,7 +199,6 @@ func (httpHandler *scheduleHTTPHandler) Get() http.HandlerFunc {
 		scheduleJson, err := json.Marshal(schedule)
 		if err != nil {
 			logger.Error("Error marshalling scheduled job", err.Error())
-			raven.CaptureError(err, nil)
 
 			response.WriteHeader(http.StatusInternalServerError)
 			_, _ = response.Write([]byte(status.GenericServerError))
@@ -240,7 +230,6 @@ func (httpHandler *scheduleHTTPHandler) Delete() http.HandlerFunc {
 				return
 			}
 			logger.Error("Error fetching schedule", err.Error())
-			raven.CaptureError(err, nil)
 
 			response.WriteHeader(http.StatusInternalServerError)
 			_, _ = response.Write([]byte(status.GenericServerError))
