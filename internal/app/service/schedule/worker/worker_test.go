@@ -92,7 +92,7 @@ func (suite *WorkerTestSuite) TestEnableRun() {
 	defer suite.mockExecutionService.AssertExpectations(t)
 	defer suite.mockExecutionService.AssertNotCalled(t, "Execute", disabledJob, constant.WorkerEmail, jobArgs)
 
-	suite.mockScheduleContextRepository.On("Insert", mock.Anything).Return(scheduleModel.ScheduleContext{}, nil)
+	suite.mockScheduleContextRepository.On("Insert", mock.Anything).Return(&scheduleModel.ScheduleContext{}, nil)
 	suite.mockMailer.On("Send", executionContext, scheduledJobs[0]).Return(nil).Run(
 		func(args mock.Arguments) {
 			scheduledJobExecutedChan <- true
@@ -168,7 +168,7 @@ func (suite *WorkerTestSuite) TestDisableRun() {
 	suite.mockExecutionService.On("Execute", enabledJob, constant.WorkerEmail, jobArgs).Return(&disableExecutionContext, "test", nil)
 	defer suite.mockExecutionService.AssertExpectations(t)
 
-	suite.mockScheduleContextRepository.On("Insert", mock.Anything).Return(scheduleModel.ScheduleContext{}, nil)
+	suite.mockScheduleContextRepository.On("Insert", mock.Anything).Return(&scheduleModel.ScheduleContext{}, nil)
 	suite.mockMailer.On("Send", disableExecutionContext, enabledScheduledJobs[0]).Return(nil).Run(
 		func(args mock.Arguments) {
 			toggledOffEnabledJobChan <- true

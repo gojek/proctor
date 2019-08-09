@@ -70,6 +70,14 @@ func (worker *worker) enableScheduleIfItDoesNotExist(schedule scheduleModel.Sche
 				return
 			}
 
+			scheduleContext := scheduleModel.ScheduleContext{
+				ScheduleId:         schedule.ID,
+				ExecutionContextId: executionContext.ExecutionID,
+			}
+
+			_, err = worker.scheduleContextRepository.Insert(scheduleContext)
+			logger.LogErrors(err, "saving schedule context", scheduleContext)
+
 			err = worker.mailer.Send(*executionContext, schedule)
 
 			if err != nil {
