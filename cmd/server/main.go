@@ -6,8 +6,8 @@ import (
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/db/migration"
 	"proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/schedule/worker"
 	"proctor/internal/app/service/server"
-	"proctor/internal/app/service/worker"
 
 	"github.com/urfave/cli"
 )
