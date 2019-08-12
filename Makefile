@@ -69,22 +69,35 @@ ftest.package.procs:
 	PROCTOR_JOBS_PATH=$(FTEST_DIR) \
 	ruby ./test/package_procs.rb
 
+.PHONY: ftest.update.metadata
 ftest.update.metadata:
 	PROCTOR_JOBS_PATH=$(FTEST_DIR) \
 	PROCTOR_URI=http://localhost:$(PROCTOR_APP_PORT)/metadata \
 	ruby ./test/update_metadata.rb
 
+.PHONY: ftest.update.secret
 ftest.update.secret:
 	curl -X POST \
 	  http://localhost:5000/secret \
 	  -H 'Content-Type: application/json' \
 	  -d '{"job_name": "say-hello-world","secrets": {"SAMPLE_SECRET_ONE": "Secret One :*","SAMPLE_SECRET_TWO": "Secret Two :V"}}'
 
+.PHONY: ftest.proctor.list
 ftest.proctor.list:
 	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli list
 
+.PHONY: ftest.proctor.describe
 ftest.proctor.describe:
 	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli describe say-hello-world
 
+.PHONY: ftest.proctor.execute
 ftest.proctor.execute:
 	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli execute say-hello-world SAMPLE_ARG_ONE=foo SAMPLE_ARG_TWO=bar
+
+.PHONY: ftest.proctor.logs
+ftest.proctor.logs:
+	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli logs $(EXECUTION_ID)
+
+.PHONY: ftest.proctor.status
+ftest.proctor.status:
+	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli status $(EXECUTION_ID)
