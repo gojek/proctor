@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"proctor/internal/pkg/model/execution"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 
 	"proctor/internal/app/service/execution/handler/parameter"
 	"proctor/internal/app/service/execution/handler/status"

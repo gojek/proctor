@@ -1,13 +1,16 @@
 package repository
 
 import (
+	"testing"
+
 	fake "github.com/brianvoe/gofakeit"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/stretchr/testify/assert"
+
 	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/db/postgresql"
-	"testing"
+	"proctor/internal/app/service/infra/id"
 )
 
 func TestExecutionContextRepository_Insert(t *testing.T) {
