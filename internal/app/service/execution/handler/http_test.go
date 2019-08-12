@@ -179,6 +179,7 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionGetStatusH
 		ExecutionName: context.Name,
 		ImageTag:      context.ImageTag,
 		CreatedAt:     context.CreatedAt.String(),
+		UpdatedAt:     context.UpdatedAt.String(),
 		Status:        string(context.Status),
 	}
 
@@ -267,6 +268,7 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionPostHTTPHa
 		ExecutionName: context.Name,
 		ImageTag:      context.ImageTag,
 		CreatedAt:     context.CreatedAt.String(),
+		UpdatedAt:     context.UpdatedAt.String(),
 		Status:        string(context.Status),
 	}
 

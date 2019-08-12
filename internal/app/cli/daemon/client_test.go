@@ -588,6 +588,13 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 
 	expectedProcExecutionStatus := constant.JobSucceeded
 	responseBody := expectedProcExecutionStatus
+		ExecutionId:   uint64(0),
+		JobName:       "",
+		ExecutionName: "",
+		ImageTag:      "",
+		CreatedAt:     "",
+		UpdatedAt:     "",
+		Status:        constant.JobSucceeded,
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(

@@ -17,9 +17,7 @@ import (
 	executionStatus "proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
-
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
+	"proctor/internal/pkg/model/execution"
 )
 
 type ExecutionHTTPHandler interface {
@@ -144,6 +142,7 @@ func (httpHandler *executionHTTPHandler) GetStatus() http.HandlerFunc {
 			ExecutionName: context.Name,
 			ImageTag:      context.ImageTag,
 			CreatedAt:     context.CreatedAt.String(),
+			UpdatedAt:     context.UpdatedAt.String(),
 			Status:        string(context.Status),
 		}
 
@@ -190,6 +189,7 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 			ExecutionName: executionName,
 			ImageTag:      context.ImageTag,
 			CreatedAt:     context.CreatedAt.String(),
+			UpdatedAt:     context.UpdatedAt.String(),
 			Status:        string(context.Status),
 		}
 

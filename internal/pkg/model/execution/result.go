@@ -6,5 +6,6 @@ type ExecutionResult struct {
 	ExecutionName string `json:"name"`
 	ImageTag      string `json:"image_tag"`
 	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
 	Status        string `json:"status"`
 }
