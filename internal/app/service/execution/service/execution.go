@@ -12,6 +12,7 @@ import (
 	"proctor/internal/app/service/execution/repository"
 	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/id"
 	"proctor/internal/app/service/infra/kubernetes"
 	"proctor/internal/app/service/infra/logger"
 	svcMetadataRepository "proctor/internal/app/service/metadata/repository"
@@ -23,7 +24,7 @@ type ExecutionService interface {
 	Execute(jobName string, userEmail string, args map[string]string) (*model.ExecutionContext, string, error)
 	ExecuteWithCommand(jobName string, userEmail string, args map[string]string, commands []string) (*model.ExecutionContext, string, error)
 	StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error)
-	save(executionContext model.ExecutionContext) error
+	update(executionContext model.ExecutionContext)
 }
 
 type executionService struct {
@@ -47,27 +48,13 @@ func NewExecutionService(
 	}
 }
 
-func (service *executionService) save(executionContext model.ExecutionContext) error {
-	var err error
-	if executionContext.ExecutionID == 0 {
-		_, err = service.repository.Insert(executionContext)
-		logger.LogErrors(err, "save execution context to db", executionContext)
-	} else {
-		context, _err := service.repository.GetById(executionContext.ExecutionID)
-		logger.LogErrors(_err, "get context from db by execution id", executionContext)
-		if _err != nil || context == nil {
-			_, err = service.repository.Insert(executionContext)
-			logger.LogErrors(err, "save execution context to db", executionContext)
-		} else {
-			err = service.repository.UpdateStatus(executionContext.ExecutionID, executionContext.Status)
-			logger.LogErrors(err, "update execution context status", executionContext)
-			if len(executionContext.Output) > 0 {
-				err = service.repository.UpdateJobOutput(executionContext.ExecutionID, executionContext.Output)
-				logger.LogErrors(err, "update execution context output", executionContext)
-			}
-		}
+func (service *executionService) update(executionContext model.ExecutionContext) {
+	err := service.repository.UpdateStatus(executionContext.ExecutionID, executionContext.Status)
+	logger.LogErrors(err, "update execution context status", executionContext)
+	if len(executionContext.Output) > 0 {
+		err = service.repository.UpdateJobOutput(executionContext.ExecutionID, executionContext.Output)
+		logger.LogErrors(err, "update execution context output", executionContext)
 	}
-	return err
 }
 
 func (service *executionService) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {
@@ -95,16 +82,19 @@ func (service *executionService) Execute(jobName string, userEmail string, args 
 }
 
 func (service *executionService) ExecuteWithCommand(jobName string, userEmail string, args map[string]string, commands []string) (*model.ExecutionContext, string, error) {
+	executionID, _ := id.NextID()
 	context := model.ExecutionContext{
-		UserEmail: userEmail,
-		JobName:   jobName,
-		Args:      args,
-		Status:    status.Created,
+		ExecutionID: executionID,
+		UserEmail:   userEmail,
+		JobName:     jobName,
+		Args:        args,
+		Status:      status.Created,
 	}
 
 	metadata, err := service.metadataRepository.GetByName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
+		service.insertContext(context)
 		return &context, "", errors.New(fmt.Sprintf("metadata not found for %v, throws error %v", jobName, err.Error()))
 	}
 
@@ -112,6 +102,7 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 	secret, err := service.secretRepository.GetByJobName(jobName)
 	if err != nil {
 		context.Status = status.RequirementNotMet
+		service.insertContext(context)
 		return &context, "", errors.New(fmt.Sprintf("secret not found for %v, throws error %v", jobName, err.Error()))
 	}
 
@@ -122,30 +113,27 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 	logger.Info("Executed Job on Kubernetes got ", executionName, " execution jobName and ", err, "errors")
 	if err != nil {
 		context.Status = status.CreationFailed
+		service.insertContext(context)
 		return &context, "", errors.New(fmt.Sprintf("error when executing image %v with args %v, throws error %v", jobName, args, err.Error()))
 	}
 
 	context.Name = executionName
 
-	contextId, err := service.repository.Insert(context)
-	logger.LogErrors(err, "save execution context to db", context)
-	if err != nil {
-		context.Status = status.ContextSavingFailed
-		return &context, "", errors.New(fmt.Sprintf("error when saving execution context %v with errors %v", context, err.Error()))
-	}
+	service.insertContext(context)
+	go service.watchProcess(context)
 
-	context.ExecutionID = contextId
-
-	go service.watchProcess(executionName, context)
-
-	defer service.save(context)
 	return &context, executionName, nil
 }
 
-func (service *executionService) watchProcess(executionName string, context model.ExecutionContext) {
+func (service *executionService) insertContext(context model.ExecutionContext) {
+	_, err := service.repository.Insert(context)
+	logger.LogErrors(err, "save execution context to db", context)
+}
+
+func (service *executionService) watchProcess(context model.ExecutionContext) {
 
 	waitTime := config.KubeLogProcessWaitTime() * time.Second
-	err := service.kubernetesClient.WaitForReadyJob(executionName, waitTime)
+	err := service.kubernetesClient.WaitForReadyJob(context.Name, waitTime)
 
 	if err != nil {
 		context.Status = status.JobCreationFailed
@@ -155,7 +143,7 @@ func (service *executionService) watchProcess(executionName string, context mode
 	context.Status = status.JobReady
 	logger.Info("Job Ready for ", context.ExecutionID)
 
-	pod, err := service.kubernetesClient.WaitForReadyPod(executionName, waitTime)
+	pod, err := service.kubernetesClient.WaitForReadyPod(context.Name, waitTime)
 	if err != nil {
 		context.Status = status.PodCreationFailed
 		return
@@ -192,7 +180,7 @@ func (service *executionService) watchProcess(executionName string, context mode
 		context.Status = status.Finished
 	}
 
-	defer service.save(context)
+	defer service.update(context)
 
 	return
 }

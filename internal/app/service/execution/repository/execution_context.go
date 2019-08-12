@@ -6,7 +6,6 @@ import (
 	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/db/postgresql"
-	"proctor/internal/app/service/infra/id"
 	"time"
 )
 
@@ -33,14 +32,12 @@ func NewExecutionContextRepository(client postgresql.Client) ExecutionContextRep
 }
 
 func (repository *executionContextRepository) Insert(context model.ExecutionContext) (uint64, error) {
-	snowflakeId, _ := id.NextID()
-	context.ExecutionID = snowflakeId
 	sql := "INSERT INTO execution_context (id, job_name,name, user_email, image_tag, args, output, status) VALUES (:id, :job_name, :name, :user_email, :image_tag, :args, :output, :status)"
 	_, err := repository.postgresqlClient.NamedExec(sql, &context)
 	if err != nil {
 		return 0, nil
 	}
-	return snowflakeId, nil
+	return context.ExecutionID, nil
 }
 
 func (repository *executionContextRepository) UpdateJobOutput(executionId uint64, output types.GzippedText) error {
