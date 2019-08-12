@@ -7,7 +7,6 @@ const (
 	RequirementNotMet   ExecutionStatus = "REQUIREMENT_NOT_MET"
 	Created             ExecutionStatus = "CREATED"
 	CreationFailed      ExecutionStatus = "CREATION_FAILED"
-	ContextSavingFailed ExecutionStatus = "CONTEXT_SAVING_FAILED"
 	JobCreationFailed   ExecutionStatus = "JOB_CREATION_FAILED"
 	JobReady            ExecutionStatus = "JOB_READY"
 	PodCreationFailed   ExecutionStatus = "POD_CREATION_FAILED"

@@ -131,7 +131,7 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionGetLogsWhe
 
 	readCloser := ioutil.NopCloser(bytes.NewReader([]byte("test1\ntest2\ntest3\n")))
 	defer readCloser.Close()
-	suite.mockExecutionerService.On("StreamJobLogs", "1", time.Duration(30)*time.Second).Return(readCloser, nil).Once()
+	suite.mockExecutionerService.On("StreamJobLogs", "1", time.Duration(60)*time.Second).Return(readCloser, nil).Once()
 	defer suite.mockExecutionerService.AssertExpectations(t)
 	suite.mockExecutionerContextRepository.On("GetById", executionContextId).Return(context, nil).Once()
 	defer suite.mockExecutionerContextRepository.AssertExpectations(t)
