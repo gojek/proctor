@@ -63,6 +63,8 @@ func TestExecutionContextRepository_Delete(t *testing.T) {
 		Status: status.Received,
 	}
 
+	expectedContextID, _ := id.NextID()
+	context.ExecutionID = expectedContextID
 	id, err := repository.Insert(context)
 	assert.Nil(t, err)
 	assert.NotZero(t, id)
@@ -92,6 +94,8 @@ func TestExecutionContextRepository_UpdateStatus(t *testing.T) {
 		Status: status.Received,
 	}
 
+	expectedContextID, _ := id.NextID()
+	context.ExecutionID = expectedContextID
 	id, err := repository.Insert(context)
 	assert.Nil(t, err)
 	assert.NotZero(t, id)
