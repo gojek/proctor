@@ -12,16 +12,17 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"proctor/internal/app/cli/command/version"
-	"proctor/internal/app/cli/config"
-	"proctor/internal/pkg/constant"
-	"proctor/internal/pkg/io"
-	"proctor/internal/pkg/model/execution"
 	"time"
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
+
+	"proctor/internal/app/cli/command/version"
+	"proctor/internal/app/cli/config"
+	"proctor/internal/pkg/constant"
+	"proctor/internal/pkg/io"
+	modelExecution "proctor/internal/pkg/model/execution"
 	modelMetadata "proctor/internal/pkg/model/metadata"
 	modelSchedule "proctor/internal/pkg/model/schedule"
 )
@@ -35,9 +36,10 @@ const (
 
 type Client interface {
 	ListProcs() ([]modelMetadata.Metadata, error)
-	ExecuteProc(string, map[string]string) (*execution.ExecutionResult, error)
+	ExecuteProc(string, map[string]string) (*modelExecution.ExecutionResult, error)
 	StreamProcLogs(executionId uint64) error
-	GetDefinitiveProcExecutionStatus(executionId uint64) (string, error)
+	GetExecutionContextStatusWithPolling(executionId uint64) (*modelExecution.ExecutionResult, error)
+	GetExecutionContextStatus(executionId uint64) (*modelExecution.ExecutionResult, error)
 	ScheduleJob(string, string, string, string, string, map[string]string) (string, error)
 	ListScheduledProcs() ([]modelSchedule.ScheduledJob, error)
 	DescribeScheduledProc(string) (modelSchedule.ScheduledJob, error)
@@ -253,7 +255,7 @@ func (c *client) RemoveScheduledProc(jobID string) error {
 	return nil
 }
 
-func (c *client) ExecuteProc(name string, args map[string]string) (*execution.ExecutionResult, error) {
+func (c *client) ExecuteProc(name string, args map[string]string) (*modelExecution.ExecutionResult, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return nil, err
@@ -285,7 +287,7 @@ func (c *client) ExecuteProc(name string, args map[string]string) (*execution.Ex
 		return nil, buildHTTPError(c, resp)
 	}
 
-	var executionResult execution.ExecutionResult
+	var executionResult modelExecution.ExecutionResult
 	err = json.NewDecoder(resp.Body).Decode(&executionResult)
 
 	return &executionResult, err
@@ -354,45 +356,63 @@ func (c *client) StreamProcLogs(executionId uint64) error {
 	}
 }
 
-func (c *client) GetDefinitiveProcExecutionStatus(executionId uint64) (string, error) {
+func (c *client) GetExecutionContextStatusWithPolling(executionId uint64) (*modelExecution.ExecutionResult, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	for count := 0; count < c.procExecutionStatusPollCount; count += 1 {
-		httpClient := &http.Client{
-			Timeout: c.connectionTimeoutSecs,
-		}
-
-		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s%s/%v/status", c.proctordHost, ExecutionRoute, executionId), nil)
-		req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
-		req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
-		req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
-
-		resp, err := httpClient.Do(req)
+		executionContextStatus, err := c.GetExecutionContextStatus(executionId)
 		if err != nil {
-			return "", buildNetworkError(err)
+			return nil, err
 		}
-
-		if resp.StatusCode != http.StatusOK {
-			return "", buildHTTPError(c, resp)
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
-		if err != nil {
-			return "", err
-		}
-
-		procExecutionStatus := string(body)
-		if procExecutionStatus == constant.JobSucceeded || procExecutionStatus == constant.JobFailed {
-			return procExecutionStatus, nil
+		if executionContextStatus.Status == constant.JobSucceeded || executionContextStatus.Status == constant.JobFailed {
+			return executionContextStatus, nil
 		}
 
 		time.Sleep(time.Duration(count) * 100 * time.Millisecond)
 	}
-	return "", errors.New(fmt.Sprintf("No definitive status received for execution with id %v from proctord", executionId))
+	return nil, errors.New(fmt.Sprintf("No definitive status received for execution with id %v from proctord", executionId))
+}
+
+func (c *client) GetExecutionContextStatus(executionId uint64) (*modelExecution.ExecutionResult, error) {
+	err := c.loadProctorConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	httpClient := &http.Client{
+		Timeout: c.connectionTimeoutSecs,
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s%s/%v/status", c.proctordHost, ExecutionRoute, executionId), nil)
+	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
+	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)
+	req.Header.Add(constant.ClientVersionHeaderKey, c.clientVersion)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, buildNetworkError(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, buildHTTPError(c, resp)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var executionResult modelExecution.ExecutionResult
+	err = json.Unmarshal(body, &executionResult)
+	if err != nil {
+		return nil, err
+	}
+
+	return &executionResult, nil
 }
 
 func buildNetworkError(err error) error {

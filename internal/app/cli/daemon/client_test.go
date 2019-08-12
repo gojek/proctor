@@ -8,16 +8,16 @@ import (
 	"strings"
 	"testing"
 
-	"proctor/internal/app/cli/command/version"
-	"proctor/internal/app/cli/config"
-	"proctor/internal/pkg/io"
-	"proctor/internal/pkg/model/execution"
-
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/thingful/httpmock"
+
+	"proctor/internal/app/cli/command/version"
+	"proctor/internal/app/cli/config"
 	"proctor/internal/pkg/constant"
+	"proctor/internal/pkg/io"
+	modelExecution "proctor/internal/pkg/model/execution"
 	modelMetadata "proctor/internal/pkg/model/metadata"
 	"proctor/internal/pkg/model/metadata/env"
 )
@@ -264,12 +264,13 @@ func (s *ClientTestSuite) TestExecuteProc() {
 
 	executionName := "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	expectedProcResponse := &execution.ExecutionResult{
+	expectedProcResponse := &modelExecution.ExecutionResult{
 		ExecutionId:   uint64(0),
 		JobName:       "",
 		ExecutionName: executionName,
 		ImageTag:      "",
 		CreatedAt:     "",
+		UpdatedAt:     "",
 		Status:        "",
 	}
 	body := `{ "name": "proctor-777b1dfb-ea27-46d9-b02c-839b75a542e2"}`
@@ -411,7 +412,7 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 	executeProcResponse, err := s.testClient.ExecuteProc(procName, procArgs)
 
-	var expectedProcResponse *execution.ExecutionResult
+	var expectedProcResponse *modelExecution.ExecutionResult
 	assert.Equal(t, "Execute Error", err.Error())
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	s.mockConfigLoader.AssertExpectations(t)
@@ -444,7 +445,7 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorized() {
 
 	executeProcResponse, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	var expectedProcResponse *execution.ExecutionResult
+	var expectedProcResponse *modelExecution.ExecutionResult
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	assert.Equal(t, "Unauthorized Access!!!\nPlease check the EMAIL_ID and ACCESS_TOKEN validity in proctor config file.", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
@@ -477,7 +478,7 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotS
 
 	executeProcResponse, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	var expectedProcResponse *execution.ExecutionResult
+	var expectedProcResponse *modelExecution.ExecutionResult
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	assert.Equal(t, "Unauthorized Access!!!\nEMAIL_ID or ACCESS_TOKEN is not present in proctor config file.", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
@@ -510,7 +511,7 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 
 	response, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
-	var expectedProcResponse *execution.ExecutionResult
+	var expectedProcResponse *modelExecution.ExecutionResult
 	assert.Equal(t, expectedProcResponse, response)
 	assert.Equal(t, errors.New("Network Error!!!\nPost http://proctor.example.com/execution: Unknown Error"), err)
 	s.mockConfigLoader.AssertExpectations(t)
@@ -578,7 +579,7 @@ func (s *ClientTestSuite) TestLogStreamForUnauthorizedUser() {
 
 }
 
-func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs() {
+func (s *ClientTestSuite) TestGetExecutionContextStatusForSucceededProcs() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
@@ -586,8 +587,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	expectedProcExecutionStatus := constant.JobSucceeded
-	responseBody := expectedProcExecutionStatus
+	expectedExecutionContextStatus := &modelExecution.ExecutionResult{
 		ExecutionId:   uint64(0),
 		JobName:       "",
 		ExecutionName: "",
@@ -595,6 +595,8 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 		CreatedAt:     "",
 		UpdatedAt:     "",
 		Status:        constant.JobSucceeded,
+	}
+	responseBody := fmt.Sprintf(`{ "status": "%s" }`, constant.JobSucceeded)
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
@@ -614,14 +616,14 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForSucceededProcs(
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
+	executionContextStatus, err := s.testClient.GetExecutionContextStatus(uint64(42))
 
 	assert.NoError(t, err)
 	s.mockConfigLoader.AssertExpectations(t)
-	assert.Equal(t, expectedProcExecutionStatus, procExecutionStatus)
+	assert.Equal(t, expectedExecutionContextStatus, executionContextStatus)
 }
 
-func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
+func (s *ClientTestSuite) TestGetExecutionContextStatusForFailedProcs() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
@@ -629,8 +631,16 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	expectedProcExecutionStatus := constant.JobFailed
-	responseBody := expectedProcExecutionStatus
+	expectedExecutionContextStatus := &modelExecution.ExecutionResult{
+		ExecutionId:   uint64(0),
+		JobName:       "",
+		ExecutionName: "",
+		ImageTag:      "",
+		CreatedAt:     "",
+		UpdatedAt:     "",
+		Status:        constant.JobFailed,
+	}
+	responseBody := fmt.Sprintf(`{ "status": "%s" }`, constant.JobFailed)
 
 	httpmock.RegisterStubRequest(
 		httpmock.NewStubRequest(
@@ -650,14 +660,14 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForFailedProcs() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
+	executionContextStatus, err := s.testClient.GetExecutionContextStatus(uint64(42))
 
 	assert.NoError(t, err)
 	s.mockConfigLoader.AssertExpectations(t)
-	assert.Equal(t, expectedProcExecutionStatus, procExecutionStatus)
+	assert.Equal(t, expectedExecutionContextStatus, executionContextStatus)
 }
 
-func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFailure() {
+func (s *ClientTestSuite) TestGetExecutionContextStatusForHTTPRequestFailure() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
@@ -683,14 +693,15 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
+	executionContextStatus, err := s.testClient.GetExecutionContextStatus(uint64(42))
 
 	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/execution/42/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	s.mockConfigLoader.AssertExpectations(t)
-	assert.Equal(t, "", procExecutionStatus)
+	var executionResult *modelExecution.ExecutionResult
+	assert.Equal(t, executionResult, executionContextStatus)
 }
 
-func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse() {
+func (s *ClientTestSuite) TestGetExecutionContextStatusForNonOKResponse() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
@@ -716,14 +727,103 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForNonOKResponse()
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
+	executionContextStatus, err := s.testClient.GetExecutionContextStatus(uint64(42))
 
 	assert.Equal(t, errors.New("execute Error"), err)
 	s.mockConfigLoader.AssertExpectations(t)
-	assert.Equal(t, "", procExecutionStatus)
+	var executionResult *modelExecution.ExecutionResult
+	assert.Equal(t, executionResult, executionContextStatus)
 }
 
-func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReached() {
+func (s *ClientTestSuite) TestGetExecutionContextStatusWithPollingForCompletedProcs() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	completedProcs := []struct {
+		expectedExecutionContextStatus string
+		executionID                    uint64
+	}{
+		{constant.JobSucceeded, uint64(42)},
+		{constant.JobFailed, uint64(43)},
+	}
+
+	for _, proc := range completedProcs {
+		expectedExecutionContextStatus := &modelExecution.ExecutionResult{
+			ExecutionId:   proc.executionID,
+			JobName:       "",
+			ExecutionName: "",
+			ImageTag:      "",
+			CreatedAt:     "",
+			UpdatedAt:     "",
+			Status:        proc.expectedExecutionContextStatus,
+		}
+		responseBody := fmt.Sprintf(`{ "id": %v, "status": "%s" }`, fmt.Sprint(proc.executionID), proc.expectedExecutionContextStatus)
+
+		httpmock.RegisterStubRequest(
+			httpmock.NewStubRequest(
+				"GET",
+				"http://"+proctorConfig.Host+ExecutionRoute+"/"+fmt.Sprint(proc.executionID)+"/status",
+				func(req *http.Request) (*http.Response, error) {
+					return httpmock.NewStringResponse(200, responseBody), nil
+				},
+			).WithHeader(
+				&http.Header{
+					constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+					constant.AccessTokenHeaderKey:   []string{"access-token"},
+					constant.ClientVersionHeaderKey: []string{version.ClientVersion},
+				},
+			),
+		)
+
+		s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Twice()
+
+		executionContextStatus, err := s.testClient.GetExecutionContextStatusWithPolling(proc.executionID)
+
+		assert.NoError(t, err)
+		s.mockConfigLoader.AssertExpectations(t)
+		assert.Equal(t, expectedExecutionContextStatus, executionContextStatus)
+	}
+}
+
+func (s *ClientTestSuite) TestGetExecutionContextStatusWithPollingForGetError() {
+	t := s.T()
+
+	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: 1}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+ExecutionRoute+"/42/status",
+			func(req *http.Request) (*http.Response, error) {
+				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
+			},
+		).WithHeader(
+			&http.Header{
+				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
+				constant.AccessTokenHeaderKey:   []string{"access-token"},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Twice()
+
+	executionContextStatus, err := s.testClient.GetExecutionContextStatusWithPolling(uint64(42))
+
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/execution/42/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	s.mockConfigLoader.AssertExpectations(t)
+	var executionResult *modelExecution.ExecutionResult
+	assert.Equal(t, executionResult, executionContextStatus)
+}
+
+func (s *ClientTestSuite) TestGetExecutionContextStatusWithPollingWhenPollCountReached() {
 	t := s.T()
 
 	expectedRequestsToProctorDCount := 2
@@ -731,8 +831,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token", ProcExecutionStatusPollCount: expectedRequestsToProctorDCount}
 
-	expectedProcExecutionStatus := constant.JobWaiting
-	responseBody := expectedProcExecutionStatus
+	responseBody := fmt.Sprintf(`{ "status": "%s" }`, constant.JobWaiting)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -754,14 +853,15 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusWhenPollCountReach
 		),
 	)
 
-	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
+	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Times(3)
 
-	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus(uint64(42))
+	executionContextStatus, err := s.testClient.GetExecutionContextStatusWithPolling(uint64(42))
 
 	assert.Equal(t, errors.New("No definitive status received for execution with id 42 from proctord"), err)
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, expectedRequestsToProctorDCount, requestsToProctorDCount)
-	assert.Equal(t, "", procExecutionStatus)
+	var executionResult *modelExecution.ExecutionResult
+	assert.Equal(t, executionResult, executionContextStatus)
 }
 
 func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
