@@ -5,7 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"proctor/internal/app/cli/daemon"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"testing"
 )
 

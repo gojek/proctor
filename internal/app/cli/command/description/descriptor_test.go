@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	daemon2 "proctor/internal/app/cli/daemon"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"strings"
 	"testing"
 

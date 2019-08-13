@@ -3,7 +3,7 @@ package command
 import (
 	"proctor/internal/app/cli/command/version/github"
 	"proctor/internal/app/cli/daemon"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"testing"
 
 	"github.com/spf13/cobra"

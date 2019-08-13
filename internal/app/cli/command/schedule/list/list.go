@@ -3,7 +3,7 @@ package list
 import (
 	"fmt"
 	"proctor/internal/app/cli/daemon"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

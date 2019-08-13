@@ -9,7 +9,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 )
 
 func NewCmd(printer io.Printer) *cobra.Command {

@@ -3,7 +3,7 @@ package version
 import (
 	"fmt"
 	"proctor/internal/app/cli/command/version/github"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"testing"
 
 	"github.com/fatih/color"

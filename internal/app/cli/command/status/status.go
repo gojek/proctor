@@ -3,7 +3,7 @@ package status
 import (
 	"fmt"
 	"proctor/internal/app/cli/daemon"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"strconv"
 
 	"github.com/fatih/color"

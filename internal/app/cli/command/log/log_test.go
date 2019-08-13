@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"proctor/internal/app/cli/daemon"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"testing"
 
 	"github.com/fatih/color"

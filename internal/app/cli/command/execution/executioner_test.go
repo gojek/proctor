@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/mock"
 	"proctor/internal/app/cli/daemon"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"proctor/internal/pkg/model/execution"
 	"testing"
 

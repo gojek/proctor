@@ -15,8 +15,8 @@ import (
 
 	"proctor/internal/app/cli/command/version"
 	"proctor/internal/app/cli/config"
+	"proctor/internal/app/cli/utility/io"
 	"proctor/internal/pkg/constant"
-	"proctor/internal/pkg/io"
 	modelExecution "proctor/internal/pkg/model/execution"
 	modelMetadata "proctor/internal/pkg/model/metadata"
 	"proctor/internal/pkg/model/metadata/env"

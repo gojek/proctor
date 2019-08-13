@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"proctor/internal/app/cli/config"
-	"proctor/internal/pkg/io"
+	"proctor/internal/app/cli/utility/io"
 	"strings"
 
 	"github.com/fatih/color"

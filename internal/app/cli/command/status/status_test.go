@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"proctor/internal/app/cli/daemon"
+	"proctor/internal/app/cli/utility/io"
 	"proctor/internal/pkg/constant"
-	"proctor/internal/pkg/io"
 	modelExecution "proctor/internal/pkg/model/execution"
 )
 
