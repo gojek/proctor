@@ -31,7 +31,7 @@ test:
 .PHONY: itest
 itest:
 	ENABLE_INTEGRATION_TEST=true \
-	go test -race -coverprofile=$(OUT_DIR)/coverage.out ./...
+	go test -p 1 -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: server
 server:

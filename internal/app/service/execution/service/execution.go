@@ -117,6 +117,7 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 }
 
 func (service *executionService) insertContext(context model.ExecutionContext) {
+	logger.Info("Insert Execution Context with ID: ", context.ExecutionID, ", name: ", context.Name, ", and Status: "+context.Status)
 	_, err := service.repository.Insert(context)
 	logger.LogErrors(err, "save execution context to db", context)
 }
@@ -131,6 +132,7 @@ func (service *executionService) update(executionContext model.ExecutionContext)
 }
 
 func (service *executionService) watchProcess(context model.ExecutionContext) {
+	logger.Info("Start Watch Process for Job With Context ID: ", context.ExecutionID, ", name: ", context.Name, ", and Status: "+context.Status)
 
 	waitTime := config.KubeLogProcessWaitTime() * time.Second
 	err := service.kubernetesClient.WaitForReadyJob(context.Name, waitTime)
