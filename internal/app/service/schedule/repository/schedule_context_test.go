@@ -1,14 +1,16 @@
 package repository
 
 import (
-	fake "github.com/brianvoe/gofakeit"
-	"github.com/stretchr/testify/assert"
 	executionModel "proctor/internal/app/service/execution/model"
 	executionRepository "proctor/internal/app/service/execution/repository"
 	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/db/postgresql"
+	"proctor/internal/app/service/infra/id"
 	"proctor/internal/app/service/schedule/model"
 	"testing"
+
+	fake "github.com/brianvoe/gofakeit"
+	"github.com/stretchr/testify/assert"
 )
 
 type context interface {
@@ -149,23 +151,25 @@ func TestScheduleContextRepository_GetContextAndSchedule(t *testing.T) {
 	contextCount := 4
 	for i := 1; i <= contextCount; i++ {
 		fake.Seed(0)
+		executionID, _ := id.NextID()
 		executionContext := executionModel.ExecutionContext{
-			JobName:   fake.BuzzWord(),
-			UserEmail: fake.Email(),
-			ImageTag:  fake.BeerStyle(),
+			ExecutionID: executionID,
+			JobName:     fake.BuzzWord(),
+			UserEmail:   fake.Email(),
+			ImageTag:    fake.BeerStyle(),
 			Args: map[string]string{
 				fake.FirstName(): fake.LastName(),
 			},
 			Status: status.Received,
 		}
 
-		executionContextId, err := ctx.instance().executionContextRepository.Insert(executionContext)
+		persistedExecutionID, err := ctx.instance().executionContextRepository.Insert(executionContext)
 		assert.NoError(t, err)
-		assert.NotNil(t, executionContextId)
+		assert.NotNil(t, persistedExecutionID)
 
 		scheduleContext := model.ScheduleContext{
 			ScheduleId:         scheduleId,
-			ExecutionContextId: executionContextId,
+			ExecutionContextId: persistedExecutionID,
 		}
 
 		updatedContext, err := ctx.instance().repository.Insert(scheduleContext)

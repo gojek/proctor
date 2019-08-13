@@ -23,10 +23,12 @@ func TestExecutionContextRepository_Insert(t *testing.T) {
 	mapKey := fake.FirstName()
 	mapValue := fake.LastName()
 
+	executionID, _ := id.NextID()
 	context := model.ExecutionContext{
-		JobName:   fake.BuzzWord(),
-		UserEmail: fake.Email(),
-		ImageTag:  fake.BeerStyle(),
+		ExecutionID: executionID,
+		JobName:     fake.BuzzWord(),
+		UserEmail:   fake.Email(),
+		ImageTag:    fake.BeerStyle(),
 		Args: map[string]string{
 			mapKey: mapValue,
 		},
@@ -53,18 +55,18 @@ func TestExecutionContextRepository_Delete(t *testing.T) {
 	defer repository.DeleteAll()
 
 	fake.Seed(0)
+	executionID, _ := id.NextID()
 	context := model.ExecutionContext{
-		JobName:   fake.BuzzWord(),
-		UserEmail: fake.Email(),
-		ImageTag:  fake.BeerStyle(),
+		ExecutionID: executionID,
+		JobName:     fake.BuzzWord(),
+		UserEmail:   fake.Email(),
+		ImageTag:    fake.BeerStyle(),
 		Args: map[string]string{
 			fake.FirstName(): fake.LastName(),
 		},
 		Status: status.Received,
 	}
 
-	expectedContextID, _ := id.NextID()
-	context.ExecutionID = expectedContextID
 	id, err := repository.Insert(context)
 	assert.Nil(t, err)
 	assert.NotZero(t, id)
@@ -84,18 +86,18 @@ func TestExecutionContextRepository_UpdateStatus(t *testing.T) {
 	defer repository.DeleteAll()
 
 	fake.Seed(0)
+	executionID, _ := id.NextID()
 	context := model.ExecutionContext{
-		JobName:   fake.BuzzWord(),
-		UserEmail: fake.Email(),
-		ImageTag:  fake.BeerStyle(),
+		ExecutionID: executionID,
+		JobName:     fake.BuzzWord(),
+		UserEmail:   fake.Email(),
+		ImageTag:    fake.BeerStyle(),
 		Args: map[string]string{
 			fake.FirstName(): fake.LastName(),
 		},
 		Status: status.Received,
 	}
 
-	expectedContextID, _ := id.NextID()
-	context.ExecutionID = expectedContextID
 	id, err := repository.Insert(context)
 	assert.Nil(t, err)
 	assert.NotZero(t, id)
@@ -117,11 +119,12 @@ func TestExecutionContextRepository_UpdateJobOutput(t *testing.T) {
 	defer repository.DeleteAll()
 
 	fake.Seed(0)
+	executionID, _ := id.NextID()
 	context := model.ExecutionContext{
-		JobName:   fake.BuzzWord(),
-		Name:      fake.HackerAdjective(),
-		UserEmail: fake.Email(),
-		ImageTag:  fake.BeerStyle(),
+		ExecutionID: executionID,
+		JobName:     fake.BuzzWord(),
+		UserEmail:   fake.Email(),
+		ImageTag:    fake.BeerStyle(),
 		Args: map[string]string{
 			fake.FirstName(): fake.LastName(),
 		},
@@ -180,11 +183,13 @@ func populateSeedDataForTest(repository ExecutionContextRepository, count int, s
 			defaultStatus = status.ExecutionStatus(val)
 		}
 
+		executionID, _ := id.NextID()
 		context := model.ExecutionContext{
-			JobName:   jobName,
-			Name:      fake.HackerAdjective(),
-			UserEmail: email,
-			ImageTag:  fake.BeerStyle(),
+			ExecutionID: executionID,
+			JobName:     jobName,
+			Name:        fake.HackerAdjective(),
+			UserEmail:   email,
+			ImageTag:    fake.BeerStyle(),
 			Args: map[string]string{
 				fake.FirstName(): fake.LastName(),
 			},
