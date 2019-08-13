@@ -21,9 +21,12 @@ func (mockService *MockExecutionService) ExecuteWithCommand(jobName string, user
 	return arguments.Get(0).(*model.ExecutionContext), arguments.String(1), arguments.Error(2)
 }
 
-func (mockService *MockExecutionService) save(executionContext model.ExecutionContext) error {
-	args := mockService.Called(executionContext)
-	return args.Error(0)
+func (mockService *MockExecutionService) update(executionContext model.ExecutionContext) {
+	mockService.Called(executionContext)
+}
+
+func (mockService *MockExecutionService) insertContext(executionContext model.ExecutionContext) {
+	mockService.Called(executionContext)
 }
 
 func (mockService *MockExecutionService) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {

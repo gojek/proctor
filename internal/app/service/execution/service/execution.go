@@ -48,15 +48,6 @@ func NewExecutionService(
 	}
 }
 
-func (service *executionService) update(executionContext model.ExecutionContext) {
-	err := service.repository.UpdateStatus(executionContext.ExecutionID, executionContext.Status)
-	logger.LogErrors(err, "update execution context status", executionContext)
-	if len(executionContext.Output) > 0 {
-		err = service.repository.UpdateJobOutput(executionContext.ExecutionID, executionContext.Output)
-		logger.LogErrors(err, "update execution context output", executionContext)
-	}
-}
-
 func (service *executionService) StreamJobLogs(executionName string, waitTime time.Duration) (io.ReadCloser, error) {
 	err := service.kubernetesClient.WaitForReadyJob(executionName, waitTime)
 	if err != nil {
@@ -128,6 +119,15 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 func (service *executionService) insertContext(context model.ExecutionContext) {
 	_, err := service.repository.Insert(context)
 	logger.LogErrors(err, "save execution context to db", context)
+}
+
+func (service *executionService) update(executionContext model.ExecutionContext) {
+	err := service.repository.UpdateStatus(executionContext.ExecutionID, executionContext.Status)
+	logger.LogErrors(err, "update execution context status", executionContext)
+	if len(executionContext.Output) > 0 {
+		err = service.repository.UpdateJobOutput(executionContext.ExecutionID, executionContext.Output)
+		logger.LogErrors(err, "update execution context output", executionContext)
+	}
 }
 
 func (service *executionService) watchProcess(context model.ExecutionContext) {
