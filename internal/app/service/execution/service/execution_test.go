@@ -1,12 +1,14 @@
 package service
 
 import (
+	"bytes"
 	"io/ioutil"
 	"strings"
 	"testing"
 
 	fake "github.com/brianvoe/gofakeit"
 	"github.com/docker/docker/pkg/testutil/assert"
+	"github.com/jmoiron/sqlx/types"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -127,9 +129,17 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobSuccess() {
 		ImageName: imageName,
 	}
 
+	// This is needed because #NopCloser adds additional foreign character
+	// at the end of the input string
+	logBuf := new(bytes.Buffer)
+	mockLog := ioutil.NopCloser(strings.NewReader("hello world"))
+	logBuf.ReadFrom(mockLog)
+
 	suite.mockMetadataRepository.On("GetByName", jobName).Return(fakeMetadata, nil).Once()
 	suite.mockSecretRepository.On("GetByJobName", jobName).Return(map[string]string{}, nil).Once()
 	suite.mockRepository.On("Insert", mock.Anything).Return(0, nil).Times(3)
+	suite.mockRepository.On("UpdateStatus", mock.Anything, status.Finished).Return(nil).Once()
+	suite.mockRepository.On("UpdateJobOutput", mock.Anything, types.GzippedText(logBuf.String())).Return(nil).Once()
 	suite.mockRepository.On("GetById", mock.Anything).Return(0, nil).Times(3)
 
 	executionName := "execution-name"
@@ -137,7 +147,6 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobSuccess() {
 	suite.mockKubernetesClient.On("WaitForReadyJob", executionName, mock.Anything).Return(nil)
 	podDetail := &v1.Pod{}
 	suite.mockKubernetesClient.On("WaitForReadyPod", executionName, mock.Anything).Return(podDetail, nil)
-	mockLog := ioutil.NopCloser(strings.NewReader("hello world"))
 	suite.mockKubernetesClient.On("GetPodLogs", podDetail).Return(mockLog, nil)
 
 	context, _, err := suite.service.Execute(jobName, userEmail, jobArgs)
