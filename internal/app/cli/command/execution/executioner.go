@@ -2,17 +2,19 @@ package execution
 
 import (
 	"fmt"
-	"proctor/internal/app/cli/daemon"
-	"proctor/internal/app/cli/utility/io"
 	"strings"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+
+	"proctor/internal/app/cli/daemon"
 	utilArgs "proctor/internal/app/cli/utility/args"
+	utilFile "proctor/internal/app/cli/utility/file"
+	utilIO "proctor/internal/app/cli/utility/io"
 )
 
-func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(int)) *cobra.Command {
-	return &cobra.Command{
+func NewCmd(printer utilIO.Printer, proctorDClient daemon.Client, osExitFunc func(int)) *cobra.Command {
+	executionCmd := &cobra.Command{
 		Use:     "execute",
 		Short:   "Execute a proc with given arguments",
 		Long:    "To execute a proc, this command helps to communicate with `proctord` and streams to logs of proc in execution",
@@ -23,13 +25,26 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 			procName := args[0]
 			printer.Println(fmt.Sprintf("%-40s %-100s", "Executing Proc", procName), color.Reset)
 
+			filename, err := cmd.Flags().GetString("filename")
+			if err != nil && !strings.Contains(err.Error(), "flag accessed but not defined") {
+				printer.Println(err.Error(), color.FgRed)
+			}
+
 			procArgs := make(map[string]string)
-			if len(args) > 1 {
+			if filename != "" {
+				parseErr := utilFile.ParseYAML(filename, procArgs)
+				if err != nil {
+					printer.Println(parseErr.Error(), color.FgRed)
+				}
+			}
+			if len(procArgs) > 1 || len(args) > 1 {
 				printer.Println("With Variables", color.FgMagenta)
 				for _, v := range args[1:] {
 					utilArgs.ParseArg(printer, procArgs, v)
+				}
 
-					printer.Println(fmt.Sprintf("%-40s %-100s", arg[0], combinedArgValue), color.Reset)
+				for field, value := range procArgs {
+					printer.Println(fmt.Sprintf("%-40s %-100s", field, value), color.Reset)
 				}
 			} else {
 				printer.Println("With No Variables", color.FgRed)
@@ -58,4 +73,10 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 			printer.Println("Execution completed.", color.FgGreen)
 		},
 	}
+	var Filename string
+
+	executionCmd.Flags().StringVarP(&Filename, "filename", "f", "", "Filename")
+	executionCmd.MarkFlagFilename("filename")
+
+	return executionCmd
 }
