@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	utilArgs "proctor/internal/app/cli/utility/args"
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(int)) *cobra.Command {
@@ -26,15 +27,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client, osExitFunc func(in
 			if len(args) > 1 {
 				printer.Println("With Variables", color.FgMagenta)
 				for _, v := range args[1:] {
-					arg := strings.Split(v, "=")
-
-					if len(arg) < 2 {
-						printer.Println(fmt.Sprintf("%-40s %-100s", "\nIncorrect variable format\n", v), color.FgRed)
-						continue
-					}
-
-					combinedArgValue := strings.Join(arg[1:], "=")
-					procArgs[arg[0]] = combinedArgValue
+					utilArgs.ParseArg(printer, procArgs, v)
 
 					printer.Println(fmt.Sprintf("%-40s %-100s", arg[0], combinedArgValue), color.Reset)
 				}
