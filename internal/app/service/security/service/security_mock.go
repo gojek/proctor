@@ -19,7 +19,7 @@ func (m *SecurityServiceMock) Auth(email string, token string) (auth.UserDetail,
 	return args.Get(0).(auth.UserDetail), args.Error(1)
 }
 
-func (m *SecurityServiceMock) Verify(userDetail auth.UserDetail, group []string) (bool, error) {
-	args := m.Called(userDetail, group)
+func (m *SecurityServiceMock) Verify(userDetail auth.UserDetail, requiredGroups []string) (bool, error) {
+	args := m.Called(userDetail, requiredGroups)
 	return args.Get(0).(bool), args.Error(1)
 }

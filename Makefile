@@ -9,12 +9,13 @@ export $(shell sed 's/=.*//' .env.test)
 SRC_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 OUT_DIR := $(SRC_DIR)/_output
 BIN_DIR := $(OUT_DIR)/bin
+PLUGIN_DIR := $(BIN_DIR)/plugin
 FTEST_DIR := test/procs
 CONFIG_DIR := test/config
 GOPROXY ?= https://proxy.golang.org
 GO111MODULE := on
 
-$(@info $(shell mkdir -p $(OUT_DIR) $(BIN_DIR)))
+$(@info $(shell mkdir -p $(OUT_DIR) $(BIN_DIR) $(PLUGIN_DIR))
 
 .PHONY: build
 build: test-with-race server cli
@@ -29,21 +30,28 @@ test:
 	go test -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: itest
-itest:
+itest: plugin.auth
+	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
 	ENABLE_INTEGRATION_TEST=true \
 	go test -p 1 -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: server
 server:
-	go build -o $(BIN_DIR)/server ./cmd/server/main.go
+	go build -race -o $(BIN_DIR)/server ./cmd/server/main.go
+
+.PHONY: plugin.auth
+plugin.auth:
+	go build -race -buildmode=plugin -o $(PLUGIN_DIR)/auth.so ./plugins/gate-auth-plugin/auth.go
+
+.PHONY: cli
+cli:
+	go build -race -o $(BIN_DIR)/cli ./cmd/cli/main.go
+
+build-all: server cli plugin.auth
 
 .PHONY: start-server
 start-server:
 	$(BIN_DIR)/server s
-
-.PHONY: cli
-cli:
-	go build -o $(BIN_DIR)/cli ./cmd/cli/main.go
 
 generate:
 	go get -u github.com/go-bindata/go-bindata/...

@@ -58,7 +58,7 @@ func TestSecurityService_AuthSuccess(t *testing.T) {
 		Name:   "Deny Prasetyo",
 		Email:  "jasoet87@gmail.com",
 		Active: true,
-		Group:  []string{"system", "proctor_executor"},
+		Groups: []string{"system", "proctor_executor"},
 	}
 	ctx.instance().auth.On("Auth", email, token).Return(userDetail, nil)
 
@@ -95,7 +95,7 @@ func TestSecurityService_AuthPluginFailedToCast(t *testing.T) {
 		Name:   "Deny Prasetyo",
 		Email:  "jasoet87@gmail.com",
 		Active: true,
-		Group:  []string{"system", "proctor_executor"},
+		Groups: []string{"system", "proctor_executor"},
 	}
 
 	ctx.instance().goPlugin.On("Load", ctx.instance().pluginBinary, ctx.instance().exportedName).Return(userDetail, nil)
@@ -116,7 +116,7 @@ func TestSecurityService_VerifySuccess(t *testing.T) {
 		Name:   "Deny Prasetyo",
 		Email:  "jasoet87@gmail.com",
 		Active: true,
-		Group:  []string{"system", "proctor_executor"},
+		Groups: []string{"system", "proctor_executor"},
 	}
 
 	ctx.instance().auth.On("Auth", email, token).Return(userDetail, nil)
@@ -146,7 +146,7 @@ func TestSecurityService_VerifyFailed(t *testing.T) {
 		Name:   "Deny Prasetyo",
 		Email:  "jasoet87@gmail.com",
 		Active: true,
-		Group:  []string{"system", "proctor_executor"},
+		Groups: []string{"system", "proctor_executor"},
 	}
 
 	ctx.instance().auth.On("Auth", email, token).Return(userDetail, nil)
@@ -164,5 +164,3 @@ func TestSecurityService_VerifyFailed(t *testing.T) {
 	assert.False(t, verified)
 	assert.EqualError(t, err, "verify error")
 }
-
-

@@ -21,13 +21,13 @@ type securityService struct {
 	once               sync.Once
 }
 
-func (s *securityService) Verify(userDetail auth.UserDetail, group []string) (bool, error) {
+func (s *securityService) Verify(userDetail auth.UserDetail, requiredGroups []string) (bool, error) {
 	err := s.initializePlugin()
 	logger.LogErrors(err, "initialize plugin")
 	if err != nil {
 		return false, err
 	}
-	return s.authInstance.Verify(userDetail, group)
+	return s.authInstance.Verify(userDetail, requiredGroups)
 }
 
 func (s *securityService) Auth(email string, token string) (*auth.UserDetail, error) {
