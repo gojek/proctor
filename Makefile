@@ -94,6 +94,10 @@ ftest.proctor.describe:
 ftest.proctor.execute:
 	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli execute say-hello-world SAMPLE_ARG_ONE=foo SAMPLE_ARG_TWO=bar
 
+.PHONY: ftest.proctor.execute-with-yaml
+ftest.proctor.execute-with-yaml:
+	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli execute say-hello-world -f $(FTEST_DIR)/say-hello-world/say_hello_world.yaml
+
 .PHONY: ftest.proctor.logs
 ftest.proctor.logs:
 	LOCAL_CONFIG_DIR=$(CONFIG_DIR) $(BIN_DIR)/cli logs $(EXECUTION_ID)
