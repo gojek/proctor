@@ -37,14 +37,17 @@ func RedisAddress() string {
 	return viper.GetString("REDIS_ADDRESS")
 }
 
+//TODO remove
 func KubeClusterHostName() string {
 	return viper.GetString("KUBE_CLUSTER_HOST_NAME")
 }
 
+//TODO Should Not be Used since we use ~/.kube/config
 func KubeCACertEncoded() string {
 	return viper.GetString("KUBE_CA_CERT_ENCODED")
 }
 
+//TODO remove
 func KubeBasicAuthEncoded() string {
 	return viper.GetString("KUBE_BASIC_AUTH_ENCODED")
 }
@@ -61,10 +64,12 @@ func LogsStreamWriteBufferSize() int {
 	return viper.GetInt("LOGS_STREAM_WRITE_BUFFER_SIZE")
 }
 
+//TODO test
 func KubePodsListWaitTime() time.Duration {
 	return time.Duration(viper.GetInt("KUBE_POD_LIST_WAIT_TIME"))
 }
 
+//TODO test
 func KubeLogProcessWaitTime() time.Duration {
 	return time.Duration(viper.GetInt("KUBE_LOG_PROCESS_WAIT_TIME"))
 }
@@ -157,4 +162,15 @@ func SentryDSN() string {
 
 func DocsPath() string {
 	return viper.GetString("DOCS_PATH")
+}
+
+//TODO test
+func AuthPluginBinary() string {
+	return viper.GetString("AUTH_PLUGIN_BINARY")
+}
+
+//TODO test
+func AuthPluginExported() string {
+	viper.SetDefault("AUTH_PLUGIN_EXPORTED", "Auth")
+	return viper.GetString("AUTH_PLUGIN_EXPORTED")
 }

@@ -67,8 +67,9 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc("/execution/{contextId}/status", executionHandler.GetStatus()).Methods("GET")
 	router.HandleFunc("/execution/logs", executionHandler.GetLogs()).Methods("GET")
 
-	router.HandleFunc("/metadata", jobMetadataHandler.Post()).Methods("POST")
 	router.HandleFunc("/metadata", jobMetadataHandler.GetAll()).Methods("GET")
+
+	router.HandleFunc("/metadata", jobMetadataHandler.Post()).Methods("POST")
 	router.HandleFunc("/secret", jobSecretsHandler.Post()).Methods("POST")
 
 	router.HandleFunc("/schedule", scheduleHandler.Post()).Methods("POST")
