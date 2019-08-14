@@ -135,3 +135,34 @@ func TestSecurityService_VerifySuccess(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSecurityService_VerifyFailed(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+
+	email := "jasoet@go-jek.com"
+	token := "randomtokenforthesakeofopensource"
+
+	userDetail := &auth.UserDetail{
+		Name:   "Deny Prasetyo",
+		Email:  "jasoet87@gmail.com",
+		Active: true,
+		Group:  []string{"system", "proctor_executor"},
+	}
+
+	ctx.instance().auth.On("Auth", email, token).Return(userDetail, nil)
+
+	ctx.instance().goPlugin.On("Load", ctx.instance().pluginBinary, ctx.instance().exportedName).Return(ctx.instance().auth, nil)
+
+	expectedUserDetail, err := ctx.instance().securityService.Auth(email, token)
+	assert.NoError(t, err)
+	assert.NotNil(t, expectedUserDetail)
+	assert.Equal(t, userDetail, expectedUserDetail)
+
+	group := []string{"system", "proctor_executor"}
+	ctx.instance().auth.On("Verify", *expectedUserDetail, group).Return(false, fmt.Errorf("verify error"))
+	verified, err := ctx.instance().securityService.Verify(*expectedUserDetail, group)
+	assert.False(t, verified)
+	assert.EqualError(t, err, "verify error")
+}
+
+

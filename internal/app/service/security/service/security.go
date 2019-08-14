@@ -22,6 +22,11 @@ type securityService struct {
 }
 
 func (s *securityService) Verify(userDetail auth.UserDetail, group []string) (bool, error) {
+	err := s.initializePlugin()
+	logger.LogErrors(err, "initialize plugin")
+	if err != nil {
+		return false, err
+	}
 	return s.authInstance.Verify(userDetail, group)
 }
 
