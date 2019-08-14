@@ -34,7 +34,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdUsage() {
 
 func (s *ExecutionCmdTestSuite) TestExecutionCmdHelp() {
 	assert.Equal(s.T(), "Execute a proc with given arguments", s.testExecutionCmd.Short)
-	assert.Equal(s.T(), "To execute a proc, this command helps communicate with `proctord` and streams to logs of proc in execution", s.testExecutionCmd.Long)
+	assert.Equal(s.T(), "To execute a proc, this command helps to communicate with `proctord` and streams to logs of proc in execution", s.testExecutionCmd.Long)
 	assert.Equal(s.T(), "proctor execute proc-one SOME_VAR=foo ANOTHER_VAR=bar\nproctor execute proc-two ANY_VAR=baz", s.testExecutionCmd.Example)
 }
 
