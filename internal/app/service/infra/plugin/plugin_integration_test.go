@@ -24,15 +24,6 @@ func (context *testContext) setUp(t *testing.T) {
 		t.SkipNow()
 	}
 
-	println("====================  " + os.Getenv("PROCTOR_AUTH_PLUGIN_BINARY"))
-	println("====================  " + os.Getenv("PROCTOR_AUTH_PLUGIN_BINARY"))
-	println("====================  " + os.Getenv("PROCTOR_AUTH_PLUGIN_BINARY"))
-	println("====================  " + os.Getenv("PROCTOR_AUTH_PLUGIN_BINARY"))
-	println("xxxxxxxxxxxxxxxxxxxx  " + config.Config().AuthPluginBinary)
-	println("xxxxxxxxxxxxxxxxxxxx  " + config.Config().AuthPluginBinary)
-	println("xxxxxxxxxxxxxxxxxxxx  " + config.Config().AuthPluginBinary)
-	println("xxxxxxxxxxxxxxxxxxxx  " + config.Config().AuthPluginBinary)
-
 	context.goPlugin = NewGoPlugin()
 	assert.NotNil(t, context.goPlugin)
 }
