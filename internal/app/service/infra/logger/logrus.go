@@ -17,7 +17,7 @@ func Setup() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 
-	logLevel, err := log.ParseLevel(config.LogLevel())
+	logLevel, err := log.ParseLevel(config.Config().LogLevel)
 	if err != nil {
 		log.Panic(err)
 	}

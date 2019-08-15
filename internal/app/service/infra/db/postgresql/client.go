@@ -23,16 +23,16 @@ type client struct {
 }
 
 func NewClient() Client {
-	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.Config().PostgresDatabase, config.Config().PostgresUser, config.Config().PostgresPassword, config.Config().PostgresHost)
 
 	db, err := sqlx.Connect("postgres", dataSourceName)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	db.SetMaxIdleConns(config.PostgresMaxConnections())
-	db.SetMaxOpenConns(config.PostgresMaxConnections())
-	db.SetConnMaxLifetime(time.Duration(config.PostgresConnectionMaxLifetime()) * time.Minute)
+	db.SetMaxIdleConns(config.Config().PostgresMaxConnections)
+	db.SetMaxOpenConns(config.Config().PostgresMaxConnections)
+	db.SetConnMaxLifetime(time.Duration(config.Config().PostgresConnectionMaxLifetime) * time.Minute)
 
 	return &client{
 		db: db,

@@ -4,173 +4,136 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"sync"
 	"time"
 )
 
-func init() {
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("PROCTOR")
+func GetStringDefault(viper *viper.Viper, key string, defaultValue string) string {
+	viper.SetDefault(key, defaultValue)
+	return viper.GetString(key)
 }
 
-func KubeConfig() string {
-	return viper.GetString("KUBE_CONFIG")
+func GetInt64Ref(viper *viper.Viper, key string) *int64 {
+	value := viper.GetInt64(key)
+	return &value
 }
 
-func KubeContext() string {
-	viper.SetDefault("KUBE_CONTEXT", "default")
-	return viper.GetString("KUBE_CONTEXT")
+func GetInt32Ref(viper *viper.Viper, key string) *int32 {
+	value := viper.GetInt32(key)
+	return &value
 }
 
-func LogLevel() string {
-	return viper.GetString("LOG_LEVEL")
-}
-
-func AppPort() string {
-	return viper.GetString("APP_PORT")
-}
-
-func DefaultNamespace() string {
-	return viper.GetString("DEFAULT_NAMESPACE")
-}
-
-func RedisAddress() string {
-	return viper.GetString("REDIS_ADDRESS")
-}
-
-//TODO remove
-func KubeClusterHostName() string {
-	return viper.GetString("KUBE_CLUSTER_HOST_NAME")
-}
-
-//TODO Should Not be Used since we use ~/.kube/config
-func KubeCACertEncoded() string {
-	return viper.GetString("KUBE_CA_CERT_ENCODED")
-}
-
-//TODO remove
-func KubeBasicAuthEncoded() string {
-	return viper.GetString("KUBE_BASIC_AUTH_ENCODED")
-}
-
-func RedisMaxActiveConnections() int {
-	return viper.GetInt("REDIS_MAX_ACTIVE_CONNECTIONS")
-}
-
-func LogsStreamReadBufferSize() int {
-	return viper.GetInt("LOGS_STREAM_READ_BUFFER_SIZE")
-}
-
-func LogsStreamWriteBufferSize() int {
-	return viper.GetInt("LOGS_STREAM_WRITE_BUFFER_SIZE")
-}
-
-//TODO test
-func KubePodsListWaitTime() time.Duration {
-	return time.Duration(viper.GetInt("KUBE_POD_LIST_WAIT_TIME"))
-}
-
-//TODO test
-func KubeLogProcessWaitTime() time.Duration {
-	return time.Duration(viper.GetInt("KUBE_LOG_PROCESS_WAIT_TIME"))
-}
-
-func KubeJobActiveDeadlineSeconds() *int64 {
-	kubeJobActiveDeadlineSeconds := viper.GetInt64("KUBE_JOB_ACTIVE_DEADLINE_SECONDS")
-	return &kubeJobActiveDeadlineSeconds
-}
-
-func KubeJobRetries() *int32 {
-	kubeJobRetries := int32(viper.GetInt("KUBE_JOB_RETRIES"))
-	return &kubeJobRetries
-}
-
-func PostgresUser() string {
-	return viper.GetString("POSTGRES_USER")
-}
-
-func PostgresPassword() string {
-	return viper.GetString("POSTGRES_PASSWORD")
-}
-
-func PostgresHost() string {
-	return viper.GetString("POSTGRES_HOST")
-}
-
-func PostgresPort() int {
-	return viper.GetInt("POSTGRES_PORT")
-}
-
-func PostgresDatabase() string {
-	return viper.GetString("POSTGRES_DATABASE")
-}
-
-func PostgresMaxConnections() int {
-	return viper.GetInt("POSTGRES_MAX_CONNECTIONS")
-}
-
-func PostgresConnectionMaxLifetime() int {
-	return viper.GetInt("POSTGRES_CONNECTIONS_MAX_LIFETIME")
-}
-
-func NewRelicAppName() string {
-	return viper.GetString("NEW_RELIC_APP_NAME")
-}
-
-func NewRelicLicenceKey() string {
-	return viper.GetString("NEW_RELIC_LICENCE_KEY")
-}
-
-func MinClientVersion() string {
-	return viper.GetString("MIN_CLIENT_VERSION")
-}
-
-func ScheduledJobsFetchIntervalInMins() int {
-	return viper.GetInt("SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS")
-}
-
-func MailUsername() string {
-	return viper.GetString("MAIL_USERNAME")
-}
-
-func MailPassword() string {
-	return viper.GetString("MAIL_PASSWORD")
-}
-
-func MailServerHost() string {
-	return viper.GetString("MAIL_SERVER_HOST")
-}
-
-func MailServerPort() string {
-	return viper.GetString("MAIL_SERVER_PORT")
-}
-
-func JobPodAnnotations() map[string]string {
-	var jsonStr = []byte(viper.GetString("JOB_POD_ANNOTATIONS"))
+func GetMapFromJson(viper *viper.Viper, key string) map[string]string {
+	var jsonStr = []byte(viper.GetString(key))
 	var annotations map[string]string
 
 	err := json.Unmarshal(jsonStr, &annotations)
 	if err != nil {
-		_ = fmt.Errorf(err.Error(), "Invalid value for key PROCTOR_JOB_POD_ANNOTATIONS")
+		_ = fmt.Errorf("invalid Value for key %s, errors %v", key, err.Error())
 	}
 
 	return annotations
 }
 
-func SentryDSN() string {
-	return viper.GetString("SENTRY_DSN")
+var once sync.Once
+var config ProctorConfig
+
+type ProctorConfig struct {
+	viper                            *viper.Viper
+	KubeConfig                       string
+	KubeContext                      string
+	LogLevel                         string
+	AppPort                          string
+	DefaultNamespace                 string
+	RedisAddress                     string
+	LogsStreamReadBufferSize         int
+	RedisMaxActiveConnections        int
+	LogsStreamWriteBufferSize        int
+	KubePodsListWaitTime             time.Duration
+	KubeLogProcessWaitTime           time.Duration
+	KubeJobActiveDeadlineSeconds     *int64
+	KubeJobRetries                   *int32
+	PostgresUser                     string
+	PostgresPassword                 string
+	PostgresHost                     string
+	PostgresPort                     int
+	AuthPluginExported               string
+	PostgresDatabase                 string
+	PostgresMaxConnections           int
+	PostgresConnectionMaxLifetime    int
+	NewRelicAppName                  string
+	NewRelicLicenceKey               string
+	MinClientVersion                 string
+	ScheduledJobsFetchIntervalInMins int
+	MailUsername                     string
+	MailServerHost                   string
+	MailPassword                     string
+	MailServerPort                   string
+	JobPodAnnotations                map[string]string
+	SentryDSN                        string
+	DocsPath                         string
+	AuthPluginBinary                 string
 }
 
-func DocsPath() string {
-	return viper.GetString("DOCS_PATH")
+func Load() ProctorConfig {
+	fang := viper.New()
+	fang.AutomaticEnv()
+	fang.SetEnvPrefix("PROCTOR")
+	proctorConfig := ProctorConfig{
+		viper:                            fang,
+		KubeConfig:                       fang.GetString("KUBE_CONFIG"),
+		KubeContext:                      GetStringDefault(fang, "KUBE_CONTEXT", "default"),
+		LogLevel:                         GetStringDefault(fang, "LOG_LEVEL", "DEBUG"),
+		AppPort:                          GetStringDefault(fang, "APP_PORT", "5001"),
+		DefaultNamespace:                 fang.GetString("DEFAULT_NAMESPACE"),
+		RedisAddress:                     fang.GetString("REDIS_ADDRESS"),
+		RedisMaxActiveConnections:        fang.GetInt("REDIS_MAX_ACTIVE_CONNECTIONS"),
+		LogsStreamReadBufferSize:         fang.GetInt("LOGS_STREAM_READ_BUFFER_SIZE"),
+		LogsStreamWriteBufferSize:        fang.GetInt("LOGS_STREAM_WRITE_BUFFER_SIZE"),
+		KubePodsListWaitTime:             time.Duration(fang.GetInt("KUBE_POD_LIST_WAIT_TIME")),
+		KubeLogProcessWaitTime:           time.Duration(fang.GetInt("KUBE_LOG_PROCESS_WAIT_TIME")),
+		KubeJobActiveDeadlineSeconds:     GetInt64Ref(fang, "KUBE_JOB_ACTIVE_DEADLINE_SECONDS"),
+		KubeJobRetries:                   GetInt32Ref(fang, "KUBE_JOB_RETRIES"),
+		PostgresUser:                     fang.GetString("POSTGRES_USER"),
+		PostgresPassword:                 fang.GetString("POSTGRES_PASSWORD"),
+		PostgresHost:                     fang.GetString("POSTGRES_HOST"),
+		PostgresPort:                     fang.GetInt("POSTGRES_PORT"),
+		PostgresDatabase:                 fang.GetString("POSTGRES_DATABASE"),
+		PostgresMaxConnections:           fang.GetInt("POSTGRES_MAX_CONNECTIONS"),
+		PostgresConnectionMaxLifetime:    fang.GetInt("POSTGRES_CONNECTIONS_MAX_LIFETIME"),
+		NewRelicAppName:                  fang.GetString("NEW_RELIC_APP_NAME"),
+		NewRelicLicenceKey:               fang.GetString("NEW_RELIC_LICENCE_KEY"),
+		MinClientVersion:                 fang.GetString("MIN_CLIENT_VERSION"),
+		ScheduledJobsFetchIntervalInMins: fang.GetInt("SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS"),
+		MailUsername:                     fang.GetString("MAIL_USERNAME"),
+		MailServerHost:                   fang.GetString("MAIL_SERVER_HOST"),
+		MailPassword:                     fang.GetString("MAIL_PASSWORD"),
+		MailServerPort:                   fang.GetString("MAIL_SERVER_PORT"),
+		JobPodAnnotations:                GetMapFromJson(fang, "JOB_POD_ANNOTATIONS"),
+		SentryDSN:                        fang.GetString("SENTRY_DSN"),
+		DocsPath:                         fang.GetString("DOCS_PATH"),
+		AuthPluginBinary:                 fang.GetString("AUTH_PLUGIN_BINARY"),
+		AuthPluginExported:               GetStringDefault(fang, "AUTH_PLUGIN_EXPORTED", "Auth"),
+	}
+
+	return proctorConfig
 }
 
-//TODO test
-func AuthPluginBinary() string {
-	return viper.GetString("AUTH_PLUGIN_BINARY")
+var reset = false
+
+func Reset() {
+	reset = true
 }
 
-//TODO test
-func AuthPluginExported() string {
-	viper.SetDefault("AUTH_PLUGIN_EXPORTED", "Auth")
-	return viper.GetString("AUTH_PLUGIN_EXPORTED")
+func Config() ProctorConfig {
+	once.Do(func() {
+		config = Load()
+	})
+
+	if reset {
+		config = Load()
+		reset = false
+	}
+
+	return config
 }

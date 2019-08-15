@@ -38,7 +38,7 @@ func (suite *ClientTestSuite) SetupTest() {
 	}
 	suite.jobName = "job1"
 	suite.podName = "pod1"
-	namespace := config.DefaultNamespace()
+	namespace := config.Config().DefaultNamespace
 	suite.fakeClientSetStreaming = fakeclientset.NewSimpleClientset(&v1.Pod{
 		TypeMeta: meta.TypeMeta{
 			Kind:       "Pod",
@@ -67,6 +67,7 @@ func (suite *ClientTestSuite) SetupTest() {
 func (suite *ClientTestSuite) TestJobExecution() {
 	t := suite.T()
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
+	config.Reset()
 	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
 	sampleImageName := "img1"
 
@@ -82,7 +83,7 @@ func (suite *ClientTestSuite) TestJobExecution() {
 		TypeMeta:      typeMeta,
 		LabelSelector: jobLabelSelector(executedJobname),
 	}
-	namespace := config.DefaultNamespace()
+	namespace := config.Config().DefaultNamespace
 	listOfJobs, err := suite.fakeClientSet.BatchV1().Jobs(namespace).List(listOptions)
 	assert.NoError(t, err)
 	executedJob := listOfJobs.Items[0]
@@ -97,8 +98,8 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	assert.Equal(t, expectedLabel, executedJob.Spec.Template.ObjectMeta.Labels)
 	assert.Equal(t, map[string]string{"key.one": "true"}, executedJob.Spec.Template.Annotations)
 
-	assert.Equal(t, config.KubeJobActiveDeadlineSeconds(), executedJob.Spec.ActiveDeadlineSeconds)
-	assert.Equal(t, config.KubeJobRetries(), executedJob.Spec.BackoffLimit)
+	assert.Equal(t, config.Config().KubeJobActiveDeadlineSeconds, executedJob.Spec.ActiveDeadlineSeconds)
+	assert.Equal(t, config.Config().KubeJobRetries, executedJob.Spec.BackoffLimit)
 
 	assert.Equal(t, v1.RestartPolicyNever, executedJob.Spec.Template.Spec.RestartPolicy)
 

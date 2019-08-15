@@ -24,7 +24,7 @@ func ValidateClientVersion(next http.Handler) http.Handler {
 				return
 			}
 
-			minClientVersion, err := version.NewVersion(config.MinClientVersion())
+			minClientVersion, err := version.NewVersion(config.Config().MinClientVersion)
 			if err != nil {
 				logger.Error("Error while creating minClientVersion ", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)

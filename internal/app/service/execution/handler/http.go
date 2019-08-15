@@ -34,8 +34,8 @@ type executionHTTPHandler struct {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  config.LogsStreamReadBufferSize(),
-	WriteBufferSize: config.LogsStreamWriteBufferSize(),
+	ReadBufferSize:  config.Config().LogsStreamReadBufferSize,
+	WriteBufferSize: config.Config().LogsStreamWriteBufferSize,
 }
 
 func NewExecutionHTTPHandler(
@@ -91,7 +91,7 @@ func (httpHandler *executionHTTPHandler) GetLogs() http.HandlerFunc {
 
 		if context.Status == executionStatus.Created {
 			logger.Debug("Execution is Created, Stream output from pod")
-			waitTime := config.KubeLogProcessWaitTime() * time.Second
+			waitTime := config.Config().KubeLogProcessWaitTime * time.Second
 			podLog, _err := httpHandler.service.StreamJobLogs(context.Name, waitTime)
 
 			logger.LogErrors(_err, "stream job log by execution name", context.Name)

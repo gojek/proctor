@@ -28,10 +28,10 @@ func NewClient() Client {
 
 func newPool() (*redis.Pool, error) {
 	pool := &redis.Pool{
-		MaxIdle:     config.RedisMaxActiveConnections() / 2,
-		MaxActive:   config.RedisMaxActiveConnections(),
+		MaxIdle:     config.Config().RedisMaxActiveConnections / 2,
+		MaxActive:   config.Config().RedisMaxActiveConnections,
 		IdleTimeout: 5 * time.Second,
-		Dial:        func() (redis.Conn, error) { return redis.Dial("tcp", config.RedisAddress()) },
+		Dial:        func() (redis.Conn, error) { return redis.Dial("tcp", config.Config().RedisAddress) },
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			if time.Since(t) < time.Minute {
 				return nil

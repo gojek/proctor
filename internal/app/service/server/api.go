@@ -17,7 +17,7 @@ func Start() error {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	appPort := ":" + config.AppPort()
+	appPort := ":" + config.Config().AppPort
 
 	server := negroni.New(negroni.NewRecovery())
 	router, err := NewRouter()

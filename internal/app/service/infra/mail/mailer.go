@@ -22,11 +22,11 @@ type mailer struct {
 }
 
 func New(mailServerHost, mailServerPort string) Mailer {
-	auth := smtp.PlainAuth("", config.MailUsername(), config.MailPassword(), mailServerHost)
+	auth := smtp.PlainAuth("", config.Config().MailUsername, config.Config().MailPassword, mailServerHost)
 	addr := mailServerHost + ":" + mailServerPort
 
 	return &mailer{
-		from: config.MailUsername(),
+		from: config.Config().MailUsername,
 		addr: addr,
 		auth: auth,
 	}

@@ -55,9 +55,9 @@ func NewRouter() (*mux.Router, error) {
 	})
 
 	router.HandleFunc("/docs", docs.APIDocHandler)
-	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.DocsPath()))))
+	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.Config().DocsPath))))
 	router.HandleFunc("/swagger.yml", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path.Join(config.DocsPath(), "swagger.yml"))
+		http.ServeFile(w, r, path.Join(config.Config().DocsPath, "swagger.yml"))
 	})
 
 	router = middleware.InstrumentNewRelic(router)

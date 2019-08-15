@@ -14,7 +14,7 @@ import (
 )
 
 func TestNamedExec(t *testing.T) {
-	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.Config().PostgresDatabase, config.Config().PostgresUser, config.Config().PostgresPassword, config.Config().PostgresHost)
 
 	db, err := sqlx.Connect("postgres", dataSourceName)
 	assert.NoError(t, err)
@@ -48,7 +48,7 @@ func TestNamedExec(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
-	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.Config().PostgresDatabase, config.Config().PostgresUser, config.Config().PostgresPassword, config.Config().PostgresHost)
 
 	db, err := sqlx.Connect("postgres", dataSourceName)
 	assert.NoError(t, err)
@@ -80,7 +80,7 @@ func TestSelect(t *testing.T) {
 }
 
 func TestSelectForNoRows(t *testing.T) {
-	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.Config().PostgresDatabase, config.Config().PostgresUser, config.Config().PostgresPassword, config.Config().PostgresHost)
 
 	db, err := sqlx.Connect("postgres", dataSourceName)
 	assert.NoError(t, err)
