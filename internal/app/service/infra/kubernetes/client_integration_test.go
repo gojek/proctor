@@ -31,6 +31,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 func (suite *IntegrationTestSuite) TestJobExecution() {
 	t := suite.T()
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
+	config.Reset()
 	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
 	sampleImageName := "busybox"
 

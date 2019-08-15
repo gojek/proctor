@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -119,10 +120,31 @@ func Load() ProctorConfig {
 	return proctorConfig
 }
 
-var reset = false
+type AtomBool struct{ flag int32 }
+
+func (b *AtomBool) Set(value bool) {
+	var i int32 = 0
+	if value {
+		i = 1
+	}
+	atomic.StoreInt32(&(b.flag), int32(i))
+}
+
+func (b *AtomBool) Get() bool {
+	if atomic.LoadInt32(&(b.flag)) != 0 {
+		return true
+	}
+	return false
+}
+
+var reset = new(AtomBool)
+
+func init() {
+	reset.Set(false)
+}
 
 func Reset() {
-	reset = true
+	reset.Set(true)
 }
 
 func Config() ProctorConfig {
@@ -130,9 +152,9 @@ func Config() ProctorConfig {
 		config = Load()
 	})
 
-	if reset {
+	if reset.Get() {
 		config = Load()
-		reset = false
+		reset.Set(false)
 	}
 
 	return config
