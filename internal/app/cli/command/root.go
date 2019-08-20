@@ -65,17 +65,6 @@ func Execute(printer io.Printer, proctorDClient daemon.Client, githubClient gith
 	scheduleRemoveCmd := remove.NewCmd(printer, proctorDClient)
 	scheduleCmd.AddCommand(scheduleRemoveCmd)
 
-	var Time, NotifyEmails, Tags, Group string
-
-	scheduleCmd.PersistentFlags().StringVarP(&Time, "time", "t", "", "Schedule time")
-	_ = scheduleCmd.MarkFlagRequired("time")
-	scheduleCmd.PersistentFlags().StringVarP(&Group, "group", "g", "", "Group Name")
-	_ = scheduleCmd.MarkFlagRequired("group")
-	scheduleCmd.PersistentFlags().StringVarP(&NotifyEmails, "notify", "n", "", "Notifier Email ID's")
-	_ = scheduleCmd.MarkFlagRequired("notify")
-	scheduleCmd.PersistentFlags().StringVarP(&Tags, "tags", "T", "", "Tags")
-	_ = scheduleCmd.MarkFlagRequired("tags")
-
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

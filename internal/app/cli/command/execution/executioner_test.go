@@ -3,16 +3,19 @@ package execution
 import (
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/mock"
-	"proctor/internal/app/cli/daemon"
-	"proctor/internal/app/cli/utility/io"
-	"proctor/internal/pkg/model/execution"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+
+	"proctor/internal/app/cli/daemon"
+	"proctor/internal/app/cli/utility/io"
+	"proctor/internal/pkg/model/execution"
 )
 
 type ExecutionCmdTestSuite struct {
@@ -34,7 +37,7 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdUsage() {
 
 func (s *ExecutionCmdTestSuite) TestExecutionCmdHelp() {
 	assert.Equal(s.T(), "Execute a proc with given arguments", s.testExecutionCmd.Short)
-	assert.Equal(s.T(), "To execute a proc, this command helps communicate with `proctord` and streams to logs of proc in execution", s.testExecutionCmd.Long)
+	assert.Equal(s.T(), "To execute a proc, this command helps to communicate with `proctord` and streams to logs of proc in execution", s.testExecutionCmd.Long)
 	assert.Equal(s.T(), "proctor execute proc-one SOME_VAR=foo ANOTHER_VAR=bar\nproctor execute proc-two ANY_VAR=baz", s.testExecutionCmd.Example)
 }
 
@@ -70,6 +73,47 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmd() {
 	s.mockPrinter.AssertExpectations(s.T())
 }
 
+func (s *ExecutionCmdTestSuite) TestExecutionCmdForYAMLInput() {
+	t := s.T()
+
+	filename := "/tmp/yaml-input-test"
+	testYAML := []byte("SAMPLE_ARG_ONE: any\nSAMPLE_ARG_TWO: variable")
+	err := ioutil.WriteFile(filename, testYAML, 0644)
+	defer os.Remove(filename)
+	assert.NoError(t, err)
+
+	args := []string{"say-hello-world", "-f", filename}
+	procArgs := make(map[string]string)
+	procArgs["SAMPLE_ARG_ONE"] = "any"
+	procArgs["SAMPLE_ARG_TWO"] = "variable"
+
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "Executing Proc", "say-hello-world"), color.Reset).Once()
+	s.mockPrinter.On("Println", "With Variables", color.FgMagenta).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "SAMPLE_ARG_ONE", "any"), color.Reset).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100s", "SAMPLE_ARG_TWO", "variable"), color.Reset).Once()
+
+	executionResult := &execution.ExecutionResult{
+		ExecutionId:   uint64(42),
+		ExecutionName: "Test",
+	}
+
+	s.mockProctorDClient.On("ExecuteProc", "say-hello-world", procArgs).Return(executionResult, nil).Once()
+	s.mockPrinter.On("Println", "\nExecution Created", color.FgGreen).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100v", "ID", executionResult.ExecutionId), color.FgGreen).Once()
+	s.mockPrinter.On("Println", fmt.Sprintf("%-40s %-100v", "Name", executionResult.ExecutionName), color.FgGreen).Once()
+	s.mockPrinter.On("Println", "\nStreaming logs", color.FgGreen).Once()
+
+	s.mockProctorDClient.On("StreamProcLogs", executionResult.ExecutionId).Return(nil).Once()
+
+	s.mockPrinter.On("Println", "Execution completed.", color.FgGreen).Once()
+
+	s.testExecutionCmd.SetArgs(args)
+	s.testExecutionCmd.Execute()
+
+	s.mockProctorDClient.AssertExpectations(s.T())
+	s.mockPrinter.AssertExpectations(s.T())
+}
+
 func (s *ExecutionCmdTestSuite) TestExecutionCmdForNoProcVariables() {
 	args := []string{"say-hello-world"}
 
@@ -92,7 +136,8 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForNoProcVariables() {
 
 	s.mockPrinter.On("Println", "Execution completed.", color.FgGreen).Once()
 
-	s.testExecutionCmd.Run(&cobra.Command{}, args)
+	s.testExecutionCmd.SetArgs(args)
+	s.testExecutionCmd.Execute()
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -121,7 +166,8 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForIncorrectVariableFormat() {
 
 	s.mockPrinter.On("Println", "Execution completed.", color.FgGreen).Once()
 
-	s.testExecutionCmd.Run(&cobra.Command{}, args)
+	s.testExecutionCmd.SetArgs(args)
+	s.testExecutionCmd.Execute()
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -145,7 +191,8 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDExecutionFailure() {
 		assert.Equal(s.T(), 1, exitCode)
 	}
 	testExecutionCmdOSExit := NewCmd(s.mockPrinter, s.mockProctorDClient, osExitFunc)
-	testExecutionCmdOSExit.Run(&cobra.Command{}, args)
+	testExecutionCmdOSExit.SetArgs(args)
+	testExecutionCmdOSExit.Execute()
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -176,7 +223,8 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDLogStreamingFailure()
 		assert.Equal(s.T(), 1, exitCode)
 	}
 	testExecutionCmdOSExit := NewCmd(s.mockPrinter, s.mockProctorDClient, osExitFunc)
-	testExecutionCmdOSExit.Run(&cobra.Command{}, args)
+	testExecutionCmdOSExit.SetArgs(args)
+	testExecutionCmdOSExit.Execute()
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -208,7 +256,8 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDGetDefinitiveProcExec
 		assert.Equal(s.T(), 1, exitCode)
 	}
 	testExecutionCmdOSExit := NewCmd(s.mockPrinter, s.mockProctorDClient, osExitFunc)
-	testExecutionCmdOSExit.Run(&cobra.Command{}, args)
+	testExecutionCmdOSExit.SetArgs(args)
+	testExecutionCmdOSExit.Execute()
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())
@@ -239,7 +288,8 @@ func (s *ExecutionCmdTestSuite) TestExecutionCmdForProctorDGetDefinitiveProcExec
 		assert.Equal(s.T(), 1, exitCode)
 	}
 	testExecutionCmdOSExit := NewCmd(s.mockPrinter, s.mockProctorDClient, osExitFunc)
-	testExecutionCmdOSExit.Run(&cobra.Command{}, args)
+	testExecutionCmdOSExit.SetArgs(args)
+	testExecutionCmdOSExit.Execute()
 
 	s.mockProctorDClient.AssertExpectations(s.T())
 	s.mockPrinter.AssertExpectations(s.T())

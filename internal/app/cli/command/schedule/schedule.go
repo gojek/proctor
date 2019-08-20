@@ -10,7 +10,7 @@ import (
 )
 
 func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
-	return &cobra.Command{
+	scheduleCmd := &cobra.Command{
 		Use:     "schedule",
 		Short:   "Create scheduled jobs",
 		Long:    "This command helps to create scheduled jobs",
@@ -69,4 +69,17 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 			printer.Println(fmt.Sprintf("Scheduled Job UUID : %s", scheduledJobID), color.FgGreen)
 		},
 	}
+
+	var Time, NotifyEmails, Tags, Group string
+
+	scheduleCmd.PersistentFlags().StringVarP(&Time, "time", "t", "", "Schedule time")
+	_ = scheduleCmd.MarkFlagRequired("time")
+	scheduleCmd.PersistentFlags().StringVarP(&Group, "group", "g", "", "Group Name")
+	_ = scheduleCmd.MarkFlagRequired("group")
+	scheduleCmd.PersistentFlags().StringVarP(&NotifyEmails, "notify", "n", "", "Notifier Email ID's")
+	_ = scheduleCmd.MarkFlagRequired("notify")
+	scheduleCmd.PersistentFlags().StringVarP(&Tags, "tags", "T", "", "Tags")
+	_ = scheduleCmd.MarkFlagRequired("tags")
+
+	return scheduleCmd
 }
