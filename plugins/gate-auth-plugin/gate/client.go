@@ -12,6 +12,7 @@ type GateClient interface {
 }
 
 type gateClient struct {
+	config      GateConfig
 	host        string
 	profilePath string
 	protocol    string
@@ -54,10 +55,12 @@ func (g *gateClient) GetUserProfile(email string, token string) (*auth.UserDetai
 }
 
 func NewGateClient() GateClient {
+	config := NewGateConfig()
 	return &gateClient{
-		protocol:    Protocol(),
-		host:        Host(),
-		profilePath: ProfilePath(),
+		config:      config,
+		protocol:    config.Protocol,
+		host:        config.Host,
+		profilePath: config.ProfilePath,
 		restClient:  resty.New(),
 	}
 }

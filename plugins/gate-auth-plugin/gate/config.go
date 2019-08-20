@@ -2,22 +2,27 @@ package gate
 
 import "github.com/spf13/viper"
 
-func init() {
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("GATE_PLUGIN")
+type GateConfig struct {
+	Protocol    string
+	Host        string
+	ProfilePath string
+	viper       viper.Viper
 }
 
-func Protocol() string {
-	viper.SetDefault("PROTOCOL", "https")
-	return viper.GetString("PROTOCOL")
-}
+func NewGateConfig() GateConfig {
+	fang := viper.New()
+	fang.AutomaticEnv()
+	fang.SetEnvPrefix("GATE_PLUGIN")
+	fang.SetDefault("PROTOCOL", "https")
 
-func Host() string {
-	viper.SetDefault("HOST", "gate.gojek.co.id")
-	return viper.GetString("HOST")
-}
+	fang.SetDefault("HOST", "gate.gojek.co.id")
+	fang.SetDefault("PROFILE_PATH", "api/v1/users/profile")
+	config := GateConfig{
+		Protocol:    fang.GetString("PROTOCOL"),
+		Host:        fang.GetString("HOST"),
+		ProfilePath: fang.GetString("PROFILE_PATH"),
+		viper:       viper.Viper{},
+	}
 
-func ProfilePath() string {
-	viper.SetDefault("PROFILE_PATH", "api/v1/users/profile")
-	return viper.GetString("PROFILE_PATH")
+	return config
 }
