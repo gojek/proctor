@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"gopkg.in/yaml.v2"
+
+	"proctor/internal/pkg/model/metadata/env"
 )
 
 func ParseYAML(filename string, procArgs map[string]string) error {
@@ -22,4 +24,18 @@ func ParseYAML(filename string, procArgs map[string]string) error {
 	}
 
 	return nil
+}
+
+func WriteYAML(filename string, procArgs []env.VarMetadata) error {
+	var content string
+
+	for _, procArg := range procArgs {
+		content += "# " + procArg.Description
+		content += "\n"
+		content += procArg.Name + ":"
+		content += "\n"
+	}
+
+	err := ioutil.WriteFile(filename, []byte(content), 0644)
+	return err
 }
