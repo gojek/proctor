@@ -226,21 +226,9 @@ func (s *ClientTestSuite) TestExecuteProc() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"POST",
-			"http://"+proctorConfig.Host+ExecutionRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(201, body), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(201, body)
+	mockError := error(nil)
+	mockExecuteRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -249,6 +237,24 @@ func (s *ClientTestSuite) TestExecuteProc() {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
 	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func mockExecuteRequest(proctorConfig config.ProctorConfig, mockResponse *http.Response, mockError error) {
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+ExecutionRoute,
+			func(req *http.Request) (*http.Response, error) {
+				return mockResponse, mockError
+			},
+		).WithHeader(
+			&http.Header{
+				constant.UserEmailHeaderKey:     []string{proctorConfig.Email},
+				constant.AccessTokenHeaderKey:   []string{proctorConfig.AccessToken},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
 }
 
 func (s *ClientTestSuite) TestSuccessScheduledJob() {
@@ -339,21 +345,9 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"POST",
-			"http://"+proctorConfig.Host+ExecutionRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, "Execute Error"), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(500, "Execute Error")
+	mockError := error(nil)
+	mockExecuteRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 	executeProcResponse, err := s.testClient.ExecuteProc(procName, procArgs)
@@ -371,21 +365,9 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorized() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"POST",
-			"http://"+proctorConfig.Host+ExecutionRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(401, ""), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(401, "")
+	mockError := error(nil)
+	mockExecuteRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -404,21 +386,9 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotS
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"POST",
-			"http://"+proctorConfig.Host+ExecutionRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(401, ""), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{""},
-				constant.AccessTokenHeaderKey:   []string{""},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(401, "")
+	mockError := error(nil)
+	mockExecuteRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -437,21 +407,9 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"POST",
-			"http://"+proctorConfig.Host+ExecutionRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	var mockResponse *http.Response = nil
+	mockError := TestConnectionError{message: "Unknown Error", timeout: false}
+	mockExecuteRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
