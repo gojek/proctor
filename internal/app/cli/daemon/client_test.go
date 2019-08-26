@@ -49,6 +49,24 @@ func (s *ClientTestSuite) SetupTest() {
 	s.testClient = NewClient(s.mockPrinter, s.mockConfigLoader)
 }
 
+func mockListProcsRequest(proctorConfig config.ProctorConfig, mockResponse *http.Response, mockError error) {
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"GET",
+			"http://"+proctorConfig.Host+MetadataRoute,
+			func(req *http.Request) (*http.Response, error) {
+				return mockResponse, mockError
+			},
+		).WithHeader(
+			&http.Header{
+				constant.UserEmailHeaderKey:     []string{proctorConfig.Email},
+				constant.AccessTokenHeaderKey:   []string{proctorConfig.AccessToken},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
+}
+
 func (s *ClientTestSuite) TestListProcsReturnsListOfProcsWithDetails() {
 	t := s.T()
 
@@ -70,21 +88,9 @@ func (s *ClientTestSuite) TestListProcsReturnsListOfProcsWithDetails() {
 		},
 	}
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"GET",
-			"http://"+proctorConfig.Host+MetadataRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(200, body), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(200, body)
+	mockError := error(nil)
+	mockListProcsRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -103,21 +109,9 @@ func (s *ClientTestSuite) TestListProcsReturnErrorFromResponseBody() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"GET",
-			"http://"+proctorConfig.Host+MetadataRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, "list proc error"), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(500, "list proc error")
+	mockError := error(nil)
+	mockListProcsRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -137,21 +131,9 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"GET",
-			"http://"+proctorConfig.Host+MetadataRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return nil, TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	var mockResponse *http.Response
+	mockError := TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
+	mockListProcsRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -170,21 +152,9 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideConnectionError() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"GET",
-			"http://"+proctorConfig.Host+MetadataRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return nil, TestConnectionError{message: "Unknown Error", timeout: false}
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	var mockResponse *http.Response
+	mockError := TestConnectionError{message: "Unknown Error", timeout: false}
+	mockListProcsRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -203,21 +173,9 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedUser() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"GET",
-			"http://"+proctorConfig.Host+MetadataRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(401, `{}`), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(401, `{}`)
+	mockError := error(nil)
+	mockListProcsRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -235,21 +193,9 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedErrorWithConfigMissing() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"GET",
-			"http://"+proctorConfig.Host+MetadataRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(401, `{}`), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{""},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(401, `{}`)
+	mockError := error(nil)
+	mockListProcsRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 	procList, err := s.testClient.ListProcs()
