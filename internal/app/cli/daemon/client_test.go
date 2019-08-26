@@ -907,21 +907,9 @@ func (s *ClientTestSuite) TestSuccessRemoveScheduledJob() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(200, body), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(200, body)
+	mockError := error(nil)
+	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -940,21 +928,10 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWithInvalidJobID() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(400, "Invalid Job ID"), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+
+	mockResponse := httpmock.NewStringResponse(400, "Invalid Job ID")
+	mockError := error(nil)
+	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -973,21 +950,10 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWhenJobIDNotFound() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(404, "Job not found"), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+
+	mockResponse := httpmock.NewStringResponse(404, "Job not found")
+	mockError := error(nil)
+	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -1006,21 +972,9 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"DELETE",
-			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(500, "Schedule Error"), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(500, "Schedule Error")
+	mockError := error(nil)
+	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -1028,4 +982,22 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 
 	assert.Equal(t, "Schedule Error", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func mockRemoveScheduleJobRequest(proctorConfig config.ProctorConfig, jobID string, mockResponse *http.Response, mockError error) {
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"DELETE",
+			fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID),
+			func(req *http.Request) (*http.Response, error) {
+				return mockResponse, mockError
+			},
+		).WithHeader(
+			&http.Header{
+				constant.UserEmailHeaderKey:     []string{proctorConfig.Email},
+				constant.AccessTokenHeaderKey:   []string{proctorConfig.AccessToken},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
 }
