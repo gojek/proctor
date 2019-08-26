@@ -274,21 +274,9 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"POST",
-			"http://"+proctorConfig.Host+ScheduleRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(201, body), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(201, body)
+	mockError := error(nil)
+	mockScheduleRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -313,27 +301,33 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	httpmock.RegisterStubRequest(
-		httpmock.NewStubRequest(
-			"POST",
-			"http://"+proctorConfig.Host+ScheduleRoute,
-			func(req *http.Request) (*http.Response, error) {
-				return httpmock.NewStringResponse(409, "Server Error!!!\nStatus Code: 409, Conflict"), nil
-			},
-		).WithHeader(
-			&http.Header{
-				constant.UserEmailHeaderKey:     []string{"proctor@example.com"},
-				constant.AccessTokenHeaderKey:   []string{"access-token"},
-				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
-			},
-		),
-	)
+	mockResponse := httpmock.NewStringResponse(409, "Server Error!!!\nStatus Code: 409, Conflict")
+	mockError := error(nil)
+	mockScheduleRequest(proctorConfig, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
 	_, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
 	assert.Equal(t, "Server Error!!!\nStatus Code: 409, Conflict", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
+}
+
+func mockScheduleRequest(proctorConfig config.ProctorConfig, mockResponse *http.Response, mockError error) {
+	httpmock.RegisterStubRequest(
+		httpmock.NewStubRequest(
+			"POST",
+			"http://"+proctorConfig.Host+ScheduleRoute,
+			func(req *http.Request) (*http.Response, error) {
+				return mockResponse, mockError
+			},
+		).WithHeader(
+			&http.Header{
+				constant.UserEmailHeaderKey:     []string{proctorConfig.Email},
+				constant.AccessTokenHeaderKey:   []string{proctorConfig.AccessToken},
+				constant.ClientVersionHeaderKey: []string{version.ClientVersion},
+			},
+		),
+	)
 }
 
 func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
