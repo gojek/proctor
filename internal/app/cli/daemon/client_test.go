@@ -72,7 +72,7 @@ func (s *ClientTestSuite) TestListProcsReturnsListOfProcsWithDetails() {
 
 	mockResponse := httpmock.NewStringResponse(200, body)
 	mockError := error(nil)
-	mockListProcsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+MetadataRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -93,7 +93,7 @@ func (s *ClientTestSuite) TestListProcsReturnErrorFromResponseBody() {
 
 	mockResponse := httpmock.NewStringResponse(500, "list proc error")
 	mockError := error(nil)
-	mockListProcsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+MetadataRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -115,7 +115,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
 
 	var mockResponse *http.Response
 	mockError := TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
-	mockListProcsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+MetadataRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -136,7 +136,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideConnectionError() {
 
 	var mockResponse *http.Response
 	mockError := TestConnectionError{message: "Unknown Error", timeout: false}
-	mockListProcsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+MetadataRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -157,7 +157,7 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedUser() {
 
 	mockResponse := httpmock.NewStringResponse(401, `{}`)
 	mockError := error(nil)
-	mockListProcsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+MetadataRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -177,7 +177,7 @@ func (s *ClientTestSuite) TestListProcsForUnauthorizedErrorWithConfigMissing() {
 
 	mockResponse := httpmock.NewStringResponse(401, `{}`)
 	mockError := error(nil)
-	mockListProcsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+MetadataRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 	procList, err := s.testClient.ListProcs()
@@ -210,7 +210,7 @@ func (s *ClientTestSuite) TestExecuteProc() {
 
 	mockResponse := httpmock.NewStringResponse(201, body)
 	mockError := error(nil)
-	mockExecuteRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ExecutionRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -240,7 +240,7 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 
 	mockResponse := httpmock.NewStringResponse(201, body)
 	mockError := error(nil)
-	mockScheduleRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ScheduleRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -267,7 +267,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 
 	mockResponse := httpmock.NewStringResponse(409, "Server Error!!!\nStatus Code: 409, Conflict")
 	mockError := error(nil)
-	mockScheduleRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ScheduleRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -287,7 +287,7 @@ func (s *ClientTestSuite) TestExecuteProcInternalServerError() {
 
 	mockResponse := httpmock.NewStringResponse(500, "Execute Error")
 	mockError := error(nil)
-	mockExecuteRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ExecutionRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 	executeProcResponse, err := s.testClient.ExecuteProc(procName, procArgs)
@@ -307,7 +307,7 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorized() {
 
 	mockResponse := httpmock.NewStringResponse(401, "")
 	mockError := error(nil)
-	mockExecuteRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ExecutionRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -328,7 +328,7 @@ func (s *ClientTestSuite) TestExecuteProcUnAuthorizedWhenEmailAndAccessTokenNotS
 
 	mockResponse := httpmock.NewStringResponse(401, "")
 	mockError := error(nil)
-	mockExecuteRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ExecutionRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -349,7 +349,7 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 
 	var mockResponse *http.Response = nil
 	mockError := TestConnectionError{message: "Unknown Error", timeout: false}
-	mockExecuteRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ExecutionRoute, mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -444,7 +444,7 @@ func (s *ClientTestSuite) TestGetExecutionContextStatusForSucceededProcs() {
 
 	mockResponse := httpmock.NewStringResponse(200, responseBody)
 	mockError := error(nil)
-	mockExecutionContextRequest(proctorConfig, 42, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+ExecutionRoute+"/42/status", mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -476,7 +476,7 @@ func (s *ClientTestSuite) TestGetExecutionContextStatusForFailedProcs() {
 
 	mockResponse := httpmock.NewStringResponse(200, responseBody)
 	mockError := error(nil)
-	mockExecutionContextRequest(proctorConfig, 42, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+ExecutionRoute+"/42/status", mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -497,7 +497,7 @@ func (s *ClientTestSuite) TestGetExecutionContextStatusForHTTPRequestFailure() {
 
 	var mockResponse *http.Response = nil
 	mockError := TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
-	mockExecutionContextRequest(proctorConfig, 42, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+ExecutionRoute+"/42/status", mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -519,7 +519,7 @@ func (s *ClientTestSuite) TestGetExecutionContextStatusForNonOKResponse() {
 
 	mockResponse := httpmock.NewStringResponse(500, "execute Error")
 	mockError := error(nil)
-	mockExecutionContextRequest(proctorConfig, 42, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+ExecutionRoute+"/42/status", mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -561,7 +561,7 @@ func (s *ClientTestSuite) TestGetExecutionContextStatusWithPollingForCompletedPr
 
 		mockResponse := httpmock.NewStringResponse(200, responseBody)
 		mockError := error(nil)
-		mockExecutionContextRequest(proctorConfig, proc.executionID, mockResponse, mockError)
+		mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+ExecutionRoute+"/"+fmt.Sprint(proc.executionID)+"/status", mockResponse, mockError)
 
 		s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Twice()
 
@@ -583,7 +583,7 @@ func (s *ClientTestSuite) TestGetExecutionContextStatusWithPollingForGetError() 
 
 	var mockResponse *http.Response = nil
 	mockError := TestConnectionError{message: "Unable to reach http://proctor.example.com/", timeout: true}
-	mockExecutionContextRequest(proctorConfig, 42, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+ExecutionRoute+"/42/status", mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Twice()
 
@@ -648,7 +648,7 @@ func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
 
 	mockResponse := httpmock.NewStringResponse(200, body)
 	mockError := error(nil)
-	mockDescribeScheduledJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -672,7 +672,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWithInvalidJobID() {
 
 	mockResponse := httpmock.NewStringResponse(400, body)
 	mockError := error(nil)
-	mockDescribeScheduledJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -693,7 +693,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWhenJobIDNotFound() {
 
 	mockResponse := httpmock.NewStringResponse(404, "Job not found")
 	mockError := error(nil)
-	mockDescribeScheduledJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -714,7 +714,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWitInternalServerError() {
 
 	mockResponse := httpmock.NewStringResponse(500, "Schedule Failed")
 	mockError := error(nil)
-	mockDescribeScheduledJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -736,7 +736,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobs() {
 
 	mockResponse := httpmock.NewStringResponse(200, body)
 	mockError := error(nil)
-	mockListScheduledJobsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -759,7 +759,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenNoJobsScheduled() {
 
 	mockResponse := httpmock.NewStringResponse(204, body)
 	mockError := error(nil)
-	mockListScheduledJobsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -779,7 +779,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobsWhenServerReturnInternal
 
 	mockResponse := httpmock.NewStringResponse(500, "Schedule Error")
 	mockError := error(nil)
-	mockListScheduledJobsRequest(proctorConfig, mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -801,7 +801,7 @@ func (s *ClientTestSuite) TestSuccessRemoveScheduledJob() {
 
 	mockResponse := httpmock.NewStringResponse(200, body)
 	mockError := error(nil)
-	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "DELETE", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -823,7 +823,7 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWithInvalidJobID() {
 
 	mockResponse := httpmock.NewStringResponse(400, "Invalid Job ID")
 	mockError := error(nil)
-	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "DELETE", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -845,7 +845,7 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWhenJobIDNotFound() {
 
 	mockResponse := httpmock.NewStringResponse(404, "Job not found")
 	mockError := error(nil)
-	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "DELETE", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -866,7 +866,7 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 
 	mockResponse := httpmock.NewStringResponse(500, "Schedule Error")
 	mockError := error(nil)
-	mockRemoveScheduleJobRequest(proctorConfig, jobID, mockResponse, mockError)
+	mockRequest(proctorConfig, "DELETE", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -874,34 +874,6 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWitInternalServerError() {
 
 	assert.Equal(t, "Schedule Error", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
-}
-
-func mockListProcsRequest(proctorConfig config.ProctorConfig, mockResponse *http.Response, mockError error) {
-	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+MetadataRoute, mockResponse, mockError)
-}
-
-func mockExecuteRequest(proctorConfig config.ProctorConfig, mockResponse *http.Response, mockError error) {
-	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ExecutionRoute, mockResponse, mockError)
-}
-
-func mockScheduleRequest(proctorConfig config.ProctorConfig, mockResponse *http.Response, mockError error) {
-	mockRequest(proctorConfig, "POST", "http://"+proctorConfig.Host+ScheduleRoute, mockResponse, mockError)
-}
-
-func mockExecutionContextRequest(proctorConfig config.ProctorConfig, executionID uint64, mockResponse *http.Response, mockError error) {
-	mockRequest(proctorConfig, "GET", "http://"+proctorConfig.Host+ExecutionRoute+"/"+fmt.Sprint(executionID)+"/status", mockResponse, mockError)
-}
-
-func mockRemoveScheduleJobRequest(proctorConfig config.ProctorConfig, jobID string, mockResponse *http.Response, mockError error) {
-	mockRequest(proctorConfig, "DELETE", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
-}
-
-func mockDescribeScheduledJobRequest(proctorConfig config.ProctorConfig, jobID string, mockResponse *http.Response, mockError error) {
-	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
-}
-
-func mockListScheduledJobsRequest(proctorConfig config.ProctorConfig, mockResponse *http.Response, mockError error) {
-	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute), mockResponse, mockError)
 }
 
 func mockRequest(proctorConfig config.ProctorConfig, method string, url string, mockResponse *http.Response, mockError error) {
