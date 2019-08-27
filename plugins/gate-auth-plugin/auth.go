@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/go-resty/resty/v2"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/pkg/auth"
 	"proctor/plugins/gate-auth-plugin/gate"
@@ -46,7 +47,7 @@ func contains(groups []string, value string) bool {
 
 func newGateAuth() auth.Auth {
 	return &gateAuth{
-		gateClient: gate.NewGateClient(),
+		gateClient: gate.NewGateClient(resty.New()),
 	}
 }
 

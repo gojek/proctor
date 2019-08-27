@@ -54,14 +54,14 @@ func (g *gateClient) GetUserProfile(email string, token string) (*auth.UserDetai
 	}
 }
 
-func NewGateClient() GateClient {
+func NewGateClient(client *resty.Client) GateClient {
 	config := NewGateConfig()
 	return &gateClient{
 		config:      config,
 		protocol:    config.Protocol,
 		host:        config.Host,
 		profilePath: config.ProfilePath,
-		restClient:  resty.New(),
+		restClient:  client,
 	}
 }
 
