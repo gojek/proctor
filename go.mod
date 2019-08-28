@@ -24,6 +24,7 @@ require (
 	github.com/goware/urlx v0.2.0 // indirect
 	github.com/hashicorp/go-version v1.2.0
 	github.com/imdario/mergo v0.3.7 // indirect
+	github.com/jarcoal/httpmock v1.0.4
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/lib/pq v1.1.1

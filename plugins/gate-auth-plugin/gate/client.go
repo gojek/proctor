@@ -30,7 +30,7 @@ func (g *gateClient) GetUserProfile(email string, token string) (*auth.UserDetai
 	response, err := g.restClient.
 		R().
 		SetHeader("Accept", "application/json").
-		SetFormData(formData).
+		SetQueryParams(formData).
 		SetResult(profile).
 		Get(path)
 
