@@ -75,3 +75,21 @@ func TestGateAuth_AuthWrongToken(t *testing.T) {
 	assert.Error(t, actualError)
 	assert.Equal(t, expectedError.Error(), actualError.Error())
 }
+
+func TestGateAuth_AuthWrongEmail(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	email := "w.albertusd@gmail.com"
+	token := "unreadabletoken"
+	expectedError := errors.New("user not found for email w.albertusd@gmail.com")
+	var userDetail *auth.UserDetail
+	ctx.instance().gateClient.On("GetUserProfile", email, token).Return(userDetail, expectedError)
+
+	actualUserDetail, actualError := ctx.instance().gateAuth.Auth(email, token)
+
+	assert.Nil(t, actualUserDetail)
+	assert.Error(t, actualError)
+	assert.Equal(t, expectedError.Error(), actualError.Error())
+}
