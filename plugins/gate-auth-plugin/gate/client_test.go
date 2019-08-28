@@ -120,3 +120,26 @@ func mockGetUserProfileAPI(config GateConfig, token string, email string) {
 		},
 	)
 }
+
+func TestGateClient_GetUserProfileServerFailure(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+
+	email := "w.albertusd@gmail.com"
+	token := "someunreadabletoken"
+	config := NewGateConfig()
+
+	httpmock.RegisterResponder(
+		"GET",
+		fmt.Sprintf("%s://%s/%s", config.Protocol, config.Host, config.ProfilePath),
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(503, "Internal server error"), nil
+		},
+	)
+
+	userDetail, err := ctx.instance().gateClient.GetUserProfile(email, token)
+
+	assert.Nil(t, userDetail)
+	assert.NotNil(t, err)
+	ctx.tearDown()
+}
