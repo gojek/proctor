@@ -1,13 +1,12 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"proctor/internal/app/service/infra/config"
-	"proctor/internal/app/service/infra/logger"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -21,10 +20,14 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	kubeRestClient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 )
 
 var typeMeta meta.TypeMeta
 var namespace string
+var timeoutError = errors.New("timeout when waiting job to be available")
 
 func init() {
 	typeMeta = meta.TypeMeta{
