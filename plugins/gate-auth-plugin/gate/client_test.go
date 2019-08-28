@@ -143,3 +143,24 @@ func TestGateClient_GetUserProfileServerFailure(t *testing.T) {
 	assert.NotNil(t, err)
 	ctx.tearDown()
 }
+
+func TestGateClient_GetUserProfileConnectionFailure(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+
+	email := "w.albertusd@gmail.com"
+	token := "someunreadabletoken"
+	config := NewGateConfig()
+
+	httpmock.RegisterResponder(
+		"GET",
+		fmt.Sprintf("%s://%s/%s", config.Protocol, config.Host, config.ProfilePath),
+		httpmock.ConnectionFailure,
+	)
+
+	userDetail, err := ctx.instance().gateClient.GetUserProfile(email, token)
+
+	assert.Nil(t, userDetail)
+	assert.NotNil(t, err)
+	ctx.tearDown()
+}
