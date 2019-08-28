@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
+
 	"proctor/pkg/auth"
 	"proctor/plugins/gate-auth-plugin/gate"
-	"testing"
 )
 
 type context interface {
@@ -92,4 +94,23 @@ func TestGateAuth_AuthWrongEmail(t *testing.T) {
 	assert.Nil(t, actualUserDetail)
 	assert.Error(t, actualError)
 	assert.Equal(t, expectedError.Error(), actualError.Error())
+}
+
+func TestGateAuth_VerifySuccess(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	userDetail := auth.UserDetail{
+		Name:   "William Albertus Dembo",
+		Email:  "w.albertusd@gmail.com",
+		Active: true,
+		Groups: []string{"system", "proctor_executor"},
+	}
+	requiredGroups := []string{"system"}
+
+	result, err := ctx.instance().gateAuth.Verify(userDetail, requiredGroups)
+
+	assert.Equal(t, true, result)
+	assert.Nil(t, err)
 }
