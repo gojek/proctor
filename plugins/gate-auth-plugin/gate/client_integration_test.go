@@ -62,3 +62,16 @@ func TestIntegrationGateClient_GetUserProfileSuccess(t *testing.T) {
 	assert.NotEmpty(t, userDetail.Active)
 	assert.NotNil(t, userDetail.Groups)
 }
+
+func TestIntegrationGateClient_GetUserProfileUnauthenticated(t *testing.T) {
+	ctx := newIntegrationContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	email := ctx.instance().email
+	userDetail, err := ctx.instance().gateClient.GetUserProfile(email, "some-random-token")
+
+	assert.Nil(t, userDetail)
+	assert.Error(t, err)
+	assert.Equal(t, "authentication failed, please check your access token", err.Error())
+}
