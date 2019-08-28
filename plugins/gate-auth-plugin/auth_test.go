@@ -133,3 +133,22 @@ func TestGateAuth_VerifyInactiveUser(t *testing.T) {
 	assert.Equal(t, false, result)
 	assert.NoError(t, err)
 }
+
+func TestGateAuth_VerifyInsufficientGroup(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	userDetail := auth.UserDetail{
+		Name:   "William Albertus Dembo",
+		Email:  "w.albertusd@gmail.com",
+		Active: true,
+		Groups: []string{"system", "proctor_executor"},
+	}
+	requiredGroups := []string{"system", "proctor_maintainer"}
+
+	result, err := ctx.instance().gateAuth.Verify(userDetail, requiredGroups)
+
+	assert.Equal(t, false, result)
+	assert.NoError(t, err)
+}
