@@ -35,6 +35,11 @@ itest: plugin.auth
 	ENABLE_INTEGRATION_TEST=true \
 	go test -p 1 -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
+.PHONY: plugin.itest
+plugin.itest:
+	ENABLE_PLUGIN_INTEGRATION_TEST=true \
+	go test -p 1 -race -coverprofile=$(OUT_DIR)/coverage.out ./plugins/...
+
 .PHONY: server
 server:
 	go build -race -o $(BIN_DIR)/server ./cmd/server/main.go
