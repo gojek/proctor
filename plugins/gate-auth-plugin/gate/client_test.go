@@ -45,11 +45,9 @@ func TestGateClient_GetUserProfileSuccess(t *testing.T) {
 
 	email := "w.albertusd@gmail.com"
 	token := "someunreadabletoken"
-
 	config := NewGateConfig()
-	body := `{"email":"w.albertusd@gmail.com","name":"William Albertus Dembo","active":true,"groups":[{"id":1,"name":"system"},{"id":2,"name":"proctor_executor"}]}`
 
-	mockGetUserProfileAPI(config, token, email, body)
+	mockGetUserProfileAPI(config, token, email)
 
 	expectedUserDetail := &auth.UserDetail{
 		Name:   "William Albertus Dembo",
@@ -72,11 +70,9 @@ func TestGateClient_GetUserProfileUnauthenticated(t *testing.T) {
 
 	email := "w.albertusd@gmail.com"
 	token := "someunreadabletoken"
-
 	config := NewGateConfig()
-	body := `{"email":"w.albertusd@gmail.com","name":"William Albertus Dembo","active":true,"groups":[{"id":1,"name":"system"},{"id":2,"name":"proctor_executor"}]}`
 
-	mockGetUserProfileAPI(config, token, email, body)
+	mockGetUserProfileAPI(config, token, email)
 
 	userDetail, err := ctx.instance().gateClient.GetUserProfile(email, "wrong-token")
 
@@ -92,11 +88,9 @@ func TestGateClient_GetUserProfileNotFound(t *testing.T) {
 
 	email := "w.albertusd@gmail.com"
 	token := "someunreadabletoken"
-
 	config := NewGateConfig()
-	body := `{"email":"w.albertusd@gmail.com","name":"William Albertus Dembo","active":true,"groups":[{"id":1,"name":"system"},{"id":2,"name":"proctor_executor"}]}`
 
-	mockGetUserProfileAPI(config, token, email, body)
+	mockGetUserProfileAPI(config, token, email)
 
 	userDetail, err := ctx.instance().gateClient.GetUserProfile("random.email@gmail.com", token)
 
@@ -106,7 +100,7 @@ func TestGateClient_GetUserProfileNotFound(t *testing.T) {
 	ctx.tearDown()
 }
 
-func mockGetUserProfileAPI(config GateConfig, token string, email string, body string) {
+func mockGetUserProfileAPI(config GateConfig, token string, email string) {
 	httpmock.RegisterResponder(
 		"GET",
 		fmt.Sprintf("%s://%s/%s", config.Protocol, config.Host, config.ProfilePath),
@@ -119,6 +113,7 @@ func mockGetUserProfileAPI(config GateConfig, token string, email string, body s
 			if emailParam != email {
 				return httpmock.NewStringResponse(404, ""), nil
 			}
+			body := `{"email":"w.albertusd@gmail.com","name":"William Albertus Dembo","active":true,"groups":[{"id":1,"name":"system"},{"id":2,"name":"proctor_executor"}]}`
 			response := httpmock.NewStringResponse(200, body)
 			response.Header.Set("Content-Type", "application/json")
 			return response, nil
