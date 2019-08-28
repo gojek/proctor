@@ -90,10 +90,36 @@ func TestSelectForNoRows(t *testing.T) {
 	jobName := "test-job-name"
 
 	executionContextResult := []executionContextModel.ExecutionContext{}
-	err = postgresClient.db.Select(&executionContextResult, "SELECT status from execution_context where job_name = $1", jobName)
+	err = postgresClient.Select(&executionContextResult, "SELECT status from execution_context where job_name = $1", jobName)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 0, len(executionContextResult))
 
+	assert.NoError(t, err)
+}
+
+func TestClose(t *testing.T) {
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
+
+	db, err := sqlx.Connect("postgres", dataSourceName)
+	assert.NoError(t, err)
+
+	postgresClient := &client{db: db}
+	err = postgresClient.Close()
+	defer postgresClient.db.Close()
+
+	assert.NoError(t, err)
+}
+
+func TestGetDB(t *testing.T) {
+	dataSourceName := fmt.Sprintf("dbname=%s user=%s password=%s host=%s sslmode=disable", config.PostgresDatabase(), config.PostgresUser(), config.PostgresPassword(), config.PostgresHost())
+
+	db, err := sqlx.Connect("postgres", dataSourceName)
+	assert.NoError(t, err)
+
+	postgresClient := &client{db: db}
+	defer postgresClient.db.Close()
+
+	assert.Equal(t, db, postgresClient.GetDB())
 	assert.NoError(t, err)
 }
