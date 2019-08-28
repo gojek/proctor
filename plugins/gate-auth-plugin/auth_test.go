@@ -112,5 +112,24 @@ func TestGateAuth_VerifySuccess(t *testing.T) {
 	result, err := ctx.instance().gateAuth.Verify(userDetail, requiredGroups)
 
 	assert.Equal(t, true, result)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
+}
+
+func TestGateAuth_VerifyInactiveUser(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	userDetail := auth.UserDetail{
+		Name:   "William Albertus Dembo",
+		Email:  "w.albertusd@gmail.com",
+		Active: false,
+		Groups: []string{"system", "proctor_executor"},
+	}
+	requiredGroups := []string{"system"}
+
+	result, err := ctx.instance().gateAuth.Verify(userDetail, requiredGroups)
+
+	assert.Equal(t, false, result)
+	assert.NoError(t, err)
 }
