@@ -2,9 +2,12 @@ package gate
 
 import (
 	"fmt"
+
 	"github.com/go-resty/resty/v2"
+
 	"proctor/internal/app/service/infra/logger"
 	"proctor/pkg/auth"
+	"proctor/plugins/gate-auth-plugin/gate/status"
 )
 
 type GateClient interface {
@@ -40,10 +43,10 @@ func (g *gateClient) GetUserProfile(email string, token string) (*auth.UserDetai
 	}
 
 	if response.StatusCode() == 401 {
-		return nil, fmt.Errorf("authentication failed, please check your access token")
+		return nil, fmt.Errorf(status.TokenAuthenticationFailedMessage)
 	}
 	if response.StatusCode() == 404 {
-		return nil, fmt.Errorf("user not found for email %s", email)
+		return nil, fmt.Errorf(status.UserNotFoundMessage, email)
 	}
 
 	if response.IsSuccess() {
