@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"proctor/pkg/auth"
 	"proctor/plugins/gate-auth-plugin/gate"
@@ -55,4 +56,22 @@ func TestGateAuth_AuthSuccess(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, actualUserDetail)
 	assert.Equal(t, expectedUserDetail, actualUserDetail)
+}
+
+func TestGateAuth_AuthWrongToken(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	email := "w.albertusd@gmail.com"
+	token := "unreadabletoken"
+	expectedError := errors.New("authentication failed, please check your access token")
+	var userDetail *auth.UserDetail
+	ctx.instance().gateClient.On("GetUserProfile", email, token).Return(userDetail, expectedError)
+
+	actualUserDetail, actualError := ctx.instance().gateAuth.Auth(email, token)
+
+	assert.Nil(t, actualUserDetail)
+	assert.Error(t, actualError)
+	assert.Equal(t, expectedError.Error(), actualError.Error())
 }
