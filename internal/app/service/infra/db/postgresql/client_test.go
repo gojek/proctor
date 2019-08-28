@@ -70,7 +70,7 @@ func TestSelect(t *testing.T) {
 	assert.NoError(t, err)
 
 	executionContextResult := []executionContextModel.ExecutionContext{}
-	err = postgresClient.db.Select(&executionContextResult, "SELECT status from execution_context where job_name = $1", jobName)
+	err = postgresClient.Select(&executionContextResult, "SELECT status from execution_context where job_name = $1", jobName)
 	assert.NoError(t, err)
 
 	assert.Equal(t, executionContext.Status, executionContextResult[0].Status)
