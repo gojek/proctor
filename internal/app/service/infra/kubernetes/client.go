@@ -200,11 +200,13 @@ func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime t
 	resultChan := watchJob.ResultChan()
 	defer watchJob.Stop()
 
-	for {
+	var count int
+	for count < config.KubeWaitForResourcePollCount() {
 		select {
 		case watchEvent := <-resultChan:
 			if watchEvent.Type == watch.Error {
-				return fmt.Errorf("watch error when waiting for job with list option %v", listOptions)
+				err = watcherError("job", listOptions)
+				count += 1
 			}
 
 			job := watchEvent.Object.(*batch.Job)
@@ -212,9 +214,13 @@ func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime t
 				return nil
 			}
 		case <-timeoutChan:
-			return fmt.Errorf("timeout when waiting job to be available")
+			err = timeoutError
+			timeoutChan = time.After(waitTime)
+			count += 1
 		}
 	}
+
+	return err
 }
 
 func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime time.Duration) (*v1.Pod, error) {
@@ -234,21 +240,27 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 	defer watchJob.Stop()
 	var pod *v1.Pod
 
-	for {
+	var count int
+	for count < config.KubeWaitForResourcePollCount() {
 		select {
 		case event := <-resultChan:
 			if event.Type == watch.Error {
-				return nil, fmt.Errorf("watch error when waiting for pod with list option %v", listOptions)
+				err = watcherError("pod", listOptions)
+				count += 1
 			}
+
 			pod = event.Object.(*v1.Pod)
 			if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
 				return pod, nil
 			}
 		case <-timeoutChan:
-			return nil, fmt.Errorf("timeout when waiting pod to be available")
+			err = timeoutError
+			timeoutChan = time.After(waitTime)
+			count += 1
 		}
 	}
 
+	return nil, err
 }
 
 func (client *kubernetesClient) JobExecutionStatus(executionName string) (string, error) {
@@ -297,4 +309,8 @@ func (client *kubernetesClient) GetPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
 		return nil, err
 	}
 	return response, nil
+}
+
+func watcherError(resource string, listOptions meta.ListOptions) error {
+	return fmt.Errorf("watch error when waiting for %s with list option %v", resource, listOptions)
 }
