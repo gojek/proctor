@@ -61,6 +61,10 @@ func LogsStreamWriteBufferSize() int {
 	return viper.GetInt("LOGS_STREAM_WRITE_BUFFER_SIZE")
 }
 
+func KubeWaitForResourcePollCount() int {
+	return viper.GetInt("KUBE_WAIT_FOR_RESOURCE_POLL_COUNT")
+}
+
 func KubePodsListWaitTime() time.Duration {
 	return time.Duration(viper.GetInt("KUBE_POD_LIST_WAIT_TIME"))
 }
