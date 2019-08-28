@@ -86,6 +86,26 @@ func TestGateClient_GetUserProfileUnauthenticated(t *testing.T) {
 	ctx.tearDown()
 }
 
+func TestGateClient_GetUserProfileNotFound(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+
+	email := "w.albertusd@gmail.com"
+	token := "someunreadabletoken"
+
+	config := NewGateConfig()
+	body := `{"email":"w.albertusd@gmail.com","name":"William Albertus Dembo","active":true,"groups":[{"id":1,"name":"system"},{"id":2,"name":"proctor_executor"}]}`
+
+	mockGetUserProfileAPI(config, token, email, body)
+
+	userDetail, err := ctx.instance().gateClient.GetUserProfile("random.email@gmail.com", token)
+
+	assert.Nil(t, userDetail)
+	assert.NotNil(t, err)
+	assert.Equal(t, "user not found for email random.email@gmail.com", err.Error())
+	ctx.tearDown()
+}
+
 func mockGetUserProfileAPI(config GateConfig, token string, email string, body string) {
 	httpmock.RegisterResponder(
 		"GET",
