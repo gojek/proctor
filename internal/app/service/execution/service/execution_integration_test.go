@@ -92,7 +92,7 @@ func (suite *TestExecutionIntegrationSuite) TestStreamLogsSuccess() {
 	t := suite.T()
 
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
-	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
+	envVarsForContainer := map[string]string{"SAMPLE_ARG": "sample-value"}
 	sampleImageName := "busybox"
 
 	executedJobname, err := suite.kubernetesClient.ExecuteJobWithCommand(sampleImageName, envVarsForContainer, []string{"echo", "Bimo Horizon"})
