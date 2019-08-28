@@ -75,3 +75,16 @@ func TestIntegrationGateClient_GetUserProfileUnauthenticated(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "authentication failed, please check your access token", err.Error())
 }
+
+func TestIntegrationGateClient_GetUserProfileNotFound(t *testing.T) {
+	ctx := newIntegrationContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	token := ctx.instance().token
+	userDetail, err := ctx.instance().gateClient.GetUserProfile("random.email@gmail.com", token)
+
+	assert.Nil(t, userDetail)
+	assert.Error(t, err)
+	assert.Equal(t, "user not found for email random.email@gmail.com", err.Error())
+}
