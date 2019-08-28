@@ -39,6 +39,10 @@ func (g *gateClient) GetUserProfile(email string, token string) (*auth.UserDetai
 		return nil, err
 	}
 
+	if response.StatusCode() == 401 {
+		return nil, fmt.Errorf("authentication failed, please check your access token")
+	}
+
 	if response.IsSuccess() {
 		userDetail := auth.UserDetail{
 			Name:   profile.Name,
