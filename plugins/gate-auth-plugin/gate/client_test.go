@@ -113,7 +113,19 @@ func mockGetUserProfileAPI(config GateConfig, token string, email string) {
 			if emailParam != email {
 				return httpmock.NewStringResponse(404, ""), nil
 			}
-			body := `{"email":"w.albertusd@gmail.com","name":"William Albertus Dembo","active":true,"groups":[{"id":1,"name":"system"},{"id":2,"name":"proctor_executor"}]}`
+			body := `{
+						"email":"w.albertusd@gmail.com",
+						"uid": "7",
+						"name":"William Albertus Dembo",
+						"active":true,
+						"admin": true,
+						"home_dir": null,
+						"shell": null,
+						"public_key": "ssh-rsa some-public-key",
+						"user_login_id": "william.dembo",
+						"product_name": null,
+						"groups":[{"id":1,"name":"system"},{"id":2,"name":"proctor_executor"}]
+					}`
 			response := httpmock.NewStringResponse(200, body)
 			response.Header.Set("Content-Type", "application/json")
 			return response, nil
