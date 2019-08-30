@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,6 +40,30 @@ func TestAuthorizationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 	ctx.setUp(t)
 	defer ctx.tearDown()
 
+	requestBody := map[string]string{}
+	requestBody["name"] = "a-job"
+	body, _ := json.Marshal(requestBody)
+
+	response := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	requestHandler := ctx.instance().requestHandler
+
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	authorizationMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+
+	responseResult := response.Result()
+	assert.Equal(t, http.StatusOK, responseResult.StatusCode)
+}
+
+func TestAuthorizationMiddleware_MiddlewareFuncWithoutName(t *testing.T) {
+	ctx := newAuthorizationContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
 	response := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodPost, "/", nil)
 	requestHandler := ctx.instance().requestHandler
@@ -50,5 +76,5 @@ func TestAuthorizationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
 
 	responseResult := response.Result()
-	assert.Equal(t, http.StatusOK, responseResult.StatusCode)
+	assert.Equal(t, http.StatusBadRequest, responseResult.StatusCode)
 }
