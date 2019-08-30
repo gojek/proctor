@@ -3,12 +3,16 @@ package middleware
 import (
 	"encoding/json"
 	"net/http"
+
 	"proctor/internal/app/service/execution/handler/parameter"
+	"proctor/internal/app/service/infra/logger"
+	"proctor/internal/app/service/metadata/repository"
 	"proctor/internal/app/service/security/service"
 )
 
 type authorizationMiddleware struct {
-	service service.SecurityService
+	service            service.SecurityService
+	metadataRepository repository.MetadataRepository
 }
 
 func (middleware *authorizationMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
@@ -19,6 +23,12 @@ func (middleware *authorizationMiddleware) MiddlewareFunc(next http.Handler) htt
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		_, err := middleware.metadataRepository.GetByName(job.Name)
+		logger.LogErrors(err, "get metadata", job.Name)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
