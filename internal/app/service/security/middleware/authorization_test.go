@@ -58,13 +58,52 @@ func newAuthorizationContext() *authorizationContext {
 	return &authorizationContext{}
 }
 
-func TestAuthorizationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
+func TestAuthorizationMiddleware_MiddlewareFuncExecutionSuccess(t *testing.T) {
 	ctx := newAuthorizationContext()
 	ctx.setUp(t)
 	defer ctx.tearDown()
 
 	requestBody := map[string]string{}
 	requestBody["name"] = "a-job"
+	body, _ := json.Marshal(requestBody)
+	jobMetadata := ctx.jobMetadata
+	userDetail := &auth.UserDetail{
+		Name:   "William Dembo",
+		Email:  "email@gmail.com",
+		Active: true,
+		Groups: []string{"system", "proctor_maintainer"},
+	}
+
+	response := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	requestContext := context.WithValue(request.Context(), ContextUserDetailKey, userDetail)
+	request = request.WithContext(requestContext)
+	requestHandler := ctx.instance().requestHandler
+
+	metadataRepository := ctx.metadataRepository
+	metadataRepository.On("GetByName", "a-job").Return(jobMetadata, nil)
+
+	securityService := ctx.securityService
+	securityService.On("Verify", *userDetail, jobMetadata.AuthorizedGroups).Return(true, nil)
+
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	authorizationMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+
+	responseResult := response.Result()
+	assert.Equal(t, http.StatusOK, responseResult.StatusCode)
+}
+
+func TestAuthorizationMiddleware_MiddlewareFuncScheduleSuccess(t *testing.T) {
+	ctx := newAuthorizationContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	requestBody := map[string]string{}
+	requestBody["jobName"] = "a-job"
 	body, _ := json.Marshal(requestBody)
 	jobMetadata := ctx.jobMetadata
 	userDetail := &auth.UserDetail{
