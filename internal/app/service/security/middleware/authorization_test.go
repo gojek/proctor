@@ -22,6 +22,7 @@ type authorizationContext struct {
 	requestHandler          func(http.Handler) http.Handler
 	metadataRepository      *repository.MockMetadataRepository
 	securityService         *service.SecurityServiceMock
+	jobMetadata             *metadata.Metadata
 }
 
 func (context *authorizationContext) setUp(t *testing.T) {
@@ -35,6 +36,15 @@ func (context *authorizationContext) setUp(t *testing.T) {
 	context.authorizationMiddleware.metadataRepository = context.metadataRepository
 	context.securityService = &service.SecurityServiceMock{}
 	context.authorizationMiddleware.service = context.securityService
+	context.jobMetadata = &metadata.Metadata{
+		Name:             "a-job",
+		Description:      "jobMetadata of a job",
+		ImageName:        "ubuntu-18.04",
+		AuthorizedGroups: []string{"system", "proctor_maintainer"},
+		Author:           "systeam team",
+		Contributors:     "proctor team",
+		Organization:     "GoJek",
+	}
 }
 
 func (context *authorizationContext) tearDown() {
@@ -56,15 +66,7 @@ func TestAuthorizationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 	requestBody := map[string]string{}
 	requestBody["name"] = "a-job"
 	body, _ := json.Marshal(requestBody)
-	jobMetadata := &metadata.Metadata{
-		Name:             "a-job",
-		Description:      "jobMetadata of a job",
-		ImageName:        "ubuntu-18.04",
-		AuthorizedGroups: []string{"system", "proctor_maintainer"},
-		Author:           "systeam team",
-		Contributors:     "proctor team",
-		Organization:     "GoJek",
-	}
+	jobMetadata := ctx.jobMetadata
 	userDetail := &auth.UserDetail{
 		Name:   "William Dembo",
 		Email:  "email@gmail.com",
@@ -151,15 +153,7 @@ func TestAuthorizationMiddleware_MiddlewareFuncWithoutUserDetail(t *testing.T) {
 	requestBody := map[string]string{}
 	requestBody["name"] = "a-job"
 	body, _ := json.Marshal(requestBody)
-	jobMetadata := &metadata.Metadata{
-		Name:             "a-job",
-		Description:      "jobMetadata of a job",
-		ImageName:        "ubuntu-18.04",
-		AuthorizedGroups: []string{"system", "proctor_maintainer"},
-		Author:           "systeam team",
-		Contributors:     "proctor team",
-		Organization:     "GoJek",
-	}
+	jobMetadata := ctx.jobMetadata
 
 	response := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
@@ -186,15 +180,7 @@ func TestAuthorizationMiddleware_MiddlewareFuncFailed(t *testing.T) {
 	requestBody := map[string]string{}
 	requestBody["name"] = "a-job"
 	body, _ := json.Marshal(requestBody)
-	jobMetadata := &metadata.Metadata{
-		Name:             "a-job",
-		Description:      "jobMetadata of a job",
-		ImageName:        "ubuntu-18.04",
-		AuthorizedGroups: []string{"system", "proctor_maintainer"},
-		Author:           "systeam team",
-		Contributors:     "proctor team",
-		Organization:     "GoJek",
-	}
+	jobMetadata := ctx.jobMetadata
 	userDetail := &auth.UserDetail{
 		Name:   "William Dembo",
 		Email:  "email@gmail.com",
