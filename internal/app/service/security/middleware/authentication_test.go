@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"proctor/internal/app/service/security/service"
-	"proctor/internal/app/service/server/middleware/parameter"
+	"proctor/internal/pkg/constant"
 )
 
 type context interface {
@@ -57,13 +55,9 @@ func TestAuthenticationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 
 	client := &http.Client{}
 
-	body := map[string]string{}
-	body["name"] = "a-job"
-	requestBody, _ := json.Marshal(body)
-
-	req, _ := http.NewRequest("GET", ts.URL, bytes.NewReader(requestBody))
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add(parameter.AccessTokenHeader, "a-token")
+	req, _ := http.NewRequest("GET", ts.URL, nil)
+	req.Header.Add(constant.AccessTokenHeaderKey, "a-token")
+	req.Header.Add(constant.UserEmailHeaderKey, "email@gmail.com")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
@@ -83,12 +77,29 @@ func TestAuthenticationMiddleware_MiddlewareFuncWithoutToken(t *testing.T) {
 
 	client := &http.Client{}
 
-	body := map[string]string{}
-	body["name"] = "a-job"
-	requestBody, _ := json.Marshal(body)
+	req, _ := http.NewRequest("GET", ts.URL, nil)
+	req.Header.Add(constant.UserEmailHeaderKey, "email@gmail.com")
 
-	req, _ := http.NewRequest("GET", ts.URL, bytes.NewReader(requestBody))
-	req.Header.Add("Content-Type", "application/json")
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestAuthenticationMiddleware_MiddlewareFuncWithoutEmail(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	authenticationMiddleware := ctx.instance().authenticationMiddleware
+	testHandler := ctx.instance().testHandler
+	ts := httptest.NewServer(authenticationMiddleware.MiddlewareFunc(testHandler))
+	defer ts.Close()
+
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("GET", ts.URL, nil)
+	req.Header.Add(constant.AccessTokenHeaderKey, "a-token")
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
