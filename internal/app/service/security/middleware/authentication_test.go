@@ -21,8 +21,8 @@ type context interface {
 
 type testContext struct {
 	authenticationMiddleware authenticationMiddleware
-	securityService service.SecurityService
-	testHandler http.HandlerFunc
+	securityService          service.SecurityService
+	testHandler              http.HandlerFunc
 }
 
 func (context *testContext) setUp(t *testing.T) {
@@ -69,4 +69,29 @@ func TestAuthenticationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestAuthenticationMiddleware_MiddlewareFuncWithoutToken(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	authenticationMiddleware := ctx.instance().authenticationMiddleware
+	testHandler := ctx.instance().testHandler
+	ts := httptest.NewServer(authenticationMiddleware.MiddlewareFunc(testHandler))
+	defer ts.Close()
+
+	client := &http.Client{}
+
+	body := map[string]string{}
+	body["name"] = "a-job"
+	requestBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("GET", ts.URL, bytes.NewReader(requestBody))
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
