@@ -14,9 +14,9 @@ func (m *SecurityServiceMock) initializePlugin() error {
 	return args.Error(0)
 }
 
-func (m *SecurityServiceMock) Auth(email string, token string) (auth.UserDetail, error) {
+func (m *SecurityServiceMock) Auth(email string, token string) (*auth.UserDetail, error) {
 	args := m.Called(email, token)
-	return args.Get(0).(auth.UserDetail), args.Error(1)
+	return args.Get(0).(*auth.UserDetail), args.Error(1)
 }
 
 func (m *SecurityServiceMock) Verify(userDetail auth.UserDetail, requiredGroups []string) (bool, error) {
