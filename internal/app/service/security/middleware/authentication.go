@@ -1,12 +1,15 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/security/service"
 	"proctor/internal/pkg/constant"
 )
+
+const ContextUserDetailKey string = "USER_DETAIL"
 
 type authenticationMiddleware struct {
 	service service.SecurityService
@@ -26,6 +29,7 @@ func (middleware *authenticationMiddleware) MiddlewareFunc(next http.Handler) ht
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), ContextUserDetailKey, userDetail)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

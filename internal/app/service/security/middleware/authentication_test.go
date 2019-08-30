@@ -13,12 +13,6 @@ import (
 	"proctor/internal/pkg/constant"
 )
 
-type context interface {
-	setUp(t *testing.T)
-	tearDown()
-	instance() *testContext
-}
-
 type testContext struct {
 	authenticationMiddleware authenticationMiddleware
 	securityService          *service.SecurityServiceMock
@@ -29,7 +23,7 @@ func (context *testContext) setUp(t *testing.T) {
 	context.authenticationMiddleware = authenticationMiddleware{}
 	context.securityService = &service.SecurityServiceMock{}
 	context.authenticationMiddleware.service = context.securityService
-	fn := func(rw http.ResponseWriter, req *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 	}
 	context.testHandler = http.HandlerFunc(fn)
 }
@@ -41,7 +35,7 @@ func (context *testContext) instance() *testContext {
 	return context
 }
 
-func newContext() context {
+func newContext() *testContext {
 	return &testContext{}
 }
 
@@ -62,7 +56,10 @@ func TestAuthenticationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 		Return(userDetail, nil)
 
 	authenticationMiddleware := ctx.instance().authenticationMiddleware
-	testHandler := ctx.instance().testHandler
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, userDetail, r.Context().Value("USER_DETAIL"))
+	}
+	testHandler := http.HandlerFunc(fn)
 	ts := httptest.NewServer(authenticationMiddleware.MiddlewareFunc(testHandler))
 	defer ts.Close()
 
