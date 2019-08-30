@@ -8,6 +8,7 @@ import (
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/metadata/repository"
 	"proctor/internal/app/service/security/service"
+	"proctor/pkg/auth"
 )
 
 type authorizationMiddleware struct {
@@ -18,12 +19,13 @@ type authorizationMiddleware struct {
 func (middleware *authorizationMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var job parameter.Job
-		_ = json.NewDecoder(r.Body).Decode(&job)
+		err := json.NewDecoder(r.Body).Decode(&job)
+		logger.LogErrors(err, "decode json", r.Body)
 		if job.Name == "" {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		_, err := middleware.metadataRepository.GetByName(job.Name)
+		jobMetadata, err := middleware.metadataRepository.GetByName(job.Name)
 		logger.LogErrors(err, "get metadata", job.Name)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -35,7 +37,12 @@ func (middleware *authorizationMiddleware) MiddlewareFunc(next http.Handler) htt
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
+		authorized, err := middleware.service.Verify(*(userDetail.(*auth.UserDetail)), jobMetadata.AuthorizedGroups)
+		logger.LogErrors(err, "authorization", jobMetadata, userDetail)
+		if !authorized {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
