@@ -27,6 +27,13 @@ func (middleware *authorizationMiddleware) MiddlewareFunc(next http.Handler) htt
 		logger.LogErrors(err, "get metadata", job.Name)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		userDetail := r.Context().Value(ContextUserDetailKey)
+		if userDetail == nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
 		}
 
 		next.ServeHTTP(w, r)

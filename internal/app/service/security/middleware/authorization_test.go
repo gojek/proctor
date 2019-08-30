@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"proctor/pkg/auth"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -59,9 +61,17 @@ func TestAuthorizationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 		Contributors:     "proctor team",
 		Organization:     "GoJek",
 	}
+	userDetail := &auth.UserDetail{
+		Name: "William Dembo",
+		Email: "email@gmail.com",
+		Active:true,
+		Groups: []string{"system", "proctor_maintainer"},
+	}
 
 	response := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	requestContext := context.WithValue(request.Context(), ContextUserDetailKey, userDetail)
+	request = request.WithContext(requestContext)
 	requestHandler := ctx.instance().requestHandler
 	metadataRepository := ctx.metadataRepository
 
@@ -123,4 +133,39 @@ func TestAuthorizationMiddleware_MiddlewareFuncMetadataError(t *testing.T) {
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusInternalServerError, responseResult.StatusCode)
+}
+
+func TestAuthorizationMiddleware_MiddlewareFuncWithoutUserDetail(t *testing.T) {
+	ctx := newAuthorizationContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	requestBody := map[string]string{}
+	requestBody["name"] = "a-job"
+	body, _ := json.Marshal(requestBody)
+	jobMetadata := &metadata.Metadata{
+		Name:             "a-job",
+		Description:      "jobMetadata of a job",
+		ImageName:        "ubuntu-18.04",
+		AuthorizedGroups: []string{"system", "proctor_maintainer"},
+		Author:           "systeam team",
+		Contributors:     "proctor team",
+		Organization:     "GoJek",
+	}
+
+	response := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(body))
+	requestHandler := ctx.instance().requestHandler
+	metadataRepository := ctx.metadataRepository
+
+	metadataRepository.On("GetByName", "a-job").Return(jobMetadata, nil)
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	authorizationMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+
+	responseResult := response.Result()
+	assert.Equal(t, http.StatusUnauthorized, responseResult.StatusCode)
 }
