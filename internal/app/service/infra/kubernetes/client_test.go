@@ -116,9 +116,6 @@ func (suite *ClientTestSuite) TestJobExecution() {
 func (suite *ClientTestSuite) TestWaitForReadyJob() {
 	t := suite.T()
 
-	watcher := watch.NewFake()
-	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
-
 	var testJob batchV1.Job
 	uniqueJobName := "proctor-job-1"
 	label := jobLabel(uniqueJobName)
@@ -129,11 +126,13 @@ func (suite *ClientTestSuite) TestWaitForReadyJob() {
 	testJob.ObjectMeta = objectMeta
 	waitTime := config.KubeLogProcessWaitTime() * time.Second
 
+	watcher := watch.NewFake()
+	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
+
 	go func() {
 		testJob.Status.Succeeded = 1
 		watcher.Modify(&testJob)
 
-		time.Sleep(time.Second * 1)
 		watcher.Stop()
 	}()
 
@@ -144,11 +143,8 @@ func (suite *ClientTestSuite) TestWaitForReadyJob() {
 func (suite *ClientTestSuite) TestWaitForReadyJobWatcherError() {
 	t := suite.T()
 
-	watcher := watch.NewFake()
-	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
-
 	var testJob batchV1.Job
-	uniqueJobName := "proctor-job-1"
+	uniqueJobName := "proctor-job-2"
 	label := jobLabel(uniqueJobName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
@@ -160,15 +156,16 @@ func (suite *ClientTestSuite) TestWaitForReadyJobWatcherError() {
 		LabelSelector: jobLabelSelector(uniqueJobName),
 	}
 	waitTime := config.KubeLogProcessWaitTime() * time.Second
+
+	watcher := watch.NewRaceFreeFake()
+	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
+
 	go func() {
 		watcher.Error(&testJob)
 		watcher.Error(&testJob)
 		watcher.Error(&testJob)
 		watcher.Error(&testJob)
 		watcher.Error(&testJob)
-
-		time.Sleep(time.Second * 1)
-		watcher.Stop()
 	}()
 
 	err := suite.testClient.WaitForReadyJob(uniqueJobName, waitTime)
@@ -178,12 +175,8 @@ func (suite *ClientTestSuite) TestWaitForReadyJobWatcherError() {
 func (suite *ClientTestSuite) TestWaitForReadyJobTimeoutError() {
 	t := suite.T()
 
-	watcher := watch.NewFake()
-	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
-	defer watcher.Stop()
-
 	var testJob batchV1.Job
-	uniqueJobName := "proctor-job-1"
+	uniqueJobName := "proctor-job-3"
 	label := jobLabel(uniqueJobName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
@@ -192,10 +185,8 @@ func (suite *ClientTestSuite) TestWaitForReadyJobTimeoutError() {
 	testJob.ObjectMeta = objectMeta
 	waitTime := time.Millisecond * 100
 
-	go func() {
-		time.Sleep(time.Millisecond * 550)
-		watcher.Stop()
-	}()
+	watcher := watch.NewRaceFreeFake()
+	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
 
 	err := suite.testClient.WaitForReadyJob(uniqueJobName, waitTime)
 	assert.EqualError(t, err, "timeout when waiting job to be available")
@@ -203,9 +194,6 @@ func (suite *ClientTestSuite) TestWaitForReadyJobTimeoutError() {
 
 func (suite *ClientTestSuite) TestWaitForReadyPod() {
 	t := suite.T()
-
-	watcher := watch.NewFake()
-	suite.fakeClientSet.PrependWatchReactor("pods", testing_kubernetes.DefaultWatchReactor(watcher, nil))
 
 	var testPod v1.Pod
 	uniquePodName := "proctor-pod-1"
@@ -217,11 +205,13 @@ func (suite *ClientTestSuite) TestWaitForReadyPod() {
 	testPod.ObjectMeta = objectMeta
 	waitTime := config.KubeLogProcessWaitTime() * time.Second
 
+	watcher := watch.NewFake()
+	suite.fakeClientSet.PrependWatchReactor("pods", testing_kubernetes.DefaultWatchReactor(watcher, nil))
+
 	go func() {
 		testPod.Status.Phase = v1.PodSucceeded
 		watcher.Modify(&testPod)
 
-		time.Sleep(time.Second * 1)
 		watcher.Stop()
 	}()
 
@@ -234,11 +224,8 @@ func (suite *ClientTestSuite) TestWaitForReadyPod() {
 func (suite *ClientTestSuite) TestWaitForReadyPodWatcherError() {
 	t := suite.T()
 
-	watcher := watch.NewFake()
-	suite.fakeClientSet.PrependWatchReactor("pods", testing_kubernetes.DefaultWatchReactor(watcher, nil))
-
 	var testPod v1.Pod
-	uniquePodName := "proctor-pod-1"
+	uniquePodName := "proctor-pod-2"
 	label := jobLabel(uniquePodName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniquePodName,
@@ -250,15 +237,15 @@ func (suite *ClientTestSuite) TestWaitForReadyPodWatcherError() {
 	}
 	waitTime := config.KubeLogProcessWaitTime() * time.Second
 
+	watcher := watch.NewRaceFreeFake()
+	suite.fakeClientSet.PrependWatchReactor("pods", testing_kubernetes.DefaultWatchReactor(watcher, nil))
+
 	go func() {
 		watcher.Error(&testPod)
 		watcher.Error(&testPod)
 		watcher.Error(&testPod)
 		watcher.Error(&testPod)
 		watcher.Error(&testPod)
-
-		time.Sleep(time.Second * 1)
-		watcher.Stop()
 	}()
 
 	_, err := suite.testClient.WaitForReadyPod(uniquePodName, waitTime)
@@ -268,12 +255,8 @@ func (suite *ClientTestSuite) TestWaitForReadyPodWatcherError() {
 func (suite *ClientTestSuite) TestWaitForReadyPodTimeoutError() {
 	t := suite.T()
 
-	watcher := watch.NewFake()
-	suite.fakeClientSet.PrependWatchReactor("pods", testing_kubernetes.DefaultWatchReactor(watcher, nil))
-	defer watcher.Stop()
-
 	var testPod v1.Pod
-	uniquePodName := "proctor-pod-1"
+	uniquePodName := "proctor-pod-3"
 	label := jobLabel(uniquePodName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniquePodName,
@@ -282,10 +265,8 @@ func (suite *ClientTestSuite) TestWaitForReadyPodTimeoutError() {
 	testPod.ObjectMeta = objectMeta
 	waitTime := time.Millisecond * 100
 
-	go func() {
-		time.Sleep(time.Millisecond * 550)
-		watcher.Stop()
-	}()
+	watcher := watch.NewFake()
+	suite.fakeClientSet.PrependWatchReactor("pods", testing_kubernetes.DefaultWatchReactor(watcher, nil))
 
 	_, err := suite.testClient.WaitForReadyPod(uniquePodName, waitTime)
 	assert.EqualError(t, err, "timeout when waiting job to be available")
@@ -299,7 +280,7 @@ func (suite *ClientTestSuite) TestShouldReturnSuccessJobExecutionStatus() {
 
 	var activeJob batchV1.Job
 	var succeededJob batchV1.Job
-	uniqueJobName := "proctor-job-2"
+	uniqueJobName := "proctor-job-4"
 	label := jobLabel(uniqueJobName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
@@ -334,7 +315,7 @@ func (suite *ClientTestSuite) TestShouldReturnFailedJobExecutionStatus() {
 
 	var activeJob batchV1.Job
 	var failedJob batchV1.Job
-	uniqueJobName := "proctor-job-1"
+	uniqueJobName := "proctor-job-5"
 	label := jobLabel(uniqueJobName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
@@ -367,7 +348,7 @@ func (suite *ClientTestSuite) TestJobExecutionStatusForNonDefinitiveStatus() {
 	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
 
 	var testJob batchV1.Job
-	uniqueJobName := "proctor-job-1"
+	uniqueJobName := "proctor-job-6"
 	label := jobLabel(uniqueJobName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,
@@ -396,7 +377,7 @@ func (suite *ClientTestSuite) TestShouldReturnJobExecutionStatusFetchError() {
 	suite.fakeClientSet.PrependWatchReactor("jobs", testing_kubernetes.DefaultWatchReactor(watcher, nil))
 
 	var testJob batchV1.Job
-	uniqueJobName := "proctor-job-3"
+	uniqueJobName := "proctor-job-7"
 	label := jobLabel(uniqueJobName)
 	objectMeta := meta.ObjectMeta{
 		Name:   uniqueJobName,

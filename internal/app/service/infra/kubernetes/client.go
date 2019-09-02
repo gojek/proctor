@@ -191,32 +191,43 @@ func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime t
 		LabelSelector: jobLabelSelector(executionName),
 	}
 
-	watchJob, err := jobs.Watch(listOptions)
-	if err != nil {
-		return err
-	}
+	var err error
+	for i := 0; i < config.KubeWaitForResourcePollCount(); i += 1 {
+		watchJob, watchErr := jobs.Watch(listOptions)
+		if watchErr != nil {
+			continue
+		}
 
-	timeoutChan := time.After(waitTime)
-	resultChan := watchJob.ResultChan()
-	defer watchJob.Stop()
+		timeoutChan := time.After(waitTime)
+		resultChan := watchJob.ResultChan()
 
-	var count int
-	for count < config.KubeWaitForResourcePollCount() {
-		select {
-		case watchEvent := <-resultChan:
-			if watchEvent.Type == watch.Error {
-				err = watcherError("job", listOptions)
-				count += 1
+		var job *batch.Job
+		for {
+			select {
+			case event := <-resultChan:
+				if event.Type == watch.Error {
+					err = watcherError("job", listOptions)
+					break
+				}
+
+				// Ignore empty events
+				if event.Object == nil {
+					continue
+				}
+
+				job = event.Object.(*batch.Job)
+				if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
+					watchJob.Stop()
+					return nil
+				}
+			case <-timeoutChan:
+				err = timeoutError
+				break
 			}
-
-			job := watchEvent.Object.(*batch.Job)
-			if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
-				return nil
+			if err != nil {
+				watchJob.Stop()
+				break
 			}
-		case <-timeoutChan:
-			err = timeoutError
-			timeoutChan = time.After(waitTime)
-			count += 1
 		}
 	}
 
@@ -230,33 +241,46 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 		LabelSelector: jobLabelSelector(executionName),
 	}
 
-	watchJob, err := kubernetesPods.Watch(listOptions)
-	if err != nil {
-		return nil, err
-	}
+	var err error
+	for i := 0; i < config.KubeWaitForResourcePollCount(); i += 1 {
+		watchJob, watchErr := kubernetesPods.Watch(listOptions)
+		if watchErr != nil {
+			continue
+		}
 
-	timeoutChan := time.After(waitTime)
-	resultChan := watchJob.ResultChan()
-	defer watchJob.Stop()
-	var pod *v1.Pod
+		timeoutChan := time.After(waitTime)
+		resultChan := watchJob.ResultChan()
+		defer watchJob.Stop()
 
-	var count int
-	for count < config.KubeWaitForResourcePollCount() {
-		select {
-		case event := <-resultChan:
-			if event.Type == watch.Error {
-				err = watcherError("pod", listOptions)
-				count += 1
+		var pod *v1.Pod
+		for {
+			select {
+			case event := <-resultChan:
+				if event.Type == watch.Error {
+					err = watcherError("pod", listOptions)
+					watchJob.Stop()
+					break
+				}
+
+				// Ignore empty events
+				if event.Object == nil {
+					continue
+				}
+
+				pod = event.Object.(*v1.Pod)
+				if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
+					watchJob.Stop()
+					return pod, nil
+				}
+			case <-timeoutChan:
+				err = timeoutError
+				watchJob.Stop()
+				break
 			}
-
-			pod = event.Object.(*v1.Pod)
-			if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
-				return pod, nil
+			if err != nil {
+				watchJob.Stop()
+				break
 			}
-		case <-timeoutChan:
-			err = timeoutError
-			timeoutChan = time.After(waitTime)
-			count += 1
 		}
 	}
 
