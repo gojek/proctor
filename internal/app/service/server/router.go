@@ -16,12 +16,15 @@ import (
 	"proctor/internal/app/service/infra/db/redis"
 	"proctor/internal/app/service/infra/kubernetes"
 	kubernetesHTTPClient "proctor/internal/app/service/infra/kubernetes/http"
+	"proctor/internal/app/service/infra/plugin"
 	metadataHandler "proctor/internal/app/service/metadata/handler"
 	metadataRepository "proctor/internal/app/service/metadata/repository"
 	scheduleHTTPHandler "proctor/internal/app/service/schedule/handler"
 	scheduleRepository "proctor/internal/app/service/schedule/repository"
 	secretHTTPHandler "proctor/internal/app/service/secret/handler"
 	secretRepository "proctor/internal/app/service/secret/repository"
+	securityMiddleware "proctor/internal/app/service/security/middleware"
+	"proctor/internal/app/service/security/service"
 	"proctor/internal/app/service/server/middleware"
 )
 
@@ -37,6 +40,8 @@ func NewRouter() (*mux.Router, error) {
 		return router, err
 	}
 	kubeClient := kubernetes.NewKubernetesClient(httpClient)
+	goPlugin := plugin.NewGoPlugin()
+	proctorConfig := config.Config()
 
 	executionStore := executionContextRepository.NewExecutionContextRepository(postgresClient)
 	scheduleStore := scheduleRepository.NewScheduleRepository(postgresClient)
@@ -44,6 +49,7 @@ func NewRouter() (*mux.Router, error) {
 	secretsStore := secretRepository.NewSecretRepository(redisClient)
 
 	_executionService := executionService.NewExecutionService(kubeClient, executionStore, metadataStore, secretsStore)
+	_securityService := service.NewSecurityService(proctorConfig.AuthPluginBinary, proctorConfig.AuthPluginExported, goPlugin)
 
 	executionHandler := executionHTTPHandler.NewExecutionHTTPHandler(_executionService, executionStore)
 	jobMetadataHandler := metadataHandler.NewMetadataHTTPHandler(metadataStore)
@@ -62,8 +68,11 @@ func NewRouter() (*mux.Router, error) {
 
 	router = middleware.InstrumentNewRelic(router)
 	router.Use(middleware.ValidateClientVersion)
+	authenticationMiddleware := securityMiddleware.NewAuthenticationMiddleware(_securityService)
+	router.Use(authenticationMiddleware.MiddlewareFunc)
+	authorizationMiddleware := securityMiddleware.NewAuthorizationMiddleware(_securityService, metadataStore)
 
-	router.HandleFunc("/execution", executionHandler.Post()).Methods("POST")
+	authorizationMiddleware.Secure(router, "/execution", executionHandler.Post()).Methods("POST")
 	router.HandleFunc("/execution/{contextId}/status", executionHandler.GetStatus()).Methods("GET")
 	router.HandleFunc("/execution/logs", executionHandler.GetLogs()).Methods("GET")
 
@@ -72,7 +81,7 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc("/metadata", jobMetadataHandler.Post()).Methods("POST")
 	router.HandleFunc("/secret", jobSecretsHandler.Post()).Methods("POST")
 
-	router.HandleFunc("/schedule", scheduleHandler.Post()).Methods("POST")
+	authorizationMiddleware.Secure(router, "/schedule", scheduleHandler.Post()).Methods("POST")
 	router.HandleFunc("/schedule", scheduleHandler.GetAll()).Methods("GET")
 	router.HandleFunc("/schedule/{scheduleID}", scheduleHandler.Get()).Methods("GET")
 	router.HandleFunc("/schedule/{scheduleID}", scheduleHandler.Delete()).Methods("DELETE")

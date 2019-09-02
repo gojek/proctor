@@ -9,7 +9,6 @@ import (
 	"proctor/internal/pkg/constant"
 )
 
-
 type authenticationMiddleware struct {
 	service service.SecurityService
 }
@@ -31,4 +30,10 @@ func (middleware *authenticationMiddleware) MiddlewareFunc(next http.Handler) ht
 		ctx := context.WithValue(r.Context(), ContextUserDetailKey, userDetail)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func NewAuthenticationMiddleware(securityService service.SecurityService) Middleware {
+	return &authenticationMiddleware{
+		service: securityService,
+	}
 }

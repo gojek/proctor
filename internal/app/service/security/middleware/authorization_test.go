@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
@@ -248,4 +249,21 @@ func TestAuthorizationMiddleware_MiddlewareFuncFailed(t *testing.T) {
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusForbidden, responseResult.StatusCode)
+}
+
+func TestAuthorizationMiddleware_Secure(t *testing.T) {
+	ctx := newAuthorizationContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	router := mux.NewRouter()
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	securedRouter := authzMiddleware.Secure(router, "/secure/path", handler)
+
+	handledPath, err := securedRouter.GetPathTemplate()
+	assert.NoError(t, err)
+	assert.Equal(t, "/secure/path", handledPath)
 }

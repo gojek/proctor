@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"proctor/internal/app/service/execution/handler/parameter"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/metadata/repository"
@@ -17,6 +19,10 @@ import (
 type authorizationMiddleware struct {
 	service            service.SecurityService
 	metadataRepository repository.MetadataRepository
+}
+
+func (middleware *authorizationMiddleware) Secure(router *mux.Router, path string, handler http.Handler) *mux.Route {
+	return router.NewRoute().Path(path).Handler(middleware.MiddlewareFunc(handler))
 }
 
 func (middleware *authorizationMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
@@ -73,4 +79,11 @@ func extractName(r *http.Request) (string, error) {
 	}
 
 	return "", nil
+}
+
+func NewAuthorizationMiddleware(securityService service.SecurityService, metadataRepository repository.MetadataRepository) AuthorizationMiddleware {
+	return &authorizationMiddleware{
+		service:            securityService,
+		metadataRepository: metadataRepository,
+	}
 }
