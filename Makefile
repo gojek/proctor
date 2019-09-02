@@ -36,12 +36,14 @@ itest: plugin.auth
 	go test -p 1 -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: plugin.itest
-plugin.itest:
+plugin.itest: plugin.auth
+	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
 	ENABLE_PLUGIN_INTEGRATION_TEST=true \
-	go test -p 1 -race -coverprofile=$(OUT_DIR)/coverage.out ./plugins/...
+	go test -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: server
 server:
+	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
 	go build -race -o $(BIN_DIR)/server ./cmd/server/main.go
 
 .PHONY: plugin.auth
@@ -56,6 +58,7 @@ build-all: server cli plugin.auth
 
 .PHONY: start-server
 start-server:
+	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
 	$(BIN_DIR)/server s
 
 generate:

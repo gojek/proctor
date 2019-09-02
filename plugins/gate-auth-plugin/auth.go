@@ -51,4 +51,4 @@ func newGateAuth() auth.Auth {
 	}
 }
 
-var Auth = newGateAuth()
+var GateAuth = newGateAuth()

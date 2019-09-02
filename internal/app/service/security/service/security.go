@@ -46,9 +46,9 @@ func (s *securityService) initializePlugin() error {
 		if err != nil {
 			return
 		}
-		authInstance, ok := raw.(auth.Auth)
-		if !ok {
-			logger.Error("Failed to convert exported plugin to *auth.Auth type")
+		authInstance := *raw.(*auth.Auth)
+		if authInstance == nil {
+			logger.Error("Failed to convert exported plugin to auth.Auth type")
 			return
 		}
 		s.authInstance = authInstance
