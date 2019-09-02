@@ -90,8 +90,8 @@ func TestAuthorizationMiddleware_MiddlewareFuncExecutionSuccess(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	authorizationMiddleware := ctx.instance().authorizationMiddleware
-	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authzMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusOK, responseResult.StatusCode)
@@ -129,8 +129,8 @@ func TestAuthorizationMiddleware_MiddlewareFuncScheduleSuccess(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	authorizationMiddleware := ctx.instance().authorizationMiddleware
-	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authzMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusOK, responseResult.StatusCode)
@@ -149,8 +149,8 @@ func TestAuthorizationMiddleware_MiddlewareFuncWithoutName(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	authorizationMiddleware := ctx.instance().authorizationMiddleware
-	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authzMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusBadRequest, responseResult.StatusCode)
@@ -177,8 +177,8 @@ func TestAuthorizationMiddleware_MiddlewareFuncMetadataError(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	authorizationMiddleware := ctx.instance().authorizationMiddleware
-	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authzMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusInternalServerError, responseResult.StatusCode)
@@ -204,8 +204,8 @@ func TestAuthorizationMiddleware_MiddlewareFuncWithoutUserDetail(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	authorizationMiddleware := ctx.instance().authorizationMiddleware
-	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authzMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusUnauthorized, responseResult.StatusCode)
@@ -243,8 +243,8 @@ func TestAuthorizationMiddleware_MiddlewareFuncFailed(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	authorizationMiddleware := ctx.instance().authorizationMiddleware
-	requestHandler(authorizationMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	requestHandler(authzMiddleware.MiddlewareFunc(testHandler)).ServeHTTP(response, request)
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusForbidden, responseResult.StatusCode)

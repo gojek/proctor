@@ -9,7 +9,6 @@ import (
 	"proctor/internal/pkg/constant"
 )
 
-const ContextUserDetailKey string = "USER_DETAIL"
 
 type authenticationMiddleware struct {
 	service service.SecurityService

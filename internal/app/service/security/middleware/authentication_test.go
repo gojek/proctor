@@ -14,18 +14,18 @@ import (
 )
 
 type testContext struct {
-	authenticationMiddleware authenticationMiddleware
-	securityService          *service.SecurityServiceMock
-	testHandler              http.HandlerFunc
+	authMiddleware  authenticationMiddleware
+	securityService *service.SecurityServiceMock
+	testHandler     http.HandlerFunc
 }
 
 func (context *testContext) setUp(t *testing.T) {
-	context.authenticationMiddleware = authenticationMiddleware{}
+	context.authMiddleware = authenticationMiddleware{}
 	context.securityService = &service.SecurityServiceMock{}
-	context.authenticationMiddleware.service = context.securityService
+	context.authMiddleware.service = context.securityService
 	fn := func(w http.ResponseWriter, r *http.Request) {
 	}
-	context.testHandler = http.HandlerFunc(fn)
+	context.testHandler = fn
 }
 
 func (context *testContext) tearDown() {
@@ -55,12 +55,12 @@ func TestAuthenticationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 		On("Auth", "email@gmail.com", "a-token").
 		Return(userDetail, nil)
 
-	authenticationMiddleware := ctx.instance().authenticationMiddleware
+	authMiddleware := ctx.instance().authMiddleware
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, userDetail, r.Context().Value("USER_DETAIL"))
 	}
 	testHandler := http.HandlerFunc(fn)
-	ts := httptest.NewServer(authenticationMiddleware.MiddlewareFunc(testHandler))
+	ts := httptest.NewServer(authMiddleware.MiddlewareFunc(testHandler))
 	defer ts.Close()
 
 	client := &http.Client{}
@@ -80,9 +80,9 @@ func TestAuthenticationMiddleware_MiddlewareFuncWithoutToken(t *testing.T) {
 	ctx.setUp(t)
 	defer ctx.tearDown()
 
-	authenticationMiddleware := ctx.instance().authenticationMiddleware
+	authMiddleware := ctx.instance().authMiddleware
 	testHandler := ctx.instance().testHandler
-	ts := httptest.NewServer(authenticationMiddleware.MiddlewareFunc(testHandler))
+	ts := httptest.NewServer(authMiddleware.MiddlewareFunc(testHandler))
 	defer ts.Close()
 
 	client := &http.Client{}
@@ -101,9 +101,9 @@ func TestAuthenticationMiddleware_MiddlewareFuncWithoutEmail(t *testing.T) {
 	ctx.setUp(t)
 	defer ctx.tearDown()
 
-	authenticationMiddleware := ctx.instance().authenticationMiddleware
+	authMiddleware := ctx.instance().authMiddleware
 	testHandler := ctx.instance().testHandler
-	ts := httptest.NewServer(authenticationMiddleware.MiddlewareFunc(testHandler))
+	ts := httptest.NewServer(authMiddleware.MiddlewareFunc(testHandler))
 	defer ts.Close()
 
 	client := &http.Client{}
@@ -128,9 +128,9 @@ func TestAuthenticationMiddleware_MiddlewareFuncAuthFailed(t *testing.T) {
 		On("Auth", "email@gmail.com", "a-token").
 		Return(userDetail, errors.New("authentication failed, please check your access token"))
 
-	authenticationMiddleware := ctx.instance().authenticationMiddleware
+	authMiddleware := ctx.instance().authMiddleware
 	testHandler := ctx.instance().testHandler
-	ts := httptest.NewServer(authenticationMiddleware.MiddlewareFunc(testHandler))
+	ts := httptest.NewServer(authMiddleware.MiddlewareFunc(testHandler))
 	defer ts.Close()
 
 	client := &http.Client{}
