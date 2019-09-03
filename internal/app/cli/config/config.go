@@ -80,7 +80,13 @@ func (loader *loader) Load() (ProctorConfig, ConfigError) {
 	connectionTimeout := time.Duration(viper.GetInt(ConnectionTimeoutSecs)) * time.Second
 	procExecutionStatusPollCount := viper.GetInt(ProcExecutionStatusPollCount)
 
-	return ProctorConfig{Host: proctorHost, Email: emailId, AccessToken: accessToken, ConnectionTimeoutSecs: connectionTimeout, ProcExecutionStatusPollCount: procExecutionStatusPollCount}, ConfigError{}
+	return ProctorConfig{
+		Host:                         proctorHost,
+		Email:                        emailId,
+		AccessToken:                  accessToken,
+		ConnectionTimeoutSecs:        connectionTimeout,
+		ProcExecutionStatusPollCount: procExecutionStatusPollCount,
+	}, ConfigError{}
 }
 
 // Returns Config file directory

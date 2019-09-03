@@ -32,7 +32,7 @@ func (suite *IntegrationTestSuite) TestJobExecution() {
 	t := suite.T()
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
 	config.Reset()
-	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
+	envVarsForContainer := map[string]string{"SAMPLE_ARG": "sample-value"}
 	sampleImageName := "busybox"
 
 	executedJobname, err := suite.testClient.ExecuteJobWithCommand(sampleImageName, envVarsForContainer, []string{"echo", "Bimo Horizon"})
@@ -77,7 +77,7 @@ func (suite *IntegrationTestSuite) TestJobExecution() {
 func (suite *IntegrationTestSuite) TestJobExecutionStatus() {
 	t := suite.T()
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
-	envVarsForContainer := map[string]string{"SAMPLE_ARG": "samle-value"}
+	envVarsForContainer := map[string]string{"SAMPLE_ARG": "sample-value"}
 	sampleImageName := "busybox"
 
 	executedJobname, err := suite.testClient.ExecuteJobWithCommand(sampleImageName, envVarsForContainer, []string{"echo", "Bimo Horizon"})

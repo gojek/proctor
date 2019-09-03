@@ -5,9 +5,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/jmoiron/sqlx/types"
 	"io"
+	"time"
+
+	"github.com/jmoiron/sqlx/types"
 	v1 "k8s.io/api/core/v1"
+
 	"proctor/internal/app/service/execution/model"
 	"proctor/internal/app/service/execution/repository"
 	"proctor/internal/app/service/execution/status"
@@ -17,7 +20,6 @@ import (
 	"proctor/internal/app/service/infra/logger"
 	svcMetadataRepository "proctor/internal/app/service/metadata/repository"
 	svcSecretRepository "proctor/internal/app/service/secret/repository"
-	"time"
 )
 
 type ExecutionService interface {

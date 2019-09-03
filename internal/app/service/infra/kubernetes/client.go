@@ -1,13 +1,12 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"proctor/internal/app/service/infra/config"
-	"proctor/internal/app/service/infra/logger"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -21,10 +20,14 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	kubeRestClient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"proctor/internal/app/service/infra/config"
+	"proctor/internal/app/service/infra/logger"
 )
 
 var typeMeta meta.TypeMeta
 var namespace string
+var timeoutError = errors.New("timeout when waiting job to be available")
 
 func init() {
 	typeMeta = meta.TypeMeta{
@@ -188,30 +191,47 @@ func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime t
 		LabelSelector: jobLabelSelector(executionName),
 	}
 
-	watchJob, err := jobs.Watch(listOptions)
-	if err != nil {
-		return err
-	}
+	var err error
+	for i := 0; i < config.Config().KubeWaitForResourcePollCount; i += 1 {
+		watchJob, watchErr := jobs.Watch(listOptions)
+		if watchErr != nil {
+			continue
+		}
 
-	timeoutChan := time.After(waitTime)
-	resultChan := watchJob.ResultChan()
-	defer watchJob.Stop()
+		timeoutChan := time.After(waitTime)
+		resultChan := watchJob.ResultChan()
 
-	for {
-		select {
-		case watchEvent := <-resultChan:
-			if watchEvent.Type == watch.Error {
-				return fmt.Errorf("watch error when waiting for job with list option %v", listOptions)
+		var job *batch.Job
+		for {
+			select {
+			case event := <-resultChan:
+				if event.Type == watch.Error {
+					err = watcherError("job", listOptions)
+					break
+				}
+
+				// Ignore empty events
+				if event.Object == nil {
+					continue
+				}
+
+				job = event.Object.(*batch.Job)
+				if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
+					watchJob.Stop()
+					return nil
+				}
+			case <-timeoutChan:
+				err = timeoutError
+				break
 			}
-
-			job := watchEvent.Object.(*batch.Job)
-			if job.Status.Active >= 1 || job.Status.Succeeded >= 1 || job.Status.Failed >= 1 {
-				return nil
+			if err != nil {
+				watchJob.Stop()
+				break
 			}
-		case <-timeoutChan:
-			return fmt.Errorf("timeout when waiting job to be available")
 		}
 	}
+
+	return err
 }
 
 func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime time.Duration) (*v1.Pod, error) {
@@ -221,31 +241,50 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 		LabelSelector: jobLabelSelector(executionName),
 	}
 
-	watchJob, err := kubernetesPods.Watch(listOptions)
-	if err != nil {
-		return nil, err
-	}
+	var err error
+	for i := 0; i < config.Config().KubeWaitForResourcePollCount; i += 1 {
+		watchJob, watchErr := kubernetesPods.Watch(listOptions)
+		if watchErr != nil {
+			continue
+		}
 
-	timeoutChan := time.After(waitTime)
-	resultChan := watchJob.ResultChan()
-	defer watchJob.Stop()
-	var pod *v1.Pod
+		timeoutChan := time.After(waitTime)
+		resultChan := watchJob.ResultChan()
+		defer watchJob.Stop()
 
-	for {
-		select {
-		case event := <-resultChan:
-			if event.Type == watch.Error {
-				return nil, fmt.Errorf("watch error when waiting for pod with list option %v", listOptions)
+		var pod *v1.Pod
+		for {
+			select {
+			case event := <-resultChan:
+				if event.Type == watch.Error {
+					err = watcherError("pod", listOptions)
+					watchJob.Stop()
+					break
+				}
+
+				// Ignore empty events
+				if event.Object == nil {
+					continue
+				}
+
+				pod = event.Object.(*v1.Pod)
+				if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
+					watchJob.Stop()
+					return pod, nil
+				}
+			case <-timeoutChan:
+				err = timeoutError
+				watchJob.Stop()
+				break
 			}
-			pod = event.Object.(*v1.Pod)
-			if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded || pod.Status.Phase == v1.PodFailed {
-				return pod, nil
+			if err != nil {
+				watchJob.Stop()
+				break
 			}
-		case <-timeoutChan:
-			return nil, fmt.Errorf("timeout when waiting pod to be available")
 		}
 	}
 
+	return nil, err
 }
 
 func (client *kubernetesClient) JobExecutionStatus(executionName string) (string, error) {
@@ -294,4 +333,8 @@ func (client *kubernetesClient) GetPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
 		return nil, err
 	}
 	return response, nil
+}
+
+func watcherError(resource string, listOptions meta.ListOptions) error {
+	return fmt.Errorf("watch error when waiting for %s with list option %v", resource, listOptions)
 }

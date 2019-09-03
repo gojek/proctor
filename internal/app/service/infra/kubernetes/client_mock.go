@@ -31,10 +31,12 @@ func (m *MockKubernetesClient) WaitForReadyJob(executionName string, waitTime ti
 	args := m.Called(executionName, waitTime)
 	return args.Error(0)
 }
+
 func (m *MockKubernetesClient) WaitForReadyPod(executionName string, waitTime time.Duration) (*v1.Pod, error) {
-	args := m.Called(executionName)
+	args := m.Called(executionName, waitTime)
 	return args.Get(0).(*v1.Pod), args.Error(1)
 }
+
 func (m *MockKubernetesClient) GetPodLogs(pod *v1.Pod) (io.ReadCloser, error) {
 	args := m.Called(pod)
 	return args.Get(0).(io.ReadCloser), args.Error(1)

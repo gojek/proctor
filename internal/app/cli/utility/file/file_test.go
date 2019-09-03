@@ -3,6 +3,7 @@ package file
 import (
 	"io/ioutil"
 	"os"
+	"proctor/internal/pkg/model/metadata/env"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,4 +44,24 @@ func TestParseYAMLError(t *testing.T) {
 		err = ParseYAML(errorTest.Filename, procArgs)
 		assert.Contains(t, err.Error(), errorTest.ErrorMessage)
 	}
+}
+
+func TestWriteYAML(t *testing.T) {
+	filename := "/tmp/yaml-test-write"
+	procArgs := []env.VarMetadata{
+		{"foo", "bar"},
+		{"moo", "zoo"},
+	}
+
+	err := WriteYAML(filename, procArgs)
+	assert.NoError(t, err)
+	defer os.Remove(filename)
+
+	file, err := os.Open(filename)
+	assert.NoError(t, err)
+	defer file.Close()
+
+	buffer, err := ioutil.ReadAll(file)
+	assert.NoError(t, err)
+	assert.Equal(t, buffer, []byte("# bar\nfoo:\n# zoo\nmoo:\n"))
 }

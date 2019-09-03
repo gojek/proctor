@@ -17,6 +17,7 @@ import (
 	scheduleList "proctor/internal/app/cli/command/schedule/list"
 	"proctor/internal/app/cli/command/schedule/remove"
 	"proctor/internal/app/cli/command/status"
+	"proctor/internal/app/cli/command/template"
 	"proctor/internal/app/cli/command/version"
 	"proctor/internal/app/cli/command/version/github"
 	"proctor/internal/app/cli/daemon"
@@ -50,6 +51,9 @@ func Execute(printer io.Printer, proctorDClient daemon.Client, githubClient gith
 
 	listCmd := list.NewCmd(printer, proctorDClient)
 	rootCmd.AddCommand(listCmd)
+
+	templateCmd := template.NewCmd(printer, proctorDClient)
+	rootCmd.AddCommand(templateCmd)
 
 	configCmd := config.NewCmd(printer)
 	configShowCmd := view.NewCmd(printer)
