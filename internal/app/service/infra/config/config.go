@@ -123,7 +123,7 @@ func Load() ProctorConfig {
 		DocsPath:                         fang.GetString("DOCS_PATH"),
 		AuthPluginBinary:                 fang.GetString("AUTH_PLUGIN_BINARY"),
 		AuthPluginExported:               GetStringDefault(fang, "AUTH_PLUGIN_EXPORTED", "Auth"),
-		AuthEnabled:                      GetBoolDefault(fang, "AUTH_ENABLED", true),
+		AuthEnabled:                      GetBoolDefault(fang, "AUTH_ENABLED", false),
 	}
 
 	return proctorConfig
