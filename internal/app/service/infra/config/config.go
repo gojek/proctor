@@ -98,7 +98,7 @@ func Load() ProctorConfig {
 		RedisMaxActiveConnections:        fang.GetInt("REDIS_MAX_ACTIVE_CONNECTIONS"),
 		LogsStreamReadBufferSize:         fang.GetInt("LOGS_STREAM_READ_BUFFER_SIZE"),
 		LogsStreamWriteBufferSize:        fang.GetInt("LOGS_STREAM_WRITE_BUFFER_SIZE"),
-		KubeWaitForResourcePollCount:     fang.GetInt("PROCTOR_KUBE_WAIT_FOR_RESOURCE_POLL_COUNT"),
+		KubeWaitForResourcePollCount:     fang.GetInt("KUBE_WAIT_FOR_RESOURCE_POLL_COUNT"),
 		KubePodsListWaitTime:             time.Duration(fang.GetInt("KUBE_POD_LIST_WAIT_TIME")),
 		KubeLogProcessWaitTime:           time.Duration(fang.GetInt("KUBE_LOG_PROCESS_WAIT_TIME")),
 		KubeJobActiveDeadlineSeconds:     GetInt64Ref(fang, "KUBE_JOB_ACTIVE_DEADLINE_SECONDS"),
