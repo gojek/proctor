@@ -37,6 +37,7 @@ func (context *authorizationContext) setUp(t *testing.T) {
 	context.authorizationMiddleware.metadataRepository = context.metadataRepository
 	context.securityService = &service.SecurityServiceMock{}
 	context.authorizationMiddleware.service = context.securityService
+	context.authorizationMiddleware.enabled = true
 	context.jobMetadata = &metadata.Metadata{
 		Name:             "a-job",
 		Description:      "jobMetadata of a job",
@@ -249,6 +250,28 @@ func TestAuthorizationMiddleware_MiddlewareFuncFailed(t *testing.T) {
 
 	responseResult := response.Result()
 	assert.Equal(t, http.StatusForbidden, responseResult.StatusCode)
+}
+
+func TestAuthorizationMiddleware_MiddlewareFuncDisabled(t *testing.T) {
+	ctx := newAuthorizationContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	authzMiddleware := ctx.instance().authorizationMiddleware
+	authzMiddleware.enabled = false
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	ts := httptest.NewServer(authzMiddleware.MiddlewareFunc(testHandler))
+	defer ts.Close()
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", ts.URL, nil)
+
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestAuthorizationMiddleware_Secure(t *testing.T) {

@@ -14,6 +14,11 @@ func GetStringDefault(viper *viper.Viper, key string, defaultValue string) strin
 	return viper.GetString(key)
 }
 
+func GetBoolDefault(viper *viper.Viper, key string, defaultValue bool) bool {
+	viper.SetDefault(key, defaultValue)
+	return viper.GetBool(key)
+}
+
 func GetInt64Ref(viper *viper.Viper, key string) *int64 {
 	value := viper.GetInt64(key)
 	return &value
@@ -74,6 +79,7 @@ type ProctorConfig struct {
 	SentryDSN                        string
 	DocsPath                         string
 	AuthPluginBinary                 string
+	AuthEnabled                      bool
 }
 
 func Load() ProctorConfig {
@@ -115,6 +121,7 @@ func Load() ProctorConfig {
 		DocsPath:                         fang.GetString("DOCS_PATH"),
 		AuthPluginBinary:                 fang.GetString("AUTH_PLUGIN_BINARY"),
 		AuthPluginExported:               GetStringDefault(fang, "AUTH_PLUGIN_EXPORTED", "Auth"),
+		AuthEnabled:                      GetBoolDefault(fang, "AUTH_ENABLED", true),
 	}
 
 	return proctorConfig

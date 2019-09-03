@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/security/service"
 	"proctor/internal/pkg/constant"
@@ -11,10 +12,15 @@ import (
 
 type authenticationMiddleware struct {
 	service service.SecurityService
+	enabled bool
 }
 
 func (middleware *authenticationMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !middleware.enabled {
+			next.ServeHTTP(w, r)
+			return
+		}
 		token := r.Header.Get(constant.AccessTokenHeaderKey)
 		userEmail := r.Header.Get(constant.UserEmailHeaderKey)
 		if token == "" || userEmail == "" {
@@ -33,7 +39,9 @@ func (middleware *authenticationMiddleware) MiddlewareFunc(next http.Handler) ht
 }
 
 func NewAuthenticationMiddleware(securityService service.SecurityService) Middleware {
+	proctorConfig := config.Load()
 	return &authenticationMiddleware{
 		service: securityService,
+		enabled: proctorConfig.AuthEnabled,
 	}
 }

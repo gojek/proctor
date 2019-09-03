@@ -202,3 +202,9 @@ func TestAuthPluginExported(t *testing.T) {
 
 	assert.Equal(t, "path1", Load().AuthPluginExported)
 }
+
+func TestAuthEnabled(t *testing.T) {
+	_ = os.Setenv("PROCTOR_AUTH_ENABLED", "false")
+
+	assert.Equal(t, false, Load().AuthEnabled)
+}

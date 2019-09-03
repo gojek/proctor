@@ -23,6 +23,7 @@ func (context *testContext) setUp(t *testing.T) {
 	context.authMiddleware = authenticationMiddleware{}
 	context.securityService = &service.SecurityServiceMock{}
 	context.authMiddleware.service = context.securityService
+	context.authMiddleware.enabled = true
 	fn := func(w http.ResponseWriter, r *http.Request) {
 	}
 	context.testHandler = fn
@@ -143,4 +144,24 @@ func TestAuthenticationMiddleware_MiddlewareFuncAuthFailed(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestAuthenticationMiddleware_MiddlewareFuncDisabled(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	authMiddleware := ctx.instance().authMiddleware
+	authMiddleware.enabled = false
+	testHandler := ctx.instance().testHandler
+	ts := httptest.NewServer(authMiddleware.MiddlewareFunc(testHandler))
+	defer ts.Close()
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", ts.URL, nil)
+
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

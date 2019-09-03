@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"proctor/internal/app/service/execution/handler/parameter"
+	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/metadata/repository"
 	"proctor/internal/app/service/schedule/model"
@@ -19,6 +20,7 @@ import (
 type authorizationMiddleware struct {
 	service            service.SecurityService
 	metadataRepository repository.MetadataRepository
+	enabled            bool
 }
 
 func (middleware *authorizationMiddleware) Secure(router *mux.Router, path string, handler http.Handler) *mux.Route {
@@ -27,6 +29,10 @@ func (middleware *authorizationMiddleware) Secure(router *mux.Router, path strin
 
 func (middleware *authorizationMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !middleware.enabled {
+			next.ServeHTTP(w, r)
+			return
+		}
 		jobName, err := extractName(r)
 		logger.LogErrors(err, "decode json", r.Body)
 		if jobName == "" {
@@ -82,8 +88,10 @@ func extractName(r *http.Request) (string, error) {
 }
 
 func NewAuthorizationMiddleware(securityService service.SecurityService, metadataRepository repository.MetadataRepository) AuthorizationMiddleware {
+	proctorConfig := config.Load()
 	return &authorizationMiddleware{
 		service:            securityService,
 		metadataRepository: metadataRepository,
+		enabled:            proctorConfig.AuthEnabled,
 	}
 }
