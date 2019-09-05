@@ -8,6 +8,7 @@ FROM ubuntu:latest
 WORKDIR /app/
 COPY --from=builder /go/src/app/_output/bin/server .
 COPY --from=builder /go/src/app/_output/bin/plugin/auth.so .
+COPY --from=builder /go/src/app/migrations ./migrations
 ENV PROCTOR_AUTH_PLUGIN_BINARY=/app/auth.so
 
 ENTRYPOINT ["./server"]
