@@ -1,259 +1,210 @@
 package config
 
 import (
-	"os"
-	"testing"
-
-	"github.com/spf13/viper"
+	fake "github.com/brianvoe/gofakeit"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"strconv"
+	"testing"
 )
 
 func TestEnvironment(t *testing.T) {
-	_ = os.Setenv("PROCTOR_KUBE_CONFIG", "in-cluster")
+	fake.Seed(0)
+	value := fake.FirstName()
+	_ = os.Setenv("PROCTOR_KUBE_CONFIG", value)
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "in-cluster", KubeConfig())
+	assert.Equal(t, value, Load().KubeConfig)
 }
 
 func TestLogLevel(t *testing.T) {
-	_ = os.Setenv("PROCTOR_LOG_LEVEL", "debug")
+	fake.Seed(0)
+	value := fake.FirstName()
+	_ = os.Setenv("PROCTOR_LOG_LEVEL", value)
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "debug", LogLevel())
+	assert.Equal(t, value, Load().LogLevel)
 }
 
 func TestAppPort(t *testing.T) {
-	_ = os.Setenv("PROCTOR_APP_PORT", "3000")
+	fake.Seed(0)
+	value := strconv.FormatInt(int64(fake.Number(1000, 4000)), 10)
+	_ = os.Setenv("PROCTOR_APP_PORT", value)
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "3000", AppPort())
+	assert.Equal(t, value, Load().AppPort)
 }
 
 func TestDefaultNamespace(t *testing.T) {
-	_ = os.Setenv("PROCTOR_DEFAULT_NAMESPACE", "default")
+	fake.Seed(0)
+	value := fake.FirstName()
+	_ = os.Setenv("PROCTOR_DEFAULT_NAMESPACE", value)
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "default", DefaultNamespace())
+	assert.Equal(t, value, Load().DefaultNamespace)
 }
 
 func TestRedisAddress(t *testing.T) {
-	_ = os.Setenv("PROCTOR_REDIS_ADDRESS", "localhost:6379")
+	fake.Seed(0)
+	value := fake.FirstName()
+	_ = os.Setenv("PROCTOR_REDIS_ADDRESS", value)
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "localhost:6379", RedisAddress())
-}
-
-func TestKubeClusterHostName(t *testing.T) {
-	_ = os.Setenv("PROCTOR_KUBE_CLUSTER_HOST_NAME", "somekube.io")
-
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "somekube.io", KubeClusterHostName())
-}
-
-func TestKubeCACertEncoded(t *testing.T) {
-	_ = os.Setenv("PROCTOR_KUBE_CA_CERT_ENCODED", "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCmNlcnRpZmljYXRlCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K")
-
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCmNlcnRpZmljYXRlCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K", KubeCACertEncoded())
-}
-
-func TestKubeBasicAuthEncoded(t *testing.T) {
-	_ = os.Setenv("PROCTOR_KUBE_BASIC_AUTH_ENCODED", "YWRtaW46cGFzc3dvcmQK")
-
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "YWRtaW46cGFzc3dvcmQK", KubeBasicAuthEncoded())
+	assert.Equal(t, value, Load().RedisAddress)
 }
 
 func TestRedisMaxActiveConnections(t *testing.T) {
-	_ = os.Setenv("PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS", "50")
+	fake.Seed(0)
+	number := fake.Number(10, 90)
+	value := strconv.FormatInt(int64(number), 10)
+	_ = os.Setenv("PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS", value)
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, 50, RedisMaxActiveConnections())
+	assert.Equal(t, number, Load().RedisMaxActiveConnections)
 }
 
 func TestLogsStreamReadBufferSize(t *testing.T) {
 	_ = os.Setenv("PROCTOR_LOGS_STREAM_READ_BUFFER_SIZE", "140")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, 140, LogsStreamReadBufferSize())
+	assert.Equal(t, 140, Load().LogsStreamReadBufferSize)
 }
 
 func TestLogsStreamWriteBufferSize(t *testing.T) {
 	_ = os.Setenv("PROCTOR_LOGS_STREAM_WRITE_BUFFER_SIZE", "4096")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, 4096, LogsStreamWriteBufferSize())
+	assert.Equal(t, 4096, Load().LogsStreamWriteBufferSize)
 }
 
 func TestKubeJobActiveDeadlineSeconds(t *testing.T) {
 	_ = os.Setenv("PROCTOR_KUBE_JOB_ACTIVE_DEADLINE_SECONDS", "900")
 
-	viper.AutomaticEnv()
-
 	expectedValue := int64(900)
-	assert.Equal(t, &expectedValue, KubeJobActiveDeadlineSeconds())
+	assert.Equal(t, &expectedValue, Load().KubeJobActiveDeadlineSeconds)
 }
 
 func TestKubeJobRetries(t *testing.T) {
 	_ = os.Setenv("PROCTOR_KUBE_JOB_RETRIES", "0")
 
-	viper.AutomaticEnv()
-
 	expectedValue := int32(0)
-	assert.Equal(t, &expectedValue, KubeJobRetries())
+	assert.Equal(t, &expectedValue, Load().KubeJobRetries)
 }
 
 func TestPostgresUser(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_USER", "postgres")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "postgres", PostgresUser())
+	assert.Equal(t, "postgres", Load().PostgresUser)
 }
 
 func TestPostgresPassword(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_PASSWORD", "ipsum-lorem")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "ipsum-lorem", PostgresPassword())
+	assert.Equal(t, "ipsum-lorem", Load().PostgresPassword)
 }
 
 func TestPostgresHost(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_HOST", "localhost")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "localhost", PostgresHost())
+	assert.Equal(t, "localhost", Load().PostgresHost)
 }
 
 func TestPostgresPort(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_PORT", "5432")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, 5432, PostgresPort())
+	assert.Equal(t, 5432, Load().PostgresPort)
 }
 
 func TestPostgresDatabase(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_DATABASE", "proctord_development")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "proctord_development", PostgresDatabase())
+	assert.Equal(t, "proctord_development", Load().PostgresDatabase)
 }
 
 func TestPostgresMaxConnections(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_MAX_CONNECTIONS", "50")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, 50, PostgresMaxConnections())
+	assert.Equal(t, 50, Load().PostgresMaxConnections)
 }
 
 func TestPostgresConnectionMaxLifetime(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_CONNECTIONS_MAX_LIFETIME", "30")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, 30, PostgresConnectionMaxLifetime())
+	assert.Equal(t, 30, Load().PostgresConnectionMaxLifetime)
 }
 
 func TestNewRelicAppName(t *testing.T) {
 	_ = os.Setenv("PROCTOR_NEW_RELIC_APP_NAME", "PROCTORD")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "PROCTORD", NewRelicAppName())
+	assert.Equal(t, "PROCTORD", Load().NewRelicAppName)
 }
 
 func TestNewRelicLicenceKey(t *testing.T) {
 	_ = os.Setenv("PROCTOR_NEW_RELIC_LICENCE_KEY", "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr", NewRelicLicenceKey())
+	assert.Equal(t, "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr", Load().NewRelicLicenceKey)
 }
 
 func TestMinClientVersion(t *testing.T) {
 	_ = os.Setenv("PROCTOR_MIN_CLIENT_VERSION", "0.2.0")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "0.2.0", MinClientVersion())
+	assert.Equal(t, "0.2.0", Load().MinClientVersion)
 }
 
 func TestScheduledJobsFetchIntervalInMins(t *testing.T) {
 	_ = os.Setenv("PROCTOR_SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS", "5")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, 5, ScheduledJobsFetchIntervalInMins())
+	assert.Equal(t, 5, Load().ScheduledJobsFetchIntervalInMins)
 }
 
 func TestMailUsername(t *testing.T) {
 	_ = os.Setenv("PROCTOR_MAIL_USERNAME", "foo@bar.com")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "foo@bar.com", MailUsername())
+	assert.Equal(t, "foo@bar.com", Load().MailUsername)
 }
 
 func TestMailPassword(t *testing.T) {
 	_ = os.Setenv("PROCTOR_MAIL_PASSWORD", "password")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "password", MailPassword())
+	assert.Equal(t, "password", Load().MailPassword)
 }
 
 func TestMailServerHost(t *testing.T) {
 	_ = os.Setenv("PROCTOR_MAIL_SERVER_HOST", "127.0.0.1")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "127.0.0.1", MailServerHost())
+	assert.Equal(t, "127.0.0.1", Load().MailServerHost)
 }
 
 func TestMailServerPort(t *testing.T) {
 	_ = os.Setenv("PROCTOR_MAIL_SERVER_PORT", "123")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "123", MailServerPort())
+	assert.Equal(t, "123", Load().MailServerPort)
 }
 
 func TestJobPodAnnotations(t *testing.T) {
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, map[string]string{"key.one": "true"}, JobPodAnnotations())
+	assert.Equal(t, map[string]string{"key.one": "true"}, Load().JobPodAnnotations)
 }
 
 func TestSentryDSN(t *testing.T) {
 	_ = os.Setenv("PROCTOR_SENTRY_DSN", "domain")
 
-	viper.AutomaticEnv()
-
-	assert.Equal(t, "domain", SentryDSN())
+	assert.Equal(t, "domain", Load().SentryDSN)
 }
 
 func TestDocsPath(t *testing.T) {
 	_ = os.Setenv("PROCTOR_DOCS_PATH", "path1")
 
-	viper.AutomaticEnv()
+	assert.Equal(t, "path1", Load().DocsPath)
+}
 
-	assert.Equal(t, "path1", DocsPath())
+func TestAuthPluginBinary(t *testing.T) {
+	_ = os.Setenv("PROCTOR_AUTH_PLUGIN_BINARY", "path1")
+
+	assert.Equal(t, "path1", Load().AuthPluginBinary)
+}
+
+func TestAuthPluginExported(t *testing.T) {
+	_ = os.Setenv("PROCTOR_AUTH_PLUGIN_EXPORTED", "path1")
+
+	assert.Equal(t, "path1", Load().AuthPluginExported)
+}
+
+func TestAuthEnabled(t *testing.T) {
+	_ = os.Setenv("PROCTOR_AUTH_ENABLED", "false")
+
+	assert.Equal(t, false, Load().AuthEnabled)
 }

@@ -136,7 +136,7 @@ func (service *executionService) update(executionContext model.ExecutionContext)
 func (service *executionService) watchProcess(context model.ExecutionContext) {
 	logger.Info("Start Watch Process for Job With Context ID: ", context.ExecutionID, ", name: ", context.Name, ", and Status: "+context.Status)
 
-	waitTime := config.KubeLogProcessWaitTime() * time.Second
+	waitTime := config.Config().KubeLogProcessWaitTime * time.Second
 	err := service.kubernetesClient.WaitForReadyJob(context.Name, waitTime)
 
 	if err != nil {

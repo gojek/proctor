@@ -10,8 +10,8 @@ import (
 var newRelicApp newrelic.Application
 
 func InitNewRelic() error {
-	appName := config.NewRelicAppName()
-	licenceKey := config.NewRelicLicenceKey()
+	appName := config.Config().NewRelicAppName
+	licenceKey := config.Config().NewRelicLicenceKey
 	newRelicConfig := newrelic.NewConfig(appName, licenceKey)
 	newRelicConfig.Enabled = true
 	app, err := newrelic.NewApplication(newRelicConfig)

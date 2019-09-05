@@ -140,10 +140,10 @@ func Start() error {
 		return err
 	}
 	kubeClient := kubernetes.NewKubernetesClient(httpClient)
-	mailer := mail.New(config.MailServerHost(), config.MailServerPort())
+	mailer := mail.New(config.Config().MailServerHost, config.Config().AuthPluginExported)
 	executionSvc := executionService.NewExecutionService(kubeClient, executionContextStore, metadataStore, secretStore)
 	worker := NewWorker(executionSvc, executionContextStore, scheduleStore, scheduleContextStore, mailer)
-	ticker := time.NewTicker(time.Duration(config.ScheduledJobsFetchIntervalInMins()) * time.Minute)
+	ticker := time.NewTicker(time.Duration(config.Config().ScheduledJobsFetchIntervalInMins) * time.Minute)
 	signalsChan := make(chan os.Signal, 1)
 
 	worker.Run(ticker.C, signalsChan)

@@ -34,7 +34,7 @@ func init() {
 		Kind:       "Job",
 		APIVersion: "batch/v1",
 	}
-	namespace = config.DefaultNamespace()
+	namespace = config.Config().DefaultNamespace
 }
 
 type KubernetesClient interface {
@@ -53,15 +53,15 @@ type kubernetesClient struct {
 
 func NewClientSet() (*kubernetes.Clientset, error) {
 	var kubeConfig *kubeRestClient.Config
-	if config.KubeConfig() == "out-of-cluster" {
+	if config.Config().KubeConfig == "out-of-cluster" {
 		logger.Info("service is running outside kube cluster")
 		home := os.Getenv("HOME")
 
 		kubeConfigPath := filepath.Join(home, ".kube", "config")
 
 		configOverrides := &clientcmd.ConfigOverrides{}
-		if config.KubeContext() != "default" {
-			configOverrides.CurrentContext = config.KubeContext()
+		if config.Config().KubeContext != "default" {
+			configOverrides.CurrentContext = config.Config().KubeContext
 		}
 
 		var err error
@@ -156,7 +156,7 @@ func (client *kubernetesClient) ExecuteJobWithCommand(imageName string, envMap m
 	objectMeta := meta.ObjectMeta{
 		Name:        executionName,
 		Labels:      label,
-		Annotations: config.JobPodAnnotations(),
+		Annotations: config.Config().JobPodAnnotations,
 	}
 
 	template := v1.PodTemplateSpec{
@@ -166,8 +166,8 @@ func (client *kubernetesClient) ExecuteJobWithCommand(imageName string, envMap m
 
 	jobSpec := batch.JobSpec{
 		Template:              template,
-		ActiveDeadlineSeconds: config.KubeJobActiveDeadlineSeconds(),
-		BackoffLimit:          config.KubeJobRetries(),
+		ActiveDeadlineSeconds: config.Config().KubeJobActiveDeadlineSeconds,
+		BackoffLimit:          config.Config().KubeJobRetries,
 	}
 
 	jobToRun := batch.Job{
@@ -192,7 +192,7 @@ func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime t
 	}
 
 	var err error
-	for i := 0; i < config.KubeWaitForResourcePollCount(); i += 1 {
+	for i := 0; i < config.Config().KubeWaitForResourcePollCount; i += 1 {
 		watchJob, watchErr := jobs.Watch(listOptions)
 		if watchErr != nil {
 			err = watchErr
@@ -243,7 +243,7 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 	}
 
 	var err error
-	for i := 0; i < config.KubeWaitForResourcePollCount(); i += 1 {
+	for i := 0; i < config.Config().KubeWaitForResourcePollCount; i += 1 {
 		watchJob, watchErr := kubernetesPods.Watch(listOptions)
 		if watchErr != nil {
 			err = watchErr

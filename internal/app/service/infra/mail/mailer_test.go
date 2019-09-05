@@ -100,7 +100,7 @@ func TestSendMail(t *testing.T) {
 	stringifiedJobArgs := MapToString(executionContext.Args)
 	var sendMailClient = `EHLO localhost
 HELO localhost
-MAIL FROM:<` + config.MailUsername() + `>
+MAIL FROM:<` + config.Config().MailUsername + `>
 RCPT TO:<` + recipients[0] + `>
 RCPT TO:<` + recipients[1] + `>
 DATA

@@ -7,7 +7,6 @@ require (
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/briandowns/spinner v0.0.0-20190319032542-ac46072a5a91
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
-	github.com/certifi/gocertifi v0.0.0-20190506164543-d2eda7129713 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -15,7 +14,7 @@ require (
 	github.com/evanphx/json-patch v4.4.0+incompatible // indirect
 	github.com/fatih/color v1.7.0
 	github.com/garyburd/redigo v1.6.0
-	github.com/getsentry/raven-go v0.2.0
+	github.com/go-resty/resty/v2 v2.0.0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/gofuzz v1.0.0 // indirect
@@ -25,6 +24,7 @@ require (
 	github.com/goware/urlx v0.2.0 // indirect
 	github.com/hashicorp/go-version v1.2.0
 	github.com/imdario/mergo v0.3.7 // indirect
+	github.com/jarcoal/httpmock v1.0.4
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/json-iterator/go v1.1.6 // indirect
 	github.com/lib/pq v1.1.1

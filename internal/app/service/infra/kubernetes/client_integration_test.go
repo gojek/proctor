@@ -31,6 +31,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 func (suite *IntegrationTestSuite) TestJobExecution() {
 	t := suite.T()
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
+	config.Reset()
 	envVarsForContainer := map[string]string{"SAMPLE_ARG": "sample-value"}
 	sampleImageName := "busybox"
 
@@ -47,7 +48,7 @@ func (suite *IntegrationTestSuite) TestJobExecution() {
 		LabelSelector: jobLabelSelector(executedJobname),
 	}
 
-	namespace := config.DefaultNamespace()
+	namespace := config.Config().DefaultNamespace
 	listOfJobs, err := suite.clientSet.BatchV1().Jobs(namespace).List(listOptions)
 	assert.NoError(t, err)
 	executedJob := listOfJobs.Items[0]
@@ -59,8 +60,8 @@ func (suite *IntegrationTestSuite) TestJobExecution() {
 	assert.Equal(t, expectedLabel, executedJob.ObjectMeta.Labels)
 	assert.Equal(t, map[string]string{"key.one": "true"}, executedJob.Spec.Template.Annotations)
 
-	assert.Equal(t, config.KubeJobActiveDeadlineSeconds(), executedJob.Spec.ActiveDeadlineSeconds)
-	assert.Equal(t, config.KubeJobRetries(), executedJob.Spec.BackoffLimit)
+	assert.Equal(t, config.Config().KubeJobActiveDeadlineSeconds, executedJob.Spec.ActiveDeadlineSeconds)
+	assert.Equal(t, config.Config().KubeJobRetries, executedJob.Spec.BackoffLimit)
 
 	assert.Equal(t, v1.RestartPolicyNever, executedJob.Spec.Template.Spec.RestartPolicy)
 
