@@ -40,7 +40,7 @@ type Client interface {
 	StreamProcLogs(executionId uint64) error
 	GetExecutionContextStatusWithPolling(executionId uint64) (*modelExecution.ExecutionResult, error)
 	GetExecutionContextStatus(executionId uint64) (*modelExecution.ExecutionResult, error)
-	ScheduleJob(string, string, string, string, string, map[string]string) (string, error)
+	ScheduleJob(string, string, string, string, string, map[string]string) (uint64, error)
 	ListScheduledProcs() ([]modelSchedule.ScheduledJob, error)
 	DescribeScheduledProc(string) (modelSchedule.ScheduledJob, error)
 	RemoveScheduledProc(string) error
@@ -63,7 +63,7 @@ type ProcToExecute struct {
 }
 
 type ScheduleJobPayload struct {
-	ID                 string            `json:"id"`
+	ID                 uint64            `json:"id"`
 	Name               string            `json:"name"`
 	Tags               string            `json:"tags"`
 	Time               string            `json:"time"`
@@ -80,10 +80,10 @@ func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	}
 }
 
-func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string, jobArgs map[string]string) (string, error) {
+func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string, jobArgs map[string]string) (uint64, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	jobPayload := ScheduleJobPayload{
 		Name:               name,
@@ -96,7 +96,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 
 	requestBody, err := json.Marshal(jobPayload)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	client := &http.Client{}
@@ -108,12 +108,12 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return "", buildNetworkError(err)
+		return 0, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
-		return "", buildHTTPError(c, resp)
+		return 0, buildHTTPError(c, resp)
 	}
 
 	var scheduledJob ScheduleJobPayload

@@ -225,7 +225,7 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	expectedProcResponse := "8965fce9-5025-43b3-b21c-920c5ff41cd9"
+	expectedProcResponse := uint64(7)
 	procName := "run-sample"
 	time := "*/1 * * * *"
 	notificationEmails := "user@mail.com"
@@ -233,7 +233,7 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 	group := "test"
 	procArgs := map[string]string{"ARG_ONE": "sample-value"}
 
-	body := `{"id":"8965fce9-5025-43b3-b21c-920c5ff41cd9","name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup", "group":"test"}`
+	body := `{"id":7,"name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup", "group":"test"}`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

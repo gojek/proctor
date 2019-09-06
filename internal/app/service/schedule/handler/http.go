@@ -60,7 +60,7 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 
 		_, err = cron.Parse(schedule.Cron)
 		if err != nil {
-			logger.Error(fmt.Sprintf("Cron format is invalid: %s ", schedule.Tags), schedule.JobName, schedule.Cron)
+			logger.LogErrors(err, fmt.Sprintf("Cron format is invalid: %s ", schedule.Tags), schedule.JobName, schedule.Cron)
 
 			response.WriteHeader(http.StatusBadRequest)
 			_, _ = response.Write([]byte(status.ScheduleCronFormatInvalidError))

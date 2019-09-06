@@ -66,7 +66,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 				print()
 				return
 			}
-			printer.Println(fmt.Sprintf("Scheduled Job UUID : %s", scheduledJobID), color.FgGreen)
+			printer.Println(fmt.Sprintf("Scheduled Job UUID : %d", scheduledJobID), color.FgGreen)
 		},
 	}
 
