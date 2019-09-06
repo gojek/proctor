@@ -285,6 +285,7 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 		}
 	}
 
+	logger.Info("Wait for ready pod return pod ", nil, " and error ", err)
 	return nil, err
 }
 

@@ -640,15 +640,15 @@ func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	jobID := "8965fce9-5025-43b3-b21c-920c5ff41cd9"
-	body := `{"id":"8965fce9-5025-43b3-b21c-920c5ff41cd9","name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup"}`
+	jobID := uint64(7)
+	body := `{"id":7,"name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup"}`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
 	mockResponse := httpmock.NewStringResponse(200, body)
 	mockError := error(nil)
-	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%d", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -664,7 +664,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWithInvalidJobID() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	jobID := "invalid-job-id"
+	jobID := uint64(0)
 	body := "Invalid Job ID"
 
 	httpmock.Activate()
@@ -672,7 +672,7 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWithInvalidJobID() {
 
 	mockResponse := httpmock.NewStringResponse(400, body)
 	mockError := error(nil)
-	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%d", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -686,14 +686,14 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWhenJobIDNotFound() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	jobID := "invalid-job-id"
+	jobID := uint64(7)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
 	mockResponse := httpmock.NewStringResponse(404, "Job not found")
 	mockError := error(nil)
-	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%d", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -707,14 +707,14 @@ func (s *ClientTestSuite) TestDescribeScheduledJobWitInternalServerError() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	jobID := "invalid-job-id"
+	jobID := uint64(0)
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
 	mockResponse := httpmock.NewStringResponse(500, "Schedule Failed")
 	mockError := error(nil)
-	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
+	mockRequest(proctorConfig, "GET", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%d", jobID), mockResponse, mockError)
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
@@ -728,8 +728,8 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobs() {
 	t := s.T()
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
-	jobID := "c3e040b1-c2b8-4d23-bebd-246c8b7c6f87"
-	body := `[{"id":"c3e040b1-c2b8-4d23-bebd-246c8b7c6f87","name":"run-sample","args":{"ARG2":"bar","ARG3":"test","ARG_ONE1":"foobar"},"notification_emails":"username@mail.com","time":"0 2 * * *","tags":"sample,proctor"}]`
+	jobID := uint64(7)
+	body := `[{"id":7,"name":"run-sample","args":{"ARG2":"bar","ARG3":"test","ARG_ONE1":"foobar"},"notification_emails":"username@mail.com","time":"0 2 * * *","tags":"sample,proctor"}]`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

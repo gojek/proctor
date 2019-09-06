@@ -25,7 +25,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 
 			printer.Println(fmt.Sprintf("%-40s %-30s %-20s %s", "ID", "PROC NAME", "GROUP NAME", "TAGS"), color.FgGreen)
 			for _, scheduledProc := range scheduledProcs {
-				printer.Println(fmt.Sprintf("%-40s %-30s %-20s %s", scheduledProc.ID, scheduledProc.Name, scheduledProc.Group, scheduledProc.Tags), color.Reset)
+				printer.Println(fmt.Sprintf("%-40d %-30s %-20s %s", scheduledProc.ID, scheduledProc.Name, scheduledProc.Group, scheduledProc.Tags), color.Reset)
 			}
 		},
 	}

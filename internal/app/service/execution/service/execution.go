@@ -148,6 +148,7 @@ func (service *executionService) watchProcess(context model.ExecutionContext) {
 	logger.Info("Job Ready for ", context.ExecutionID)
 
 	pod, err := service.kubernetesClient.WaitForReadyPod(context.Name, waitTime)
+	logger.LogErrors(err, "wait for ready pod", pod)
 	if err != nil {
 		context.Status = status.PodCreationFailed
 		return

@@ -42,7 +42,7 @@ type Client interface {
 	GetExecutionContextStatus(executionId uint64) (*modelExecution.ExecutionResult, error)
 	ScheduleJob(string, string, string, string, string, map[string]string) (uint64, error)
 	ListScheduledProcs() ([]modelSchedule.ScheduledJob, error)
-	DescribeScheduledProc(string) (modelSchedule.ScheduledJob, error)
+	DescribeScheduledProc(uint64) (modelSchedule.ScheduledJob, error)
 	RemoveScheduledProc(string) error
 }
 
@@ -62,16 +62,6 @@ type ProcToExecute struct {
 	Args map[string]string `json:"args"`
 }
 
-type ScheduleJobPayload struct {
-	ID                 uint64            `json:"id"`
-	Name               string            `json:"name"`
-	Tags               string            `json:"tags"`
-	Time               string            `json:"time"`
-	NotificationEmails string            `json:"notification_emails"`
-	Group              string            `json:"group_name"`
-	Args               map[string]string `json:"args"`
-}
-
 func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	return &client{
 		clientVersion:       version.ClientVersion,
@@ -85,7 +75,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 	if err != nil {
 		return 0, err
 	}
-	jobPayload := ScheduleJobPayload{
+	jobPayload := modelSchedule.ScheduledJob{
 		Name:               name,
 		Tags:               tags,
 		Time:               time,
@@ -116,7 +106,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 		return 0, buildHTTPError(c, resp)
 	}
 
-	var scheduledJob ScheduleJobPayload
+	var scheduledJob modelSchedule.ScheduledJob
 	err = json.NewDecoder(resp.Body).Decode(&scheduledJob)
 
 	return scheduledJob.ID, err
@@ -197,7 +187,7 @@ func (c *client) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) {
 	return scheduledProcsList, err
 }
 
-func (c *client) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob, error) {
+func (c *client) DescribeScheduledProc(jobID uint64) (modelSchedule.ScheduledJob, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return modelSchedule.ScheduledJob{}, err
@@ -206,7 +196,7 @@ func (c *client) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
-	url := fmt.Sprintf("http://"+c.proctordHost+ScheduleRoute+"/%s", jobID)
+	url := fmt.Sprintf("http://"+c.proctordHost+ScheduleRoute+"/%d", jobID)
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)

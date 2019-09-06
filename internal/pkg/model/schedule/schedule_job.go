@@ -1,7 +1,7 @@
 package schedule
 
 type ScheduledJob struct {
-	ID                 string            `json:"id"`
+	ID                 uint64            `json:"id"`
 	Name               string            `json:"name"`
 	Args               map[string]string `json:"args"`
 	NotificationEmails string            `json:"notification_emails"`

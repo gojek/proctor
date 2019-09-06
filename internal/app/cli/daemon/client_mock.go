@@ -47,7 +47,7 @@ func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string, gr
 	return args.Get(0).(uint64), args.Error(1)
 }
 
-func (m *MockClient) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob, error) {
+func (m *MockClient) DescribeScheduledProc(jobID uint64) (modelSchedule.ScheduledJob, error) {
 	args := m.Called(jobID)
 	return args.Get(0).(modelSchedule.ScheduledJob), args.Error(1)
 }
