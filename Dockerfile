@@ -5,6 +5,8 @@ RUN make plugin.auth
 RUN make server
 
 FROM ubuntu:latest
+RUN apt-get update
+RUN apt-get install -y ca-certificates
 WORKDIR /app/
 COPY --from=builder /go/src/app/_output/bin/server .
 COPY --from=builder /go/src/app/_output/bin/plugin/auth.so .
