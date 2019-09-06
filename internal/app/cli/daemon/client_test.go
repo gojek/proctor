@@ -641,7 +641,7 @@ func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	jobID := uint64(7)
-	body := `{"id":7,"name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","cron":"*/1 * * * *","tags":"db,backup"}`
+	body := `{"id":7,"jobName":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","cron":"*/1 * * * *","tags":"db,backup"}`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -729,7 +729,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobs() {
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	jobID := uint64(7)
-	body := `[{"id":7,"name":"run-sample","args":{"ARG2":"bar","ARG3":"test","ARG_ONE1":"foobar"},"notification_emails":"username@mail.com","cron":"0 2 * * *","tags":"sample,proctor"}]`
+	body := `[{"id":7,"jobName":"run-sample","args":{"ARG2":"bar","ARG3":"test","ARG_ONE1":"foobar"},"notification_emails":"username@mail.com","cron":"0 2 * * *","tags":"sample,proctor"}]`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
