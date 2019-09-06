@@ -70,7 +70,7 @@ func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	}
 }
 
-func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string, jobArgs map[string]string) (uint64, error) {
+func (c *client) ScheduleJob(name, tags, cron, notificationEmails, group string, jobArgs map[string]string) (uint64, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return 0, err
@@ -78,7 +78,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 	jobPayload := modelSchedule.ScheduledJob{
 		Name:               name,
 		Tags:               tags,
-		Time:               time,
+		Cron:               cron,
 		NotificationEmails: notificationEmails,
 		Args:               jobArgs,
 		Group:              group,

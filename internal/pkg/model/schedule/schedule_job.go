@@ -5,7 +5,7 @@ type ScheduledJob struct {
 	Name               string            `json:"name"`
 	Args               map[string]string `json:"args"`
 	NotificationEmails string            `json:"notification_emails"`
-	Time               string            `json:"time"`
+	Cron               string            `json:"cron"`
 	Tags               string            `json:"tags"`
 	Group              string            `json:"group_name"`
 }

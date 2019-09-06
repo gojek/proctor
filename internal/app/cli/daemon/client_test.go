@@ -227,13 +227,13 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	expectedProcResponse := uint64(7)
 	procName := "run-sample"
-	time := "*/1 * * * *"
+	cron := "*/1 * * * *"
 	notificationEmails := "user@mail.com"
 	tags := "db,backup"
 	group := "test"
 	procArgs := map[string]string{"ARG_ONE": "sample-value"}
 
-	body := `{"id":7,"name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup", "group":"test"}`
+	body := `{"id":7,"name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","cron":"*/1 * * * *","tags":"db,backup", "group":"test"}`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -244,7 +244,7 @@ func (s *ClientTestSuite) TestSuccessScheduledJob() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	executeProcResponse, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
+	executeProcResponse, err := s.testClient.ScheduleJob(procName, tags, cron, notificationEmails, group, procArgs)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProcResponse, executeProcResponse)
@@ -256,7 +256,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	procName := "run-sample"
-	time := "*/1 * * * *"
+	cron := "*/1 * * * *"
 	notificationEmails := "user@mail.com"
 	tags := "db,backup"
 	procArgs := map[string]string{"ARG_ONE": "sample-value"}
@@ -271,7 +271,7 @@ func (s *ClientTestSuite) TestSchedulingAlreadyExistedScheduledJob() {
 
 	s.mockConfigLoader.On("Load").Return(proctorConfig, config.ConfigError{}).Once()
 
-	_, err := s.testClient.ScheduleJob(procName, tags, time, notificationEmails, group, procArgs)
+	_, err := s.testClient.ScheduleJob(procName, tags, cron, notificationEmails, group, procArgs)
 	assert.Equal(t, "Server Error!!!\nStatus Code: 409, Conflict", err.Error())
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -641,7 +641,7 @@ func (s *ClientTestSuite) TestSuccessDescribeScheduledJob() {
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	jobID := uint64(7)
-	body := `{"id":7,"name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","time":"*/1 * * * *","tags":"db,backup"}`
+	body := `{"id":7,"name":"run-sample","args":{"ARG_ONE":"sample-value"},"notification_emails":"user@mail.com","cron":"*/1 * * * *","tags":"db,backup"}`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -729,7 +729,7 @@ func (s *ClientTestSuite) TestSuccessListOfScheduledJobs() {
 
 	proctorConfig := config.ProctorConfig{Host: "proctor.example.com", Email: "proctor@example.com", AccessToken: "access-token"}
 	jobID := uint64(7)
-	body := `[{"id":7,"name":"run-sample","args":{"ARG2":"bar","ARG3":"test","ARG_ONE1":"foobar"},"notification_emails":"username@mail.com","time":"0 2 * * *","tags":"sample,proctor"}]`
+	body := `[{"id":7,"name":"run-sample","args":{"ARG2":"bar","ARG3":"test","ARG_ONE1":"foobar"},"notification_emails":"username@mail.com","cron":"0 2 * * *","tags":"sample,proctor"}]`
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
