@@ -40,9 +40,9 @@ type Client interface {
 	StreamProcLogs(executionId uint64) error
 	GetExecutionContextStatusWithPolling(executionId uint64) (*modelExecution.ExecutionResult, error)
 	GetExecutionContextStatus(executionId uint64) (*modelExecution.ExecutionResult, error)
-	ScheduleJob(string, string, string, string, string, map[string]string) (string, error)
+	ScheduleJob(string, string, string, string, string, map[string]string) (uint64, error)
 	ListScheduledProcs() ([]modelSchedule.ScheduledJob, error)
-	DescribeScheduledProc(string) (modelSchedule.ScheduledJob, error)
+	DescribeScheduledProc(uint64) (modelSchedule.ScheduledJob, error)
 	RemoveScheduledProc(string) error
 }
 
@@ -62,16 +62,6 @@ type ProcToExecute struct {
 	Args map[string]string `json:"args"`
 }
 
-type ScheduleJobPayload struct {
-	ID                 string            `json:"id"`
-	Name               string            `json:"name"`
-	Tags               string            `json:"tags"`
-	Time               string            `json:"time"`
-	NotificationEmails string            `json:"notification_emails"`
-	Group              string            `json:"group_name"`
-	Args               map[string]string `json:"args"`
-}
-
 func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	return &client{
 		clientVersion:       version.ClientVersion,
@@ -80,15 +70,15 @@ func NewClient(printer io.Printer, proctorConfigLoader config.Loader) Client {
 	}
 }
 
-func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string, jobArgs map[string]string) (string, error) {
+func (c *client) ScheduleJob(name, tags, cron, notificationEmails, group string, jobArgs map[string]string) (uint64, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	jobPayload := ScheduleJobPayload{
+	jobPayload := modelSchedule.ScheduledJob{
 		Name:               name,
 		Tags:               tags,
-		Time:               time,
+		Cron:               cron,
 		NotificationEmails: notificationEmails,
 		Args:               jobArgs,
 		Group:              group,
@@ -96,7 +86,7 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 
 	requestBody, err := json.Marshal(jobPayload)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	client := &http.Client{}
@@ -108,15 +98,15 @@ func (c *client) ScheduleJob(name, tags, time, notificationEmails, group string,
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return "", buildNetworkError(err)
+		return 0, buildNetworkError(err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusCreated {
-		return "", buildHTTPError(c, resp)
+		return 0, buildHTTPError(c, resp)
 	}
 
-	var scheduledJob ScheduleJobPayload
+	var scheduledJob modelSchedule.ScheduledJob
 	err = json.NewDecoder(resp.Body).Decode(&scheduledJob)
 
 	return scheduledJob.ID, err
@@ -197,7 +187,7 @@ func (c *client) ListScheduledProcs() ([]modelSchedule.ScheduledJob, error) {
 	return scheduledProcsList, err
 }
 
-func (c *client) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob, error) {
+func (c *client) DescribeScheduledProc(jobID uint64) (modelSchedule.ScheduledJob, error) {
 	err := c.loadProctorConfig()
 	if err != nil {
 		return modelSchedule.ScheduledJob{}, err
@@ -206,7 +196,7 @@ func (c *client) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob
 	client := &http.Client{
 		Timeout: c.connectionTimeoutSecs,
 	}
-	url := fmt.Sprintf("http://"+c.proctordHost+ScheduleRoute+"/%s", jobID)
+	url := fmt.Sprintf("http://"+c.proctordHost+ScheduleRoute+"/%d", jobID)
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Add(constant.UserEmailHeaderKey, c.emailId)
 	req.Header.Add(constant.AccessTokenHeaderKey, c.accessToken)

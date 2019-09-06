@@ -195,6 +195,7 @@ func (client *kubernetesClient) WaitForReadyJob(executionName string, waitTime t
 	for i := 0; i < config.Config().KubeWaitForResourcePollCount; i += 1 {
 		watchJob, watchErr := jobs.Watch(listOptions)
 		if watchErr != nil {
+			err = watchErr
 			continue
 		}
 
@@ -245,12 +246,12 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 	for i := 0; i < config.Config().KubeWaitForResourcePollCount; i += 1 {
 		watchJob, watchErr := kubernetesPods.Watch(listOptions)
 		if watchErr != nil {
+			err = watchErr
 			continue
 		}
 
 		timeoutChan := time.After(waitTime)
 		resultChan := watchJob.ResultChan()
-		defer watchJob.Stop()
 
 		var pod *v1.Pod
 		for {
@@ -284,6 +285,7 @@ func (client *kubernetesClient) WaitForReadyPod(executionName string, waitTime t
 		}
 	}
 
+	logger.Info("Wait for ready pod return pod ", nil, " and error ", err)
 	return nil, err
 }
 

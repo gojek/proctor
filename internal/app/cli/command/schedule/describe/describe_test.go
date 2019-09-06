@@ -25,7 +25,7 @@ func (s *ScheduleCreateCmdTestSuite) SetupTest() {
 func (s *ScheduleCreateCmdTestSuite) TestScheduleCreateCmdHelp() {
 	assert.Equal(s.T(), "Describe scheduled job", s.testScheduleDescribeCmd.Short)
 	assert.Equal(s.T(), "This command helps to describe scheduled job", s.testScheduleDescribeCmd.Long)
-	assert.Equal(s.T(), "proctor schedule describe D958FCCC-F2B3-49D1-B83A-4E70A2A775A0", s.testScheduleDescribeCmd.Example)
+	assert.Equal(s.T(), "proctor schedule describe 502376124721", s.testScheduleDescribeCmd.Example)
 }
 
 func TestScheduleCreateCmdTestSuite(t *testing.T) {

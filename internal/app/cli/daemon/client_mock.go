@@ -42,12 +42,12 @@ func (m *MockClient) GetExecutionContextStatus(executionId uint64) (*modelExecut
 	return args.Get(0).(*modelExecution.ExecutionResult), args.Error(1)
 }
 
-func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string, group string, jobArgs map[string]string) (string, error) {
+func (m *MockClient) ScheduleJob(name, tags, time, notificationEmails string, group string, jobArgs map[string]string) (uint64, error) {
 	args := m.Called(name, tags, time, notificationEmails, group, jobArgs)
-	return args.Get(0).(string), args.Error(1)
+	return args.Get(0).(uint64), args.Error(1)
 }
 
-func (m *MockClient) DescribeScheduledProc(jobID string) (modelSchedule.ScheduledJob, error) {
+func (m *MockClient) DescribeScheduledProc(jobID uint64) (modelSchedule.ScheduledJob, error) {
 	args := m.Called(jobID)
 	return args.Get(0).(modelSchedule.ScheduledJob), args.Error(1)
 }
