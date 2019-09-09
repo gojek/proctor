@@ -8,41 +8,104 @@
 </p>
 
 ## Description
+Proctor is a set of components that allow user to do automated task with configurable access policy.
+Bundle repetitive task as a automation and turn it into `procs` to make it easier for user to do it themself.
 
-Proctor is a developer friendly automation orchestrator. It helps everyone use automation and contribute to it
+Before we goes deep down into explanation about proctor, you may want to read about [Proctor Glossary](docs/glossary.md)
 
-### Dev environment setup
+## Installation
+This section provide installation for unix environment.
+
+General step
 
 * Install and setup golang
-* Clone the repository
-* Run `make build`
+* Clone this repository
+* Run `make build`. This will generate binary for proctor cli and service
 
-### proctord
+For proctor service
 
-* `proctord` is the heart of the automation orchestrator
-* It is a web service that handles management and execution of procs
+* Make sure you have running Redis server
+* Make sure you have running Postgres server
+* Make sure you have running Kubernetes Cluster, for setting up local cluster, please refer [here](https://kubernetes.io/docs/setup/learning-environment/minikube/)
+* Copy `.env.sample` into `.env` file. Please refer [here](#proctor-service-configuration-explanation) for configuration explanation
+* Make sure you set correct value in `.env` for Kubernetes, Postgresql, and Redis
+* Export value of `.env` by running `source .env`
+* Run `./_output/bin/server s` to start proctor service
 
-### Dev environment setup
+For proctor cli
 
-* Ensure local postgres server is up and running
-* Ensure local redis server is up and running
-* Install kubectl
-* Configure kubectl to point to desired kubernetes cluster. For setting up kubernetes cluster locally, refer [here](https://kubernetes.io/docs/getting-started-guides/minikube/)
-* Run a kubectl proxy server on your local machine
-* [Configure proctord](#proctord-configuration)
-* Setup & Run database migrations by running this command `make db.setup` from the repo directory
-* Start service by `make start-server`
-* Run `curl {host-address:port}/ping` for health-check of service
+* Run `./_output/bin/cli config PROCTOR_HOST=<proctor-service-host>` to point you proctor cli to local proctor service
+* Run `./_output/bin/cli` to see complete usage of proctor cli
 
-#### proctord configuration
+## Proctor Components
+Here's the overview of proctor components.
+![Proctor component](./assets/img/proctor_components.jpg)
 
-* Copy `.env.sample` into `.env` file
-* Please refer meaning of `proctord` configuration [here](#proctord-configuration-explanation)
-* Modify configuration for dev setup in `.env` file
-* Export environment variables configured in `.env` file by running `source .env`
-* `proctor server` gets configuration from environment variables.
+#### Proctor CLI
+Proctor cli is a command line interface that used by client to interact with Proctor service.
+Proctor cli read user configuration such as Proctor service host, user email, and user token from `~/.proctor/proctor.yaml`.
 
-#### proctord configuration explanation
+#### Proctor Service
+Proctor service govern the main process of Proctor such as:
+  * Create execution context
+  * Create and read procs metadata
+  * Create and read procs secret
+  * Order the execution of procs
+  * Get execution status and log of running procs
+
+#### Context Store
+Currently Proctor service use postgres to store execution context of procs.
+
+#### Metadata Store
+Metadata store contain all procs metadata, procs that doesn't have metadata on store cannot be executed.
+
+#### Secret Store
+Secret store contain secret value that needed by procs to executed.
+
+#### Executor
+Executor is the one that executing the procs, we use Kubernetes Job as executor.
+Proctor service will send the procs name, needed args then executor will pull necessary image to run the procs.
+Proctor service will occasionally contact executor to get status of requested procs.
+
+## Procs Execution Flow
+Here's what happen between Proctor components when client want to execute a procs.
+  1. Cli send execution request to service. This request consist of procs name, procs args, and user credentials.
+  2. Service get metadata and secret for requested procs.
+  3. Service create execution context to store data related to procs execution.
+  4. Service tell the executor to run the procs image along with user argument and procs secret.
+  5. Service watch the process run by executor by getting the log and execution status then write it to execution context.
+
+## Security flow
+Some route is protected by authentication, authorization or both.
+Authenticated user means that user should have account related with proctor.
+Authorized user means that user should be part of groups that defined on procs meatadata, for example when procs authorized groups is `proctor-user`, and `dev` then user need to be a member of both groups.
+
+Proctor doesn't come with built in auth implementation, it's using configurable [plugin](#plugin) mechanism
+
+## Plugin
+Proctor service support plugin for authentication and authorization using go plugin.
+It create limitation that proctor service can only be used on Linux and MacOS (Until the time go plugin support other OS).
+
+By using authentication and authorization as a plugin you can customize this process using your organization current user management.
+
+#### How to make custom plugin
+Creating plugin for auth (authentication and authorization) means creating a struct that implement [Auth interface](./pkg/auth/auth.go) then initialize it.
+Begin using your custom plugin by building it with below command:
+```sh
+go build -race -buildmode=plugin -o ./_output/bin/plugin/auth.so <your-plugin-file>
+```
+Plug your custom plugin to proctor service by pointing the `PROCTOR_AUTH_PLUGIN_EXPORTED` environment variable to variable exported by plugin and `PROCTOR_AUTH_PLUGIN_BINARY` to `auth.so` file generated by command above.
+After you finish it then proctor service will use your plugin.
+
+#### Examples
+If you like to jump in directly to example implementation then you can explore our default auth plugin [here](./plugins/gate-auth-plugin/auth.go).
+This implementation is using [Gate](https://github.com/gate-sso/gate) as its user management.
+
+## Procs Creation
+
+You can read [here](./docs/creating_procs.md) to learn more about creating procs.
+
+## Proctor Service Configuration Explanation
 
 * `PROCTOR_APP_PORT` is port on which service will run
 * `PROCTOR_LOG_LEVEL` defines log levels of service. Available options are: `debug`,`info`,`warn`,`error`,`fatal`,`panic`
@@ -55,6 +118,7 @@ Proctor is a developer friendly automation orchestrator. It helps everyone use a
 * If a job doesn't reach completion, it is terminated after `PROCTOR_KUBE_JOB_ACTIVE_DEADLINE_SECONDS`
 * `PROCTOR_KUBE_JOB_RETRIES` is the number of retries for a kubernetes job (on failure)
 * `PROCTOR_DEFAULT_NAMESPACE` is the namespace under which jobs will be run in kubernetes cluster. By default, K8s has namespace "default". If you set another value, please create namespace in K8s before deploying `proctord`
+* `PROCTOR_KUBE_CONTEXT` is used the name of context you want to use when running out of cluster.
 * `PROCTOR_KUBE_CLUSTER_HOST_NAME` is address/ip address to api-server of kube cluster. It is used for fetching logs of a pod using https
 * `PROCTOR_KUBE_CA_CERT_ENCODED` is the CA cert file encoded in base64. This is used for establishing authority while talking to kubernetes api-server on a public https call
 * `PROCTOR_KUBE_BASIC_AUTH_ENCODED` is the base64 encoded authentication of kubernetes. Enocde `username:password` to base64 and set this config.
