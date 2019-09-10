@@ -7,18 +7,36 @@ go:
 services:
   - redis-server
   - postgresql
+  - docker
+
+env:
+  global:
+    - secure: qQqXZ/2rvDqyvlQOqjPzE7I7XKwug18Hxl65gGfL9G69HiY2BFY4rN/hBxXQXXWTJK4F3LYNgpGgSYHC8v6UdDBUoltxcSEgiYluDXkz31cej/O1pUXR+cH1H3y9AM+D8S89YmDlBuT3OthZRE1K77hwXgETOxAe59UzP81COK/vrZBW8n/cQjCRnLPoNzfI/jIhHAIWmcNRS5hxD9zPvN98P5n2H0tfzEMNhvwW3EUoziEk6srKUu0bhsH4Djl6MR8vGkqWn1TM3LzwaxADLw9qNlZnT6+EHJbScqcdm19KFM/13ADzSNOi7mnLaiiIXreffNZhbUETpyG508bMPS9G0FcKiz1b/8hWPGWVQQYDDVZ4F2Hw3i7sGC+7wnbUUYinjgpAfH6Omp1lfRzzSEFQMPlFYb1RPBDE5cgBJaiS6cmx98H/c3gbu7euEIVxggOItg1Msyek/FTraFxhHn3KGMcG7CvlqXfUfdoPBLHYQ+plTUTZ2IBfnnAvvrKZJ1Fqp7S3LZvZDvIm0ksg3iaM8TSylEViYu8+aB4Zi/EEwJTP7m8CU0I0LBno9HYkGEAfXtW9XeS5CtFJG5mBqw9cgXjWBEXdY376Ptp1/76//AgpRF7R9zXNBwcB5sOkM57Z5ZBgo7PE9duTZQ09hTsPlgR0f4q4rZreUe/Hx00=
+    - secure: GrY4QImh1SiTcQ59sVcJTnRpdc0yLQxUHBkhAZIdj5h+qRpDoWUS+QUoEj+F37GpDkSuKBI863mXOFWsszKq7bP5cu+S8xI45ZpEGSO0AJ4en/Mf6sFOEghx5Kn6EYKRrcZCOFruFztwQX1Men3WtcCgfz7ID1yc7d+NXl5Ai0OiiFax9DfNwDyD/PE3qk5tuiUH5Blo+603xqchCA0Qsr1v8NQPgdQJgsSVddpPrJAeDOHu4uEtSjtxHjxIJBuHMu5Z7lb6ksXSqW65ntpVWOpzhlyYQSIEsuCp7Y+o+R2X/P5ocqMGAwql7EgeVG/HRrpNETn66c0boXwIcX+pkZAcn0OnJOzpRLWvSEH/jJuadEZO1XtrI4xoBbU79XPlHlEjKnWkfhalUAYYu+mts0ijNa4xLrusTB5WSgpuLYjioOBpmC5WDdj4mb+WSQVk2z3Q/fiZ76mghzCM7Of0k6Agu7nInR/2W2+tcJnRbsm3gUhvCXxjebbAIVtclDg0E/pQhaYG/u7eDE6GJweZfeXXaoW6qiRD8697PMCKmGaxeuH9d0qxBvanW05Yi13/nX0iULb0e809uwOzuZIAHg4IxJV1KfMj6N/Ve8wCIQNySIsvtGDkA0SaqElNu+9AVavrASUmaF7yH8fMPqPZFQwiK2M84zCwUnA+a+DbaTE=
 
 before_script:
 - sudo service redis-server start
 
 stages:
   - test
+  - name: docker publish
+    if: (branch = master OR tag IS present) and type != pull_request
 
 jobs:
   include:
     - stage: test
       script:
         - make db.setup test
+    - stage: docker publish
+      install: skip
+      script:
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - docker build -t proctorgojek/proctor-service:latest .
+        - if [ -n "$TRAVIS_TAG" ]; then
+          docker tag proctorgojek/proctor-service:latest proctorgojek/proctor-service:$TRAVIS_TAG;
+          fi
+        - docker images
+        - docker push proctorgojek/proctor-service
 
 #after_success:
 #  - scripts/release.sh
