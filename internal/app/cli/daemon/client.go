@@ -82,6 +82,7 @@ func (c *client) ScheduleJob(name, tags, cron, notificationEmails, group string,
 		NotificationEmails: notificationEmails,
 		Args:               jobArgs,
 		Group:              group,
+		Enabled:            true,
 	}
 
 	requestBody, err := json.Marshal(jobPayload)

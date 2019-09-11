@@ -8,4 +8,5 @@ type ScheduledJob struct {
 	Cron               string            `json:"cron"`
 	Tags               string            `json:"tags"`
 	Group              string            `json:"group"`
+	Enabled            bool              `json:"enabled"`
 }
