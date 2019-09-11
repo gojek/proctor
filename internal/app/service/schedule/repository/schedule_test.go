@@ -50,14 +50,21 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_Insert() {
 	assert.NotNil(t, id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err := suite.repository.GetByID(id)
+	actualSchedule, err := suite.repository.GetByID(id)
 	assert.NoError(t, err)
-	assert.NotNil(t, expectedSchedule)
+	assert.NotNil(t, actualSchedule)
 
-	assert.Equal(t, id, expectedSchedule.ID)
-	assert.NotNil(t, expectedSchedule.CreatedAt)
-	assert.NotNil(t, expectedSchedule.UpdatedAt)
-	assert.Equal(t, expectedSchedule.Args[mapKey], mapValue)
+	assert.Equal(t, id, actualSchedule.ID)
+	assert.NotNil(t, actualSchedule.CreatedAt)
+	assert.NotNil(t, actualSchedule.UpdatedAt)
+	assert.Equal(t, mapValue, actualSchedule.Args[mapKey])
+	assert.Equal(t, schedule.JobName, actualSchedule.JobName)
+	assert.Equal(t, schedule.UserEmail, actualSchedule.UserEmail)
+	assert.Equal(t, schedule.Cron, actualSchedule.Cron)
+	assert.Equal(t, schedule.Tags, actualSchedule.Tags)
+	assert.Equal(t, schedule.NotificationEmails, actualSchedule.NotificationEmails)
+	assert.Equal(t, schedule.Group, actualSchedule.Group)
+	assert.Equal(t, schedule.Enabled, actualSchedule.Enabled)
 }
 
 func (suite *ScheduleTestSuite) TestScheduleRepository_Delete() {
@@ -100,6 +107,10 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetAll() {
 	assert.NotNil(t, schedules)
 	size := len(schedules)
 	assert.Equal(t, recordCount, size)
+	for _, schedule := range schedules {
+		assert.NotNil(t, schedule)
+		assertScheduleCompleteParam(t, schedule)
+	}
 }
 
 func (suite *ScheduleTestSuite) TestScheduleRepository_GetByUserEmail() {
@@ -120,6 +131,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetByUserEmail() {
 
 	for _, schedule := range schedules {
 		assert.Equal(t, suppliedEmail, schedule.UserEmail)
+		assertScheduleCompleteParam(t, schedule)
 	}
 }
 
@@ -141,6 +153,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetByJobName() {
 
 	for _, schedule := range schedules {
 		assert.Equal(t, suppliedJobName, schedule.JobName)
+		assertScheduleCompleteParam(t, schedule)
 	}
 }
 
@@ -161,6 +174,7 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetAllEnabled() {
 
 	for _, schedule := range schedules {
 		assert.True(t, schedule.Enabled)
+		assertScheduleCompleteParam(t, schedule)
 	}
 }
 
@@ -189,16 +203,27 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_GetEnabledByID() {
 	assert.NotNil(t, id)
 	assert.NoError(t, err)
 
-	expectedSchedule, err := suite.repository.GetEnabledByID(id)
+	actualSchedule, err := suite.repository.GetEnabledByID(id)
 	assert.NoError(t, err)
-	assert.NotNil(t, expectedSchedule)
-	assert.True(t, expectedSchedule.Enabled)
+	assert.NotNil(t, actualSchedule)
+	assert.True(t, actualSchedule.Enabled)
 
 	willNotExistsID := uint64(17777717)
 	unexpectedSchedule, err := suite.repository.GetEnabledByID(willNotExistsID)
 	assert.Error(t, err)
 	assert.Nil(t, unexpectedSchedule)
 
+	assert.Equal(t, id, actualSchedule.ID)
+	assert.NotNil(t, actualSchedule.CreatedAt)
+	assert.NotNil(t, actualSchedule.UpdatedAt)
+	assert.Equal(t, mapValue, actualSchedule.Args[mapKey])
+	assert.Equal(t, schedule.JobName, actualSchedule.JobName)
+	assert.Equal(t, schedule.UserEmail, actualSchedule.UserEmail)
+	assert.Equal(t, schedule.Cron, actualSchedule.Cron)
+	assert.Equal(t, schedule.Tags, actualSchedule.Tags)
+	assert.Equal(t, schedule.NotificationEmails, actualSchedule.NotificationEmails)
+	assert.Equal(t, schedule.Group, actualSchedule.Group)
+	assert.Equal(t, schedule.Enabled, actualSchedule.Enabled)
 }
 
 func (suite *ScheduleTestSuite) TestScheduleRepository_EnableDisable() {
@@ -243,6 +268,20 @@ func (suite *ScheduleTestSuite) TestScheduleRepository_EnableDisable() {
 	assert.NotNil(t, expectedSchedule)
 	assert.True(t, expectedSchedule.Enabled)
 
+}
+
+func assertScheduleCompleteParam(t *testing.T, schedule model.Schedule) {
+	assert.NotNil(t, schedule)
+	assert.NotNil(t, schedule.CreatedAt)
+	assert.NotNil(t, schedule.UpdatedAt)
+	assert.NotEmpty(t, schedule.Args)
+	assert.NotEmpty(t, schedule.JobName)
+	assert.NotEmpty(t, schedule.UserEmail)
+	assert.NotEmpty(t, schedule.Cron)
+	assert.NotEmpty(t, schedule.Tags)
+	assert.NotEmpty(t, schedule.NotificationEmails)
+	assert.NotEmpty(t, schedule.Group)
+	assert.NotNil(t, schedule.Enabled)
 }
 
 func populateSeedDataForTest(repository ScheduleRepository, count int, seedField map[string]string) error {
