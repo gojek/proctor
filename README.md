@@ -80,7 +80,29 @@ Some route is protected by authentication, authorization or both.
 Authenticated user means that user should have account related with proctor.
 Authorized user means that user should be part of groups that defined on procs meatadata, for example when procs authorized groups is `proctor-user`, and `dev` then user need to be a member of both groups.
 
-Proctor doesn't come with built in auth implementation, it's using configurable [plugin](#plugin) mechanism
+A request need head these headers to pass auth process:
+```
+'Access-Token: <user-access-token>'
+'Email-Id: <user-email>'
+```
+
+List of routes that require authentication:
+ - POST /execution
+ - GET /execution/{contextId}/status
+ - GET /execution/logs
+ - GET /metadata
+ - POST /metadata
+ - POST /secret
+ - POST /schedule
+ - GET /schedule
+ - GET /schedule/{scheduleID}
+ - DELETE /schedule/{scheduleID}
+ 
+List of routes that require authorization:
+ - POST /execution
+ - POST /schedule
+
+Proctor doesn't come with built in auth implementation, it's using configurable [plugin](#plugin) mechanism.
 
 ## Plugin
 Proctor service support plugin for authentication and authorization using go plugin.
