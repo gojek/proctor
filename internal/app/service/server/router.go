@@ -56,21 +56,24 @@ func NewRouter() (*mux.Router, error) {
 	jobSecretsHandler := secretHTTPHandler.NewSecretHTTPHandler(secretsStore)
 	scheduleHandler := scheduleHTTPHandler.NewScheduleHTTPHandler(scheduleStore, metadataStore)
 
-	router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
+	authenticationMiddleware := securityMiddleware.NewAuthenticationMiddleware(_securityService)
+	authorizationMiddleware := securityMiddleware.NewAuthorizationMiddleware(_securityService, metadataStore)
+
+	pingRoute := router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
 		_, _ = fmt.Fprintf(w, "pong")
 	})
 
-	router.HandleFunc("/docs", docs.APIDocHandler)
-	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.Config().DocsPath))))
-	router.HandleFunc("/swagger.yml", func(w http.ResponseWriter, r *http.Request) {
+	docsRoute := router.HandleFunc("/docs", docs.APIDocHandler)
+	docsSubRoute := router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.Config().DocsPath))))
+	swaggerRoute := router.HandleFunc("/swagger.yml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, path.Join(config.Config().DocsPath, "swagger.yml"))
 	})
 
+	authenticationMiddleware.Exclude(pingRoute, docsRoute, docsSubRoute, swaggerRoute)
+
 	router = middleware.InstrumentNewRelic(router)
 	router.Use(middleware.ValidateClientVersion)
-	authenticationMiddleware := securityMiddleware.NewAuthenticationMiddleware(_securityService)
 	router.Use(authenticationMiddleware.MiddlewareFunc)
-	authorizationMiddleware := securityMiddleware.NewAuthorizationMiddleware(_securityService, metadataStore)
 
 	authorizationMiddleware.Secure(router, "/execution", executionHandler.Post()).Methods("POST")
 	router.HandleFunc("/execution/{contextId}/status", executionHandler.GetStatus()).Methods("GET")
