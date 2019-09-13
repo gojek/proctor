@@ -149,8 +149,9 @@ func (client *kubernetesClient) ExecuteJobWithCommand(imageName string, envMap m
 	}
 
 	podSpec := v1.PodSpec{
-		Containers:    []v1.Container{container},
-		RestartPolicy: v1.RestartPolicyNever,
+		Containers:         []v1.Container{container},
+		RestartPolicy:      v1.RestartPolicyNever,
+		ServiceAccountName: config.Load().KubeServiceAccountName,
 	}
 
 	objectMeta := meta.ObjectMeta{

@@ -31,6 +31,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 func (suite *IntegrationTestSuite) TestJobExecution() {
 	t := suite.T()
 	_ = os.Setenv("PROCTOR_JOB_POD_ANNOTATIONS", "{\"key.one\":\"true\"}")
+	_ = os.Setenv("PROCTOR_KUBE_SERVICE_ACCOUNT_NAME", "default")
 	config.Reset()
 	envVarsForContainer := map[string]string{"SAMPLE_ARG": "sample-value"}
 	sampleImageName := "busybox"
@@ -59,6 +60,7 @@ func (suite *IntegrationTestSuite) TestJobExecution() {
 	expectedLabel := jobLabel(executedJobname)
 	assert.Equal(t, expectedLabel, executedJob.ObjectMeta.Labels)
 	assert.Equal(t, map[string]string{"key.one": "true"}, executedJob.Spec.Template.Annotations)
+	assert.Equal(t, "default", executedJob.Spec.Template.Spec.ServiceAccountName)
 
 	assert.Equal(t, config.Config().KubeJobActiveDeadlineSeconds, executedJob.Spec.ActiveDeadlineSeconds)
 	assert.Equal(t, config.Config().KubeJobRetries, executedJob.Spec.BackoffLimit)
