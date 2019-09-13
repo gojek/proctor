@@ -60,6 +60,7 @@ type ProctorConfig struct {
 	KubeLogProcessWaitTime           time.Duration
 	KubeJobActiveDeadlineSeconds     *int64
 	KubeJobRetries                   *int32
+	KubeServiceAccountName           string
 	PostgresUser                     string
 	PostgresPassword                 string
 	PostgresHost                     string
@@ -103,6 +104,7 @@ func Load() ProctorConfig {
 		KubeLogProcessWaitTime:           time.Duration(fang.GetInt("KUBE_LOG_PROCESS_WAIT_TIME")),
 		KubeJobActiveDeadlineSeconds:     GetInt64Ref(fang, "KUBE_JOB_ACTIVE_DEADLINE_SECONDS"),
 		KubeJobRetries:                   GetInt32Ref(fang, "KUBE_JOB_RETRIES"),
+		KubeServiceAccountName:           fang.GetString("KUBE_SERVICE_ACCOUNT_NAME"),
 		PostgresUser:                     fang.GetString("POSTGRES_USER"),
 		PostgresPassword:                 fang.GetString("POSTGRES_PASSWORD"),
 		PostgresHost:                     fang.GetString("POSTGRES_HOST"),

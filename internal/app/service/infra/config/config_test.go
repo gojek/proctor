@@ -83,6 +83,13 @@ func TestKubeJobRetries(t *testing.T) {
 	assert.Equal(t, &expectedValue, Load().KubeJobRetries)
 }
 
+func TestKubeServiceName(t *testing.T) {
+	_ = os.Setenv("PROCTOR_KUBE_SERVICE_ACCOUNT_NAME", "proctor")
+
+	expectedValue := "proctor"
+	assert.Equal(t, expectedValue, Load().KubeServiceAccountName)
+}
+
 func TestPostgresUser(t *testing.T) {
 	_ = os.Setenv("PROCTOR_POSTGRES_USER", "postgres")
 
