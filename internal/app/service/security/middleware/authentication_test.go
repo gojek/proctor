@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"net/http"
 	"net/http/httptest"
@@ -46,9 +47,9 @@ func TestAuthenticationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 	defer ctx.tearDown()
 
 	userDetail := &auth.UserDetail{
-		Name: "William Dembo",
-		Email: "email@gmail.com",
-		Active:true,
+		Name:   "William Dembo",
+		Email:  "email@gmail.com",
+		Active: true,
 		Groups: []string{"system", "proctor_maintainer"},
 	}
 	securityService := ctx.instance().securityService
@@ -159,6 +160,30 @@ func TestAuthenticationMiddleware_MiddlewareFuncDisabled(t *testing.T) {
 
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", ts.URL, nil)
+
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestAuthenticationMiddleware_Exclude(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	excludedRoute := &mux.Route{}
+	excludedRoute.Path("/ping").Methods("GET")
+
+	authMiddleware := ctx.instance().authMiddleware
+	authMiddleware.Exclude(excludedRoute)
+
+	testHandler := ctx.instance().testHandler
+	ts := httptest.NewServer(authMiddleware.MiddlewareFunc(testHandler))
+	defer ts.Close()
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", ts.URL+"/ping", nil)
 
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()

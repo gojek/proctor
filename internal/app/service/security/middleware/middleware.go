@@ -9,6 +9,7 @@ const ContextUserDetailKey string = "USER_DETAIL"
 
 type Middleware interface {
 	MiddlewareFunc(http.Handler) http.Handler
+	Exclude(...*mux.Route)
 }
 
 type AuthorizationMiddleware interface {
