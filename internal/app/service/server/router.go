@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"path"
 
@@ -69,7 +70,9 @@ func NewRouter() (*mux.Router, error) {
 		http.ServeFile(w, r, path.Join(config.Config().DocsPath, "swagger.yml"))
 	})
 
-	authenticationMiddleware.Exclude(pingRoute, docsRoute, docsSubRoute, swaggerRoute)
+	metricsRoute := router.Handle("/metrics", promhttp.Handler())
+
+	authenticationMiddleware.Exclude(pingRoute, docsRoute, docsSubRoute, swaggerRoute, metricsRoute)
 
 	router = middleware.InstrumentNewRelic(router)
 	router.Use(middleware.ValidateClientVersion)

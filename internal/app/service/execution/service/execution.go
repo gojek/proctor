@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"proctor/internal/app/service/infra/metrics"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
@@ -83,6 +84,8 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 		Args:        args,
 		Status:      status.Created,
 	}
+
+	metrics.ExecutionCounter.Inc()
 
 	metadata, err := service.metadataRepository.GetByName(jobName)
 	if err != nil {
