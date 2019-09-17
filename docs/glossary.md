@@ -1,7 +1,7 @@
 # Proctor Glossary
 
 ### Execution context
-Execution context or context is a record of procs execution request by user to execute.
+Execution context (or simply context) is a record of an execution that happens on proctor, both from user execution request or invocation from the scheduler.
 Context contain data such as:
   * procs name
   * context name
@@ -10,11 +10,11 @@ Context contain data such as:
   * args given
   * procs output
   * procs status
-
+  
 ### Procs
-Procs is a job to execute using Proctor bundled as docker image and have set of metadata and secrets.
+Procs is a job to execute using Proctor, its bundled as Docker image and have a set of metadata and secrets. Both metadata and secret is a key-value pair 
 
-### Procs metadata
+### Metadata
 Procs metadata or mostly addressed as metadata contain metadata of procs such as:
   * name: Name of the procs
   * description: Description of the procs

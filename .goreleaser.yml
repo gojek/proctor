@@ -10,7 +10,7 @@ builds:
   -
     id: "proctor-cli"
     main: ./cmd/cli/main.go
-    binary: proctor
+    binary: proctor2
     env:
       - CGO_ENABLED=0
 archive:
