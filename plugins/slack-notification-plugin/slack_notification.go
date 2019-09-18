@@ -26,7 +26,7 @@ func (notification *slackNotification) OnNotify(evt event.Event) error {
 }
 
 func newSlackNotification() notification.Observer {
-	slackClient := slack.NewSlackClient(&resty.Client{})
+	slackClient := slack.NewSlackClient(resty.New())
 	return &slackNotification{
 		slackClient: slackClient,
 	}
