@@ -20,9 +20,6 @@ func (notification *slackNotification) OnNotify(evt event.Event) error {
 	default:
 		messageObject = message.NewStandardMessage(evt)
 	}
-	if evt.Type() == string(event.ExecutionEventType) {
-
-	}
 	err := notification.slackClient.Publish(messageObject)
 	return err
 }
