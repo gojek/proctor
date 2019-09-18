@@ -13,6 +13,12 @@ type slackNotification struct {
 }
 
 func (notification *slackNotification) OnNotify(evt event.Event) error {
+	messageObject := notification.generateMessage(evt)
+	err := notification.slackClient.Publish(messageObject)
+	return err
+}
+
+func (notification *slackNotification) generateMessage(evt event.Event) message.Message {
 	var messageObject message.Message
 	switch evt.Type() {
 	case string(event.ExecutionEventType):
@@ -20,8 +26,7 @@ func (notification *slackNotification) OnNotify(evt event.Event) error {
 	default:
 		messageObject = message.NewStandardMessage(evt)
 	}
-	err := notification.slackClient.Publish(messageObject)
-	return err
+	return messageObject
 }
 
 func newSlackNotification() notification.Observer {
