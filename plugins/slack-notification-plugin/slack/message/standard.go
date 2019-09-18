@@ -16,7 +16,7 @@ func (messageObject *standardMessage) JSON() (string, error) {
 		return "", err
 	}
 	textMessage := "User: " + messageObject.evt.User().Email + "\n"
-	textMessage += "Execute job with detail: "
+	textMessage += "Emit event" + messageObject.evt.Type() + " with detail: "
 	textMessage += string(evtDataJSON)
 	messageObject.Text = textMessage
 	byteMessage, err := json.Marshal(messageObject)

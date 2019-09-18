@@ -18,6 +18,7 @@ func TestStandardMessage_JSON(t *testing.T) {
 		"Status":      "CREATED",
 	}
 	evt := event.EventMock{}
+	evt.On("Type").Return("unsupported-event")
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 	defer evt.AssertExpectations(t)
