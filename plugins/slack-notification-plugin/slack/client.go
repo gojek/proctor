@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"errors"
 	"github.com/go-resty/resty/v2"
 	"proctor/plugins/slack-notification-plugin/slack/message"
 )
@@ -20,10 +21,16 @@ func (s *slackClient) Publish(messageObject message.Message) error {
 		return err
 	}
 	path := s.config.url
-	_, err = s.client.R().
+	response, err := s.client.R().
 		SetBody(messageJson).
 		SetHeader("Content-Type", "application/json").
 		Post(path)
+	if err != nil {
+		return err
+	}
+	if response.IsError() {
+		return errors.New(response.String())
+	}
 	return err
 }
 
