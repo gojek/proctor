@@ -57,7 +57,7 @@ func TestSlackNotification_OnNotifyExecution(t *testing.T) {
 		"Status":      "CREATED",
 	}
 	evt := ctx.instance().event
-	evt.On("Type").Return(event.ExecutionEventType)
+	evt.On("Type").Return(string(event.ExecutionEventType))
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
@@ -86,7 +86,7 @@ func TestSlackNotification_OnNotifyExecutionErrorPublish(t *testing.T) {
 		"Status":      "CREATED",
 	}
 	evt := ctx.instance().event
-	evt.On("Type").Return(event.ExecutionEventType)
+	evt.On("Type").Return(string(event.ExecutionEventType))
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
@@ -95,6 +95,35 @@ func TestSlackNotification_OnNotifyExecutionErrorPublish(t *testing.T) {
 
 	err := ctx.instance().slackNotification.OnNotify(evt)
 	assert.Error(t, err)
+
+	ctx.instance().slackClient.AssertExpectations(t)
+}
+
+func TestSlackNotification_OnNotifyUnsupportedEvent(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+	defer ctx.tearDown()
+
+	userData := event.UserData{
+		Email: "proctor@example.com",
+	}
+	content := map[string]string{
+		"ExecutionID": "7",
+		"JobName":     "test-job",
+		"ImageTag":    "test",
+		"Args":        "args",
+		"Status":      "CREATED",
+	}
+	evt := ctx.instance().event
+	evt.On("Type").Return("Unsupported event")
+	evt.On("User").Return(userData)
+	evt.On("Content").Return(content)
+
+	messageObject := message.NewStandardMessage(evt)
+	ctx.instance().slackClient.On("Publish", messageObject).Return(nil)
+
+	err := ctx.instance().slackNotification.OnNotify(evt)
+	assert.NoError(t, err)
 
 	ctx.instance().slackClient.AssertExpectations(t)
 }
