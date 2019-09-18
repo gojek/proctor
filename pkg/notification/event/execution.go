@@ -13,7 +13,7 @@ type executionEvent struct {
 }
 
 func (evt executionEvent) Type() string {
-	return string(executionEventType)
+	return string(ExecutionEventType)
 }
 
 func (evt executionEvent) User() UserData {

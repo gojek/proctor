@@ -2,4 +2,4 @@ package event
 
 type Type string
 
-const executionEventType Type = "EXECUTION_EVENT"
+const ExecutionEventType Type = "EXECUTION_EVENT"
