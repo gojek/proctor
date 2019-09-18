@@ -215,3 +215,15 @@ func TestAuthEnabled(t *testing.T) {
 
 	assert.Equal(t, false, Load().AuthEnabled)
 }
+
+func TestNotificationPluginBinary(t *testing.T) {
+	_ = os.Setenv("PROCTOR_NOTIFICATION_PLUGIN_BINARY", "path-notification")
+
+	assert.Equal(t, "path-notification", Load().NotificationPluginBinary)
+}
+
+func TestNotificationPluginExported(t *testing.T) {
+	_ = os.Setenv("PROCTOR_NOTIFICATION_PLUGIN_EXPORTED", "plugin-notification")
+
+	assert.Equal(t, "plugin-notification", Load().NotificationPluginExported)
+}
