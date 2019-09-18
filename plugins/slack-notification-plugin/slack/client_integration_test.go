@@ -49,7 +49,8 @@ func TestSlackClientIntegration_Publish(t *testing.T) {
 	ctx.setUp(t)
 	defer ctx.tearDown()
 
-	messageObject := message.NewStandardMessage("Message from slack plugin integration test with standard message")
-	err := ctx.instance().slackClient.Publish(messageObject)
+	messageObject := message.MessageMock{}
+	messageObject.On("JSON").Return("{\"text\":\"Message from slack plugin integration test with standard message\"}", nil)
+	err := ctx.instance().slackClient.Publish(&messageObject)
 	assert.NoError(t, err)
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/go-resty/resty/v2"
 	"proctor/pkg/notification"
 	"proctor/pkg/notification/event"
@@ -14,15 +13,8 @@ type slackNotification struct {
 }
 
 func (notification *slackNotification) OnNotify(evt event.Event) error {
-	evtDataJSON, err := json.Marshal(evt.Content())
-	if err != nil {
-		return err
-	}
-	textMessage := "User: " + evt.User().Email + "\n"
-	textMessage += "Execute job with detail: "
-	textMessage += string(evtDataJSON)
-	messageObject := message.NewStandardMessage(textMessage)
-	err = notification.slackClient.Publish(messageObject)
+	messageObject := message.NewStandardMessage(evt)
+	err := notification.slackClient.Publish(messageObject)
 	return err
 }
 
