@@ -2,10 +2,11 @@ package slack
 
 import (
 	"github.com/go-resty/resty/v2"
+	"proctor/plugins/slack-notification-plugin/slack/message"
 )
 
 type SlackClient interface {
-	Publish(message Message) error
+	Publish(messageObject message.Message) error
 }
 
 type slackClient struct {
@@ -13,8 +14,8 @@ type slackClient struct {
 	config SlackConfig
 }
 
-func (s *slackClient) Publish(message Message) error {
-	messageJson, err := message.JSON()
+func (s *slackClient) Publish(messageObject message.Message) error {
+	messageJson, err := messageObject.JSON()
 	if err != nil {
 		return err
 	}

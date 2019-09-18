@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"testing"
 
+	"proctor/plugins/slack-notification-plugin/slack/message"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
@@ -36,8 +38,8 @@ func TestSlackClient_Publish(t *testing.T) {
 	defer ctx.tearDown()
 
 	config := NewSlackConfig()
-	message := MessageMock{}
-	message.On("JSON").Return("message sent", nil)
+	messageObject := message.MessageMock{}
+	messageObject.On("JSON").Return("message sent", nil)
 
 	httpmock.RegisterResponder(
 		"POST",
@@ -54,7 +56,7 @@ func TestSlackClient_Publish(t *testing.T) {
 			return response, nil
 		},
 	)
-	err := ctx.client.Publish(&message)
+	err := ctx.client.Publish(&messageObject)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 }
@@ -64,10 +66,10 @@ func TestSlackClient_PublishErrorJSON(t *testing.T) {
 	ctx.setUp(t)
 	defer ctx.tearDown()
 
-	message := MessageMock{}
-	message.On("JSON").Return("", errors.New("JSON unmarshal error")).Once()
+	messageObject := message.MessageMock{}
+	messageObject.On("JSON").Return("", errors.New("JSON unmarshal error")).Once()
 
-	err := ctx.client.Publish(&message)
+	err := ctx.client.Publish(&messageObject)
 	assert.Error(t, err)
 	assert.Equal(t, 0, httpmock.GetTotalCallCount())
 }
@@ -78,8 +80,8 @@ func TestSlackClient_PublishErrorRequest(t *testing.T) {
 	defer ctx.tearDown()
 
 	config := NewSlackConfig()
-	message := MessageMock{}
-	message.On("JSON").Return("message sent", nil)
+	messageObject := message.MessageMock{}
+	messageObject.On("JSON").Return("message sent", nil)
 
 	httpmock.RegisterResponder(
 		"POST",
@@ -96,7 +98,7 @@ func TestSlackClient_PublishErrorRequest(t *testing.T) {
 			return response, errors.New("internal server error")
 		},
 	)
-	err := ctx.client.Publish(&message)
+	err := ctx.client.Publish(&messageObject)
 	assert.Error(t, err)
 	assert.Equal(t, 1, httpmock.GetTotalCallCount())
 }

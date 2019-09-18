@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"proctor/plugins/slack-notification-plugin/slack/message"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -60,8 +61,8 @@ func TestSlackNotification_OnNotify(t *testing.T) {
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
-	message := slack.NewStandardMessage("User: proctor@example.com\nExecute job with detail: {\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
-	ctx.instance().slackClient.On("Publish", message).Return(nil)
+	messageObject := message.NewStandardMessage("User: proctor@example.com\nExecute job with detail: {\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
+	ctx.instance().slackClient.On("Publish", messageObject).Return(nil)
 
 	err := ctx.instance().slackNotification.OnNotify(evt)
 	assert.NoError(t, err)
@@ -89,8 +90,8 @@ func TestSlackNotification_OnNotifyErrorPublish(t *testing.T) {
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
-	message := slack.NewStandardMessage("User: proctor@example.com\nExecute job with detail: {\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
-	ctx.instance().slackClient.On("Publish", message).Return(errors.New("publish error"))
+	messageObject := message.NewStandardMessage("User: proctor@example.com\nExecute job with detail: {\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
+	ctx.instance().slackClient.On("Publish", messageObject).Return(errors.New("publish error"))
 
 	err := ctx.instance().slackNotification.OnNotify(evt)
 	assert.Error(t, err)

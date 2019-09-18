@@ -4,6 +4,8 @@ import (
 	"os"
 	"testing"
 
+	"proctor/plugins/slack-notification-plugin/slack/message"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,7 +49,7 @@ func TestSlackClientIntegration_Publish(t *testing.T) {
 	ctx.setUp(t)
 	defer ctx.tearDown()
 
-	message := NewStandardMessage("Message from slack plugin integration test with standard message")
-	err := ctx.instance().slackClient.Publish(message)
+	messageObject := message.NewStandardMessage("Message from slack plugin integration test with standard message")
+	err := ctx.instance().slackClient.Publish(messageObject)
 	assert.NoError(t, err)
 }

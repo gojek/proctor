@@ -6,6 +6,7 @@ import (
 	"proctor/pkg/notification"
 	"proctor/pkg/notification/event"
 	"proctor/plugins/slack-notification-plugin/slack"
+	"proctor/plugins/slack-notification-plugin/slack/message"
 )
 
 type slackNotification struct {
@@ -20,8 +21,8 @@ func (notification *slackNotification) OnNotify(evt event.Event) error {
 	textMessage := "User: " + evt.User().Email + "\n"
 	textMessage += "Execute job with detail: "
 	textMessage += string(evtDataJSON)
-	message := slack.NewStandardMessage(textMessage)
-	err = notification.slackClient.Publish(message)
+	messageObject := message.NewStandardMessage(textMessage)
+	err = notification.slackClient.Publish(messageObject)
 	return err
 }
 

@@ -1,4 +1,4 @@
-package slack
+package message
 
 import (
 	"github.com/stretchr/testify/mock"

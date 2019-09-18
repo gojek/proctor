@@ -1,4 +1,4 @@
-package slack
+package message
 
 import "encoding/json"
 
@@ -10,8 +10,8 @@ type standardMessage struct {
 	Text string `json:"text"`
 }
 
-func (message *standardMessage) JSON() (string, error) {
-	byteMessage, err := json.Marshal(message)
+func (messageObject *standardMessage) JSON() (string, error) {
+	byteMessage, err := json.Marshal(messageObject)
 	if err != nil {
 		return "", err
 	}
