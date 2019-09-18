@@ -12,12 +12,15 @@ type slackNotification struct {
 }
 
 func (notification *slackNotification) OnNotify(evt event.Event) error {
-	evtDataJSON, _ := json.Marshal(evt.Content())
+	evtDataJSON, err := json.Marshal(evt.Content())
+	if err != nil {
+		return err
+	}
 	textMessage := "User: " + evt.User().Email + "\n"
 	textMessage += "Execute job with detail: "
 	message := slack.NewStandardMessage(string(evtDataJSON))
-	_ = notification.slackClient.Publish(message)
-	return nil
+	err = notification.slackClient.Publish(message)
+	return err
 }
 
 func NewSlackNotification(slackClient slack.SlackClient) notification.Observer {
