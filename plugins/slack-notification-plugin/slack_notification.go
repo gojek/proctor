@@ -18,7 +18,8 @@ func (notification *slackNotification) OnNotify(evt event.Event) error {
 	}
 	textMessage := "User: " + evt.User().Email + "\n"
 	textMessage += "Execute job with detail: "
-	message := slack.NewStandardMessage(string(evtDataJSON))
+	textMessage += string(evtDataJSON)
+	message := slack.NewStandardMessage(textMessage)
 	err = notification.slackClient.Publish(message)
 	return err
 }

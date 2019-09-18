@@ -60,7 +60,7 @@ func TestSlackNotification_OnNotify(t *testing.T) {
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
-	message := slack.NewStandardMessage("{\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
+	message := slack.NewStandardMessage("User: proctor@example.com\nExecute job with detail: {\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
 	ctx.instance().slackClient.On("Publish", message).Return(nil)
 
 	err := ctx.instance().slackNotification.OnNotify(evt)
@@ -89,7 +89,7 @@ func TestSlackNotification_OnNotifyErrorPublish(t *testing.T) {
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
-	message := slack.NewStandardMessage("{\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
+	message := slack.NewStandardMessage("User: proctor@example.com\nExecute job with detail: {\"Args\":\"args\",\"ExecutionID\":\"7\",\"ImageTag\":\"test\",\"JobName\":\"test-job\",\"Status\":\"CREATED\"}")
 	ctx.instance().slackClient.On("Publish", message).Return(errors.New("publish error"))
 
 	err := ctx.instance().slackNotification.OnNotify(evt)
