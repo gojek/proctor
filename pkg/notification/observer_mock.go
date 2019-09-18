@@ -9,7 +9,7 @@ type ObserverMock struct {
 	mock.Mock
 }
 
-func (m *ObserverMock) OnNotify(evt event.Event) {
-	m.Called(evt)
-	return
+func (m *ObserverMock) OnNotify(evt event.Event) error {
+	args := m.Called(evt)
+	return args.Error(0)
 }
