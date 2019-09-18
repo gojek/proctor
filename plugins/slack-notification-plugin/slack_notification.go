@@ -13,7 +13,7 @@ type slackNotification struct {
 }
 
 func (notification *slackNotification) OnNotify(evt event.Event) error {
-	messageObject := message.NewStandardMessage(evt)
+	messageObject := message.NewExecutionMessage(evt)
 	err := notification.slackClient.Publish(messageObject)
 	return err
 }

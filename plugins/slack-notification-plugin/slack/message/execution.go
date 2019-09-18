@@ -22,7 +22,7 @@ func (messageObject *executionMessage) JSON() (string, error) {
 	section := sectionComponent{}
 	section.Type = "section"
 	section.Text = textComponent{
-		Type: "text",
+		Type: "plain_text",
 		Text: userEmail + " execute job with details:",
 	}
 	section.Fields = []textComponent{}
@@ -31,7 +31,7 @@ func (messageObject *executionMessage) JSON() (string, error) {
 		keyComponent.Type = "mrkdwn"
 		keyComponent.Text = "*" + key + "*"
 		valueComponent := textComponent{}
-		valueComponent.Type = "text"
+		valueComponent.Type = "plain_text"
 		valueComponent.Text = value
 
 		section.Fields = append(section.Fields, keyComponent, valueComponent)

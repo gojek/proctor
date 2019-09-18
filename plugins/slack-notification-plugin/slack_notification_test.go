@@ -41,7 +41,7 @@ func newContext() context {
 	return &testContext{}
 }
 
-func TestSlackNotification_OnNotify(t *testing.T) {
+func TestSlackNotification_OnNotifyExecution(t *testing.T) {
 	ctx := newContext()
 	ctx.setUp(t)
 	defer ctx.tearDown()
@@ -61,7 +61,7 @@ func TestSlackNotification_OnNotify(t *testing.T) {
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
-	messageObject := message.NewStandardMessage(evt)
+	messageObject := message.NewExecutionMessage(evt)
 	ctx.instance().slackClient.On("Publish", messageObject).Return(nil)
 
 	err := ctx.instance().slackNotification.OnNotify(evt)
@@ -70,7 +70,7 @@ func TestSlackNotification_OnNotify(t *testing.T) {
 	ctx.instance().slackClient.AssertExpectations(t)
 }
 
-func TestSlackNotification_OnNotifyErrorPublish(t *testing.T) {
+func TestSlackNotification_OnNotifyExecutionErrorPublish(t *testing.T) {
 	ctx := newContext()
 	ctx.setUp(t)
 	defer ctx.tearDown()
@@ -90,7 +90,7 @@ func TestSlackNotification_OnNotifyErrorPublish(t *testing.T) {
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
-	messageObject := message.NewStandardMessage(evt)
+	messageObject := message.NewExecutionMessage(evt)
 	ctx.instance().slackClient.On("Publish", messageObject).Return(errors.New("publish error"))
 
 	err := ctx.instance().slackNotification.OnNotify(evt)
