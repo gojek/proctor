@@ -57,7 +57,7 @@ func TestSlackNotification_OnNotifyExecution(t *testing.T) {
 		"Status":      "CREATED",
 	}
 	evt := ctx.instance().event
-	evt.On("Type").Return(string(event.ExecutionEventType))
+	evt.On("Type").Return(event.ExecutionEventType)
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
@@ -86,7 +86,7 @@ func TestSlackNotification_OnNotifyExecutionErrorPublish(t *testing.T) {
 		"Status":      "CREATED",
 	}
 	evt := ctx.instance().event
-	evt.On("Type").Return(string(event.ExecutionEventType))
+	evt.On("Type").Return(event.ExecutionEventType)
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 
@@ -115,7 +115,7 @@ func TestSlackNotification_OnNotifyUnsupportedEvent(t *testing.T) {
 		"Status":      "CREATED",
 	}
 	evt := ctx.instance().event
-	evt.On("Type").Return("Unsupported event")
+	evt.On("Type").Return(event.Type("Unsupported event"))
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 

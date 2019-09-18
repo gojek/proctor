@@ -21,7 +21,7 @@ func (notification *slackNotification) OnNotify(evt event.Event) error {
 func (notification *slackNotification) generateMessage(evt event.Event) message.Message {
 	var messageObject message.Message
 	switch evt.Type() {
-	case string(event.ExecutionEventType):
+	case event.ExecutionEventType:
 		messageObject = message.NewExecutionMessage(evt)
 	default:
 		messageObject = message.NewStandardMessage(evt)

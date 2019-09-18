@@ -18,7 +18,7 @@ func TestExecutionMessage_JSON(t *testing.T) {
 		"Status":      "CREATED",
 	}
 	evt := event.EventMock{}
-	evt.On("Type").Return(string(event.ExecutionEventType))
+	evt.On("Type").Return(event.ExecutionEventType)
 	evt.On("User").Return(userData)
 	evt.On("Content").Return(content)
 	defer evt.AssertExpectations(t)
@@ -31,7 +31,7 @@ func TestExecutionMessage_JSON(t *testing.T) {
 
 func TestExecutionMessage_JSONMismatch(t *testing.T) {
 	evt := event.EventMock{}
-	evt.On("Type").Return("not-execution-event")
+	evt.On("Type").Return(event.Type("not-execution-event"))
 	defer evt.AssertExpectations(t)
 
 	messageObject := NewExecutionMessage(&evt)

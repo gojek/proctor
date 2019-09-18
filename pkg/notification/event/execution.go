@@ -12,8 +12,8 @@ type executionEvent struct {
 	context   model.ExecutionContext
 }
 
-func (evt executionEvent) Type() string {
-	return string(ExecutionEventType)
+func (evt executionEvent) Type() Type {
+	return ExecutionEventType
 }
 
 func (evt executionEvent) User() UserData {

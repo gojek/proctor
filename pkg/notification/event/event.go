@@ -1,7 +1,7 @@
 package event
 
 type Event interface {
-	Type() string
+	Type() Type
 	User() UserData
 	Content() map[string]string
 }

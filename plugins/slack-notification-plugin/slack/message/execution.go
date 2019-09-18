@@ -13,7 +13,7 @@ type executionMessage struct {
 
 func (messageObject *executionMessage) JSON() (string, error) {
 	evt := messageObject.evt
-	if evt.Type() != string(event.ExecutionEventType) {
+	if evt.Type() != event.ExecutionEventType {
 		return "", errors.New("event type mismatch")
 	}
 	userEmail := evt.User().Email

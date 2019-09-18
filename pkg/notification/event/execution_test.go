@@ -75,7 +75,7 @@ func TestExecutionEvent(t *testing.T) {
 		"Status":      "CREATED",
 	}
 
-	assert.Equal(t, expectedEventType, actualEvent.Type())
+	assert.Equal(t, expectedEventType, string(actualEvent.Type()))
 	assert.Equal(t, expectedUserData, actualEvent.User())
 	assert.Equal(t, expectedContent, actualEvent.Content())
 }
