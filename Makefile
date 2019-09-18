@@ -65,6 +65,7 @@ build-all: server cli plugin.auth plugin.slack
 .PHONY: start-server
 start-server:
 	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
+	PROCTOR_NOTIFICATION_PLUGIN_BINARY=$(PLUGIN_DIR)/slack.so \
 	$(BIN_DIR)/server s
 
 generate:

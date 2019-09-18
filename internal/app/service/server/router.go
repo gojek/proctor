@@ -19,12 +19,13 @@ import (
 	"proctor/internal/app/service/infra/plugin"
 	metadataHandler "proctor/internal/app/service/metadata/handler"
 	metadataRepository "proctor/internal/app/service/metadata/repository"
+	notificationService "proctor/internal/app/service/notification/service"
 	scheduleHTTPHandler "proctor/internal/app/service/schedule/handler"
 	scheduleRepository "proctor/internal/app/service/schedule/repository"
 	secretHTTPHandler "proctor/internal/app/service/secret/handler"
 	secretRepository "proctor/internal/app/service/secret/repository"
 	securityMiddleware "proctor/internal/app/service/security/middleware"
-	"proctor/internal/app/service/security/service"
+	securityService "proctor/internal/app/service/security/service"
 	"proctor/internal/app/service/server/middleware"
 )
 
@@ -49,9 +50,18 @@ func NewRouter() (*mux.Router, error) {
 	secretsStore := secretRepository.NewSecretRepository(redisClient)
 
 	_executionService := executionService.NewExecutionService(kubeClient, executionStore, metadataStore, secretsStore)
-	_securityService := service.NewSecurityService(proctorConfig.AuthPluginBinary, proctorConfig.AuthPluginExported, goPlugin)
+	_securityService := securityService.NewSecurityService(
+		proctorConfig.AuthPluginBinary,
+		proctorConfig.AuthPluginExported,
+		goPlugin,
+	)
+	_notificationService := notificationService.NewNotificationService(
+		proctorConfig.NotificationPluginBinary,
+		proctorConfig.NotificationPluginExported,
+		goPlugin,
+	)
 
-	executionHandler := executionHTTPHandler.NewExecutionHTTPHandler(_executionService, executionStore)
+	executionHandler := executionHTTPHandler.NewExecutionHTTPHandler(_executionService, executionStore, _notificationService)
 	jobMetadataHandler := metadataHandler.NewMetadataHTTPHandler(metadataStore)
 	jobSecretsHandler := secretHTTPHandler.NewSecretHTTPHandler(secretsStore)
 	scheduleHandler := scheduleHTTPHandler.NewScheduleHTTPHandler(scheduleStore, metadataStore)

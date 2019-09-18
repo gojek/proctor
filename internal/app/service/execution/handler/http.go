@@ -19,7 +19,9 @@ import (
 	executionStatus "proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
+	serviceNotification "proctor/internal/app/service/notification/service"
 	"proctor/internal/pkg/model/execution"
+	"proctor/pkg/notification/event"
 )
 
 type ExecutionHTTPHandler interface {
@@ -29,8 +31,9 @@ type ExecutionHTTPHandler interface {
 }
 
 type executionHTTPHandler struct {
-	service    service.ExecutionService
-	repository repository.ExecutionContextRepository
+	service             service.ExecutionService
+	repository          repository.ExecutionContextRepository
+	notificationService serviceNotification.NotificationService
 }
 
 var upgrader = websocket.Upgrader{
@@ -41,10 +44,12 @@ var upgrader = websocket.Upgrader{
 func NewExecutionHTTPHandler(
 	executionService service.ExecutionService,
 	repository repository.ExecutionContextRepository,
+	notificationService serviceNotification.NotificationService,
 ) ExecutionHTTPHandler {
 	return &executionHTTPHandler{
-		service:    executionService,
-		repository: repository,
+		service:             executionService,
+		repository:          repository,
+		notificationService: notificationService,
 	}
 }
 
@@ -184,6 +189,9 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 			_, _ = response.Write([]byte(fmt.Sprintf("%s, Errors Detail %s", status.JobExecutionError, err.Error())))
 			return
 		}
+
+		evt := event.NewExecutionEvent(userEmail, *context)
+		httpHandler.notificationService.Notify(evt)
 
 		responseBody := &execution.ExecutionResult{
 			ExecutionId:   context.ExecutionID,
