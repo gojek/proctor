@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"proctor/pkg/notification"
 	"proctor/pkg/notification/event"
 	"proctor/plugins/slack-notification-plugin/slack"
 )
@@ -18,14 +17,15 @@ type context interface {
 }
 
 type testContext struct {
-	slackNotification notification.Observer
+	slackNotification *slackNotification
 	slackClient       *slack.SlackClientMock
 	event             *event.EventMock
 }
 
 func (context *testContext) setUp(t *testing.T) {
 	context.slackClient = &slack.SlackClientMock{}
-	context.slackNotification = NewSlackNotification(context.slackClient)
+	context.slackNotification = &slackNotification{}
+	context.slackNotification.slackClient = context.slackClient
 	context.event = &event.EventMock{}
 }
 

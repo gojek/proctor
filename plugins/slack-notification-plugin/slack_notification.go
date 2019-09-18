@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/go-resty/resty/v2"
 	"proctor/pkg/notification"
 	"proctor/pkg/notification/event"
 	"proctor/plugins/slack-notification-plugin/slack"
@@ -24,8 +25,11 @@ func (notification *slackNotification) OnNotify(evt event.Event) error {
 	return err
 }
 
-func NewSlackNotification(slackClient slack.SlackClient) notification.Observer {
+func newSlackNotification() notification.Observer {
+	slackClient := slack.NewSlackClient(&resty.Client{})
 	return &slackNotification{
 		slackClient: slackClient,
 	}
 }
+
+var SlackNotification = newSlackNotification()
