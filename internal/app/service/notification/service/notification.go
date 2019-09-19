@@ -16,7 +16,7 @@ type NotificationService interface {
 type notificationService struct {
 	observers           []notification.Observer
 	goPlugin            plugin.GoPlugin
-	pluginsBinary       string
+	pluginsBinary       []string
 	pluginsExportedName string
 	once                sync.Once
 }
@@ -32,7 +32,7 @@ func (s *notificationService) Notify(evt event.Event) {
 func (s *notificationService) initializePlugin() {
 	s.once.Do(func() {
 		s.observers = []notification.Observer{}
-		pluginsBinary := strings.Split(s.pluginsBinary, ",")
+		pluginsBinary := s.pluginsBinary
 		pluginsExported := strings.Split(s.pluginsExportedName, ",")
 
 		for idx, pluginBinary := range pluginsBinary {
@@ -52,7 +52,7 @@ func (s *notificationService) initializePlugin() {
 	})
 }
 
-func NewNotificationService(pluginsBinary string, pluginsExportedName string, goPlugin plugin.GoPlugin) NotificationService {
+func NewNotificationService(pluginsBinary []string, pluginsExportedName string, goPlugin plugin.GoPlugin) NotificationService {
 	return &notificationService{
 		goPlugin:            goPlugin,
 		pluginsBinary:       pluginsBinary,

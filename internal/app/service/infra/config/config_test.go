@@ -217,9 +217,10 @@ func TestAuthEnabled(t *testing.T) {
 }
 
 func TestNotificationPluginBinary(t *testing.T) {
-	_ = os.Setenv("PROCTOR_NOTIFICATION_PLUGIN_BINARY", "path-notification")
+	_ = os.Setenv("PROCTOR_NOTIFICATION_PLUGIN_BINARY", "path-notification,second-path")
 
-	assert.Equal(t, "path-notification", Load().NotificationPluginBinary)
+	expected := []string{"path-notification", "second-path"}
+	assert.Equal(t, expected, Load().NotificationPluginBinary)
 }
 
 func TestNotificationPluginExported(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -82,7 +83,7 @@ type ProctorConfig struct {
 	DocsPath                         string
 	AuthPluginBinary                 string
 	AuthEnabled                      bool
-	NotificationPluginBinary         string
+	NotificationPluginBinary         []string
 	NotificationPluginExported       string
 }
 
@@ -128,9 +129,12 @@ func Load() ProctorConfig {
 		AuthPluginBinary:                 fang.GetString("AUTH_PLUGIN_BINARY"),
 		AuthPluginExported:               GetStringDefault(fang, "AUTH_PLUGIN_EXPORTED", "Auth"),
 		AuthEnabled:                      GetBoolDefault(fang, "AUTH_ENABLED", false),
-		NotificationPluginBinary:         fang.GetString("NOTIFICATION_PLUGIN_BINARY"),
 		NotificationPluginExported:       fang.GetString("NOTIFICATION_PLUGIN_EXPORTED"),
 	}
+
+	notificationPluginsBinary := strings.Split(fang.GetString("NOTIFICATION_PLUGIN_BINARY"), ",")
+	proctorConfig.NotificationPluginBinary = []string{}
+	proctorConfig.NotificationPluginBinary = append(proctorConfig.NotificationPluginBinary, notificationPluginsBinary...)
 
 	return proctorConfig
 }

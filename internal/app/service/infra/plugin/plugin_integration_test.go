@@ -76,7 +76,7 @@ func TestGoPlugin_LoadNotificationSuccessfully(t *testing.T) {
 	ctx := newContext()
 	ctx.setUp(t)
 
-	pluginsBinary := strings.Split(config.Config().NotificationPluginBinary, ",")
+	pluginsBinary := config.Config().NotificationPluginBinary
 	pluginsExported := strings.Split(config.Config().NotificationPluginExported, ",")
 	for idx, pluginBinary := range pluginsBinary {
 		pluginExported := pluginsExported[idx]
