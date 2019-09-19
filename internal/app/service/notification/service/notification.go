@@ -5,7 +5,6 @@ import (
 	"proctor/internal/app/service/infra/plugin"
 	"proctor/pkg/notification"
 	"proctor/pkg/notification/event"
-	"strings"
 	"sync"
 )
 
@@ -17,7 +16,7 @@ type notificationService struct {
 	observers           []notification.Observer
 	goPlugin            plugin.GoPlugin
 	pluginsBinary       []string
-	pluginsExportedName string
+	pluginsExportedName []string
 	once                sync.Once
 }
 
@@ -32,11 +31,8 @@ func (s *notificationService) Notify(evt event.Event) {
 func (s *notificationService) initializePlugin() {
 	s.once.Do(func() {
 		s.observers = []notification.Observer{}
-		pluginsBinary := s.pluginsBinary
-		pluginsExported := strings.Split(s.pluginsExportedName, ",")
-
-		for idx, pluginBinary := range pluginsBinary {
-			raw, err := s.goPlugin.Load(pluginBinary, pluginsExported[idx])
+		for idx, pluginBinary := range s.pluginsBinary {
+			raw, err := s.goPlugin.Load(pluginBinary, s.pluginsExportedName[idx])
 			logger.LogErrors(err, "Load GoPlugin binary")
 			if err != nil {
 				return
@@ -52,7 +48,7 @@ func (s *notificationService) initializePlugin() {
 	})
 }
 
-func NewNotificationService(pluginsBinary []string, pluginsExportedName string, goPlugin plugin.GoPlugin) NotificationService {
+func NewNotificationService(pluginsBinary []string, pluginsExportedName []string, goPlugin plugin.GoPlugin) NotificationService {
 	return &notificationService{
 		goPlugin:            goPlugin,
 		pluginsBinary:       pluginsBinary,

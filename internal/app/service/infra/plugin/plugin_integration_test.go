@@ -3,7 +3,6 @@ package plugin
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -77,7 +76,7 @@ func TestGoPlugin_LoadNotificationSuccessfully(t *testing.T) {
 	ctx.setUp(t)
 
 	pluginsBinary := config.Config().NotificationPluginBinary
-	pluginsExported := strings.Split(config.Config().NotificationPluginExported, ",")
+	pluginsExported := config.Config().NotificationPluginExported
 	for idx, pluginBinary := range pluginsBinary {
 		pluginExported := pluginsExported[idx]
 		raw, err := ctx.instance().goPlugin.Load(pluginBinary, pluginExported)

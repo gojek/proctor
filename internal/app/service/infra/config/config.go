@@ -84,7 +84,7 @@ type ProctorConfig struct {
 	AuthPluginBinary                 string
 	AuthEnabled                      bool
 	NotificationPluginBinary         []string
-	NotificationPluginExported       string
+	NotificationPluginExported       []string
 }
 
 func Load() ProctorConfig {
@@ -129,12 +129,13 @@ func Load() ProctorConfig {
 		AuthPluginBinary:                 fang.GetString("AUTH_PLUGIN_BINARY"),
 		AuthPluginExported:               GetStringDefault(fang, "AUTH_PLUGIN_EXPORTED", "Auth"),
 		AuthEnabled:                      GetBoolDefault(fang, "AUTH_ENABLED", false),
-		NotificationPluginExported:       fang.GetString("NOTIFICATION_PLUGIN_EXPORTED"),
 	}
 
 	notificationPluginsBinary := strings.Split(fang.GetString("NOTIFICATION_PLUGIN_BINARY"), ",")
-	proctorConfig.NotificationPluginBinary = []string{}
 	proctorConfig.NotificationPluginBinary = append(proctorConfig.NotificationPluginBinary, notificationPluginsBinary...)
+
+	notificationPluginsExported := strings.Split(fang.GetString("NOTIFICATION_PLUGIN_EXPORTED"), ",")
+	proctorConfig.NotificationPluginExported = append([]string{}, notificationPluginsExported...)
 
 	return proctorConfig
 }

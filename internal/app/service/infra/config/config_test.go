@@ -224,7 +224,8 @@ func TestNotificationPluginBinary(t *testing.T) {
 }
 
 func TestNotificationPluginExported(t *testing.T) {
-	_ = os.Setenv("PROCTOR_NOTIFICATION_PLUGIN_EXPORTED", "plugin-notification")
+	_ = os.Setenv("PROCTOR_NOTIFICATION_PLUGIN_EXPORTED", "plugin-notification,second-plugin")
 
-	assert.Equal(t, "plugin-notification", Load().NotificationPluginExported)
+	expected := []string{"plugin-notification", "second-plugin"}
+	assert.Equal(t, expected, Load().NotificationPluginExported)
 }
