@@ -13,5 +13,6 @@ type Middleware interface {
 }
 
 type AuthorizationMiddleware interface {
+	MiddlewareFunc(http.Handler) http.Handler
 	Secure(router *mux.Router, path string, handler http.Handler) *mux.Route
 }

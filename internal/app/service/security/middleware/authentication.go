@@ -62,7 +62,7 @@ func (middleware *authenticationMiddleware) isRequestExcluded(r *http.Request) b
 }
 
 func NewAuthenticationMiddleware(securityService service.SecurityService) Middleware {
-	proctorConfig := config.Load()
+	proctorConfig := config.Config()
 	return &authenticationMiddleware{
 		service: securityService,
 		enabled: proctorConfig.AuthEnabled,

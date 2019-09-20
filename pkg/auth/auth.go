@@ -9,5 +9,5 @@ type UserDetail struct {
 	Name   string
 	Email  string
 	Active bool
-	Groups  []string
+	Groups []string
 }
