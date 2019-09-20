@@ -88,7 +88,7 @@ func extractName(r *http.Request) (string, error) {
 }
 
 func NewAuthorizationMiddleware(securityService service.SecurityService, metadataRepository repository.MetadataRepository) AuthorizationMiddleware {
-	proctorConfig := config.Load()
+	proctorConfig := config.Config()
 	return &authorizationMiddleware{
 		service:            securityService,
 		metadataRepository: metadataRepository,

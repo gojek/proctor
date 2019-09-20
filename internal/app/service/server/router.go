@@ -69,6 +69,7 @@ func NewRouter() (*mux.Router, error) {
 
 	authenticationMiddleware := securityMiddleware.NewAuthenticationMiddleware(_securityService)
 	authorizationMiddleware := securityMiddleware.NewAuthorizationMiddleware(_securityService, metadataStore)
+	adminAuthorizationMiddleware := securityMiddleware.NewAdminAuthorizationMiddleware(_securityService)
 
 	pingRoute := router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
 		_, _ = fmt.Fprintf(w, "pong")
@@ -94,8 +95,8 @@ func NewRouter() (*mux.Router, error) {
 
 	router.HandleFunc("/metadata", jobMetadataHandler.GetAll()).Methods("GET")
 
-	router.HandleFunc("/metadata", jobMetadataHandler.Post()).Methods("POST")
-	router.HandleFunc("/secret", jobSecretsHandler.Post()).Methods("POST")
+	adminAuthorizationMiddleware.Secure(router, "/metadata", jobMetadataHandler.Post()).Methods("POST")
+	adminAuthorizationMiddleware.Secure(router, "/secret", jobSecretsHandler.Post()).Methods("POST")
 
 	authorizationMiddleware.Secure(router, "/schedule", scheduleHandler.Post()).Methods("POST")
 	router.HandleFunc("/schedule", scheduleHandler.GetAll()).Methods("GET")

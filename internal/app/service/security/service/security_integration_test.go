@@ -19,9 +19,9 @@ type context interface {
 
 type testContext struct {
 	securityService SecurityService
-	email string
-	token string
-	proctorConfig config.ProctorConfig
+	email           string
+	token           string
+	proctorConfig   config.ProctorConfig
 }
 
 func (context *testContext) setUp(t *testing.T) {

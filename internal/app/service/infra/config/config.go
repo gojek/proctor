@@ -15,6 +15,15 @@ func GetStringDefault(viper *viper.Viper, key string, defaultValue string) strin
 	return viper.GetString(key)
 }
 
+func GetArrayString(viper *viper.Viper, key string) []string {
+	return strings.Split(viper.GetString(key), ",")
+}
+
+func GetArrayStringDefault(viper *viper.Viper, key string, defaultValue []string) []string {
+	viper.SetDefault(key, strings.Join(defaultValue, ","))
+	return strings.Split(viper.GetString(key), ",")
+}
+
 func GetBoolDefault(viper *viper.Viper, key string, defaultValue bool) bool {
 	viper.SetDefault(key, defaultValue)
 	return viper.GetBool(key)
@@ -85,6 +94,7 @@ type ProctorConfig struct {
 	AuthEnabled                      bool
 	NotificationPluginBinary         []string
 	NotificationPluginExported       []string
+	AuthRequiredAdminGroup           []string
 }
 
 func Load() ProctorConfig {
@@ -129,13 +139,10 @@ func Load() ProctorConfig {
 		AuthPluginBinary:                 fang.GetString("AUTH_PLUGIN_BINARY"),
 		AuthPluginExported:               GetStringDefault(fang, "AUTH_PLUGIN_EXPORTED", "Auth"),
 		AuthEnabled:                      GetBoolDefault(fang, "AUTH_ENABLED", false),
+		NotificationPluginBinary:         GetArrayString(fang, "NOTIFICATION_PLUGIN_BINARY"),
+		NotificationPluginExported:       GetArrayString(fang, "NOTIFICATION_PLUGIN_EXPORTED"),
+		AuthRequiredAdminGroup:           GetArrayStringDefault(fang, "AUTH_REQUIRED_ADMIN_GROUP", []string{"proctor_admin"}),
 	}
-
-	notificationPluginsBinary := strings.Split(fang.GetString("NOTIFICATION_PLUGIN_BINARY"), ",")
-	proctorConfig.NotificationPluginBinary = append(proctorConfig.NotificationPluginBinary, notificationPluginsBinary...)
-
-	notificationPluginsExported := strings.Split(fang.GetString("NOTIFICATION_PLUGIN_EXPORTED"), ",")
-	proctorConfig.NotificationPluginExported = append([]string{}, notificationPluginsExported...)
 
 	return proctorConfig
 }

@@ -820,7 +820,6 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWithInvalidJobID() {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-
 	mockResponse := httpmock.NewStringResponse(400, "Invalid Job ID")
 	mockError := error(nil)
 	mockRequest(proctorConfig, "DELETE", fmt.Sprintf("http://"+proctorConfig.Host+ScheduleRoute+"/%s", jobID), mockResponse, mockError)
@@ -841,7 +840,6 @@ func (s *ClientTestSuite) TestRemoveScheduledJobWhenJobIDNotFound() {
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-
 
 	mockResponse := httpmock.NewStringResponse(404, "Job not found")
 	mockError := error(nil)
