@@ -30,14 +30,16 @@ test:
 	go test -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: itest
-itest: plugin.auth
+itest: plugin.auth plugin.slack
 	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
+	PROCTOR_NOTIFICATION_PLUGIN_BINARY=$(PLUGIN_DIR)/slack.so \
 	ENABLE_INTEGRATION_TEST=true \
 	go test -p 1 -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
 .PHONY: plugin.itest
-plugin.itest: plugin.auth
+plugin.itest: plugin.auth plugin.slack
 	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
+	PROCTOR_NOTIFICATION_PLUGIN_BINARY=$(PLUGIN_DIR)/slack.so \
 	ENABLE_PLUGIN_INTEGRATION_TEST=true \
 	go test -race -coverprofile=$(OUT_DIR)/coverage.out ./...
 
@@ -50,15 +52,20 @@ server:
 plugin.auth:
 	go build -race -buildmode=plugin -o $(PLUGIN_DIR)/auth.so ./plugins/gate-auth-plugin/auth.go
 
+.PHONY: plugin.slack
+plugin.slack:
+	go build -race -buildmode=plugin -o $(PLUGIN_DIR)/slack.so ./plugins/slack-notification-plugin/slack_notification.go
+
 .PHONY: cli
 cli:
 	go build -race -o $(BIN_DIR)/cli ./cmd/cli/main.go
 
-build-all: server cli plugin.auth
+build-all: server cli plugin.auth plugin.slack
 
 .PHONY: start-server
 start-server:
 	PROCTOR_AUTH_PLUGIN_BINARY=$(PLUGIN_DIR)/auth.so \
+	PROCTOR_NOTIFICATION_PLUGIN_BINARY=$(PLUGIN_DIR)/slack.so \
 	$(BIN_DIR)/server s
 
 generate:

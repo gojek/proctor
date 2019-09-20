@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"proctor/internal/pkg/model/execution"
 	"strings"
 	"testing"
 	"time"
@@ -26,7 +25,10 @@ import (
 	"proctor/internal/app/service/execution/service"
 	"proctor/internal/app/service/execution/status"
 	"proctor/internal/app/service/infra/kubernetes"
+	serviceNotification "proctor/internal/app/service/notification/service"
 	"proctor/internal/pkg/constant"
+	"proctor/internal/pkg/model/execution"
+	"proctor/pkg/notification/event"
 )
 
 type ExecutionHTTPHandlerTestSuite struct {
@@ -34,6 +36,7 @@ type ExecutionHTTPHandlerTestSuite struct {
 	mockExecutionerService           *service.MockExecutionService
 	mockExecutionerContextRepository *repository.MockExecutionContextRepository
 	mockKubernetesClient             kubernetes.MockKubernetesClient
+	mockNotificationService          *serviceNotification.NotificationServiceMock
 	testExecutionHTTPHandler         ExecutionHTTPHandler
 }
 
@@ -41,7 +44,12 @@ func (suite *ExecutionHTTPHandlerTestSuite) SetupTest() {
 	suite.mockExecutionerService = &service.MockExecutionService{}
 	suite.mockExecutionerContextRepository = &repository.MockExecutionContextRepository{}
 	suite.mockKubernetesClient = kubernetes.MockKubernetesClient{}
-	suite.testExecutionHTTPHandler = NewExecutionHTTPHandler(suite.mockExecutionerService, suite.mockExecutionerContextRepository)
+	suite.mockNotificationService = &serviceNotification.NotificationServiceMock{}
+	suite.testExecutionHTTPHandler = NewExecutionHTTPHandler(
+		suite.mockExecutionerService,
+		suite.mockExecutionerContextRepository,
+		suite.mockNotificationService,
+	)
 }
 
 type logsHandlerServer struct {
@@ -284,6 +292,10 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionPostHTTPHa
 
 	suite.mockExecutionerService.On("Execute", job.Name, userEmail, job.Args).Return(context, "test", nil).Once()
 	defer suite.mockExecutionerService.AssertExpectations(t)
+
+	expectedEvent := event.NewExecutionEvent(userEmail, *context)
+	suite.mockNotificationService.On("Notify", expectedEvent)
+	defer suite.mockNotificationService.AssertExpectations(t)
 
 	suite.testExecutionHTTPHandler.Post()(responseRecorder, req)
 

@@ -2,10 +2,12 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
-	"proctor/internal/app/service/infra/config"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"proctor/internal/app/service/infra/config"
 )
 
 type context interface {
@@ -67,6 +69,20 @@ func TestGoPlugin_LoadSuccessfully(t *testing.T) {
 	raw, err := ctx.instance().goPlugin.Load(config.Config().AuthPluginBinary, config.Config().AuthPluginExported)
 	assert.NoError(t, err)
 	assert.NotNil(t, raw)
+}
+
+func TestGoPlugin_LoadNotificationSuccessfully(t *testing.T) {
+	ctx := newContext()
+	ctx.setUp(t)
+
+	pluginsBinary := config.Config().NotificationPluginBinary
+	pluginsExported := config.Config().NotificationPluginExported
+	for idx, pluginBinary := range pluginsBinary {
+		pluginExported := pluginsExported[idx]
+		raw, err := ctx.instance().goPlugin.Load(pluginBinary, pluginExported)
+		assert.NoError(t, err)
+		assert.NotNil(t, raw)
+	}
 }
 
 func TestGoPlugin_ShitShit(t *testing.T) {
