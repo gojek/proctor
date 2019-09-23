@@ -30,12 +30,15 @@ For proctor service
 * Copy `.env.sample` into `.env` file. Please refer [here](#proctor-service-configuration-explanation) for configuration explanation
 * Make sure you set correct value in `.env` for Kubernetes, Postgresql, and Redis
 * Export value of `.env` by running `source .env`
+* Run `make db.setup` to setup local postgresql and migration
 * Run `./_output/bin/server s` to start proctor service
 
 For proctor cli
 
 * Run `./_output/bin/cli config PROCTOR_HOST=<proctor-service-host>` to point you proctor cli to local proctor service
 * Run `./_output/bin/cli` to see complete usage of proctor cli
+* Run `make ftest.update.metadata` to generate sample available command
+* Test the client with `./_output/bin/cli list`
 
 ## Proctor Components
 Here's the overview of proctor components.
