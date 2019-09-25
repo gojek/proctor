@@ -1,0 +1,51 @@
+kube:
+  config: out-of-cluster
+  context: minikube
+  job:
+    active.deadline.seconds: 60
+    retries: 0
+  service.account.name: default
+  wait.for.resource.poll.count: 5
+  log.process.wait.time: 60
+log.level: debug
+app.port: 5000
+default.namespace: default
+redis:
+  address: localhost:6379
+  max.active.connections: 10
+logs.stream:
+  read.buffer.size: 140
+  write.buffer.size: 4096
+postgres:
+  user: postgres
+  password:
+  host: localhost
+  port: 5432
+  database: proctord_test
+  max.connections: 50
+  connections.max.lifetime: 30
+new.relic:
+  app.name: proctor-service
+  license.key:
+min.client.version: v2.0.0
+scheduled.jobs.fetch.interval.in.mins: 5
+mail:
+  username: user@mail.com
+  password: password
+  server:
+    host: smtp.mail.com
+    port: 123
+job.pod.annotations: "{\"key.one\":\"true\"}"
+docs.path: /path/to/docs/dir
+auth:
+  enabled: false
+  plugin:
+    binary:
+    exported: GateAuth
+  required.admin.group: proctor_admin
+notification.plugin:
+  binary:
+  exported: SlackNotification
+
+
+
