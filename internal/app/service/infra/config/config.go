@@ -108,6 +108,7 @@ func load() ProctorConfig {
 		fang.SetConfigName("config")
 		fang.AddConfigPath("$HOME/.proctor")
 		fang.AddConfigPath(value)
+		fang.AddConfigPath(".")
 		err := fang.ReadInConfig()
 		if err != nil {
 			panic(fmt.Errorf("Fatal error config file: %s \n", err))
