@@ -140,7 +140,7 @@ func TestNewRelicAppName(t *testing.T) {
 }
 
 func TestNewRelicLicenceKey(t *testing.T) {
-	_ = os.Setenv("PROCTOR_NEW_RELIC_LICENSE_KEY", "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr")
+	_ = os.Setenv("PROCTOR_NEW_RELIC_LICENCE_KEY", "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr")
 
 	assert.Equal(t, "nrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnrnr", load().NewRelicLicenseKey)
 }
