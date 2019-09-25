@@ -100,20 +100,17 @@ func load() ProctorConfig {
 	fang := viper.New()
 
 	fang.SetEnvPrefix("PROCTOR")
-	fang.SetEnvKeyReplacer(strings.NewReplacer(".","_"))
+	fang.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	fang.AutomaticEnv()
 
+	fang.SetConfigName("config")
+	fang.AddConfigPath(".")
+	fang.AddConfigPath("$HOME/.proctor")
 	value, available := os.LookupEnv("CONFIG_LOCATION")
-	if available == true {
-		fang.SetConfigName("config")
-		fang.AddConfigPath("$HOME/.proctor")
+	if available {
 		fang.AddConfigPath(value)
-		fang.AddConfigPath(".")
-		err := fang.ReadInConfig()
-		if err != nil {
-			panic(fmt.Errorf("Fatal error config file: %s \n", err))
-		}
 	}
+	_ = fang.ReadInConfig()
 
 	proctorConfig := ProctorConfig{
 		viper:                            fang,
