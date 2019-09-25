@@ -11,7 +11,7 @@ var newRelicApp newrelic.Application
 
 func InitNewRelic() error {
 	appName := config.Config().NewRelicAppName
-	licenceKey := config.Config().NewRelicLicenceKey
+	licenceKey := config.Config().NewRelicLicenseKey
 	newRelicConfig := newrelic.NewConfig(appName, licenceKey)
 	newRelicConfig.Enabled = true
 	app, err := newrelic.NewApplication(newRelicConfig)

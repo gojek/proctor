@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -66,7 +67,6 @@ type ProctorConfig struct {
 	RedisMaxActiveConnections        int
 	LogsStreamWriteBufferSize        int
 	KubeWaitForResourcePollCount     int
-	KubePodsListWaitTime             time.Duration
 	KubeLogProcessWaitTime           time.Duration
 	KubeJobActiveDeadlineSeconds     *int64
 	KubeJobRetries                   *int32
@@ -80,7 +80,7 @@ type ProctorConfig struct {
 	PostgresMaxConnections           int
 	PostgresConnectionMaxLifetime    int
 	NewRelicAppName                  string
-	NewRelicLicenceKey               string
+	NewRelicLicenseKey               string
 	MinClientVersion                 string
 	ScheduledJobsFetchIntervalInMins int
 	MailUsername                     string
@@ -88,7 +88,6 @@ type ProctorConfig struct {
 	MailPassword                     string
 	MailServerPort                   string
 	JobPodAnnotations                map[string]string
-	SentryDSN                        string
 	DocsPath                         string
 	AuthPluginBinary                 string
 	AuthEnabled                      bool
@@ -97,51 +96,61 @@ type ProctorConfig struct {
 	AuthRequiredAdminGroup           []string
 }
 
-func Load() ProctorConfig {
+func load() ProctorConfig {
 	fang := viper.New()
-	fang.AutomaticEnv()
+
 	fang.SetEnvPrefix("PROCTOR")
+	fang.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	fang.AutomaticEnv()
+
+	fang.SetConfigName("config")
+	fang.AddConfigPath(".")
+	fang.AddConfigPath("$HOME/.proctor")
+	value, available := os.LookupEnv("CONFIG_LOCATION")
+	if available {
+		fang.AddConfigPath(value)
+	}
+	_ = fang.ReadInConfig()
+
 	proctorConfig := ProctorConfig{
 		viper:                            fang,
-		KubeConfig:                       fang.GetString("KUBE_CONFIG"),
-		KubeContext:                      GetStringDefault(fang, "KUBE_CONTEXT", "default"),
-		LogLevel:                         GetStringDefault(fang, "LOG_LEVEL", "DEBUG"),
-		AppPort:                          GetStringDefault(fang, "APP_PORT", "5001"),
-		DefaultNamespace:                 fang.GetString("DEFAULT_NAMESPACE"),
-		RedisAddress:                     fang.GetString("REDIS_ADDRESS"),
-		RedisMaxActiveConnections:        fang.GetInt("REDIS_MAX_ACTIVE_CONNECTIONS"),
-		LogsStreamReadBufferSize:         fang.GetInt("LOGS_STREAM_READ_BUFFER_SIZE"),
-		LogsStreamWriteBufferSize:        fang.GetInt("LOGS_STREAM_WRITE_BUFFER_SIZE"),
-		KubeWaitForResourcePollCount:     fang.GetInt("KUBE_WAIT_FOR_RESOURCE_POLL_COUNT"),
-		KubePodsListWaitTime:             time.Duration(fang.GetInt("KUBE_POD_LIST_WAIT_TIME")),
-		KubeLogProcessWaitTime:           time.Duration(fang.GetInt("KUBE_LOG_PROCESS_WAIT_TIME")),
-		KubeJobActiveDeadlineSeconds:     GetInt64Ref(fang, "KUBE_JOB_ACTIVE_DEADLINE_SECONDS"),
-		KubeJobRetries:                   GetInt32Ref(fang, "KUBE_JOB_RETRIES"),
-		KubeServiceAccountName:           fang.GetString("KUBE_SERVICE_ACCOUNT_NAME"),
-		PostgresUser:                     fang.GetString("POSTGRES_USER"),
-		PostgresPassword:                 fang.GetString("POSTGRES_PASSWORD"),
-		PostgresHost:                     fang.GetString("POSTGRES_HOST"),
-		PostgresPort:                     fang.GetInt("POSTGRES_PORT"),
-		PostgresDatabase:                 fang.GetString("POSTGRES_DATABASE"),
-		PostgresMaxConnections:           fang.GetInt("POSTGRES_MAX_CONNECTIONS"),
-		PostgresConnectionMaxLifetime:    fang.GetInt("POSTGRES_CONNECTIONS_MAX_LIFETIME"),
-		NewRelicAppName:                  fang.GetString("NEW_RELIC_APP_NAME"),
-		NewRelicLicenceKey:               fang.GetString("NEW_RELIC_LICENCE_KEY"),
-		MinClientVersion:                 fang.GetString("MIN_CLIENT_VERSION"),
-		ScheduledJobsFetchIntervalInMins: fang.GetInt("SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS"),
-		MailUsername:                     fang.GetString("MAIL_USERNAME"),
-		MailServerHost:                   fang.GetString("MAIL_SERVER_HOST"),
-		MailPassword:                     fang.GetString("MAIL_PASSWORD"),
-		MailServerPort:                   fang.GetString("MAIL_SERVER_PORT"),
-		JobPodAnnotations:                GetMapFromJson(fang, "JOB_POD_ANNOTATIONS"),
-		SentryDSN:                        fang.GetString("SENTRY_DSN"),
-		DocsPath:                         fang.GetString("DOCS_PATH"),
-		AuthPluginBinary:                 fang.GetString("AUTH_PLUGIN_BINARY"),
-		AuthPluginExported:               GetStringDefault(fang, "AUTH_PLUGIN_EXPORTED", "Auth"),
-		AuthEnabled:                      GetBoolDefault(fang, "AUTH_ENABLED", false),
-		NotificationPluginBinary:         GetArrayString(fang, "NOTIFICATION_PLUGIN_BINARY"),
-		NotificationPluginExported:       GetArrayString(fang, "NOTIFICATION_PLUGIN_EXPORTED"),
-		AuthRequiredAdminGroup:           GetArrayStringDefault(fang, "AUTH_REQUIRED_ADMIN_GROUP", []string{"proctor_admin"}),
+		KubeConfig:                       fang.GetString("kube.config"),
+		KubeContext:                      GetStringDefault(fang, "kube.context", "default"),
+		LogLevel:                         GetStringDefault(fang, "log.level", "DEBUG"),
+		AppPort:                          GetStringDefault(fang, "app.port", "5001"),
+		DefaultNamespace:                 fang.GetString("default.namespace"),
+		RedisAddress:                     fang.GetString("redis.address"),
+		RedisMaxActiveConnections:        fang.GetInt("redis.max.active.connections"),
+		LogsStreamReadBufferSize:         fang.GetInt("logs.stream.read.buffer.size"),
+		LogsStreamWriteBufferSize:        fang.GetInt("logs.stream.write.buffer.size"),
+		KubeWaitForResourcePollCount:     fang.GetInt("kube.wait.for.resource.poll.count"),
+		KubeLogProcessWaitTime:           time.Duration(fang.GetInt("kube.log.process.wait.time")),
+		KubeJobActiveDeadlineSeconds:     GetInt64Ref(fang, "kube.job.active.deadline.seconds"),
+		KubeJobRetries:                   GetInt32Ref(fang, "kube.job.retries"),
+		KubeServiceAccountName:           fang.GetString("kube.service.account.name"),
+		PostgresUser:                     fang.GetString("postgres.user"),
+		PostgresPassword:                 fang.GetString("postgres.password"),
+		PostgresHost:                     fang.GetString("postgres.host"),
+		PostgresPort:                     fang.GetInt("postgres.port"),
+		PostgresDatabase:                 fang.GetString("postgres.database"),
+		PostgresMaxConnections:           fang.GetInt("postgres.max.connections"),
+		PostgresConnectionMaxLifetime:    fang.GetInt("postgres.connections.max.lifetime"),
+		NewRelicAppName:                  fang.GetString("new.relic.app.name"),
+		NewRelicLicenseKey:               fang.GetString("new.relic.licence.key"),
+		MinClientVersion:                 fang.GetString("min.client.version"),
+		ScheduledJobsFetchIntervalInMins: fang.GetInt("scheduled.jobs.fetch.interval.in.mins"),
+		MailUsername:                     fang.GetString("mail.username"),
+		MailServerHost:                   fang.GetString("mail.server.host"),
+		MailPassword:                     fang.GetString("mail.password"),
+		MailServerPort:                   fang.GetString("mail.server.port"),
+		JobPodAnnotations:                GetMapFromJson(fang, "job.pod.annotations"),
+		DocsPath:                         fang.GetString("docs.path"),
+		AuthPluginBinary:                 fang.GetString("auth.plugin.binary"),
+		AuthPluginExported:               GetStringDefault(fang, "auth.plugin.exported", "Auth"),
+		AuthEnabled:                      GetBoolDefault(fang, "auth.enabled", false),
+		NotificationPluginBinary:         GetArrayString(fang, "notification.plugin.binary"),
+		NotificationPluginExported:       GetArrayString(fang, "notification.plugin.exported"),
+		AuthRequiredAdminGroup:           GetArrayStringDefault(fang, "auth.required.admin.group", []string{"proctor.admin"}),
 	}
 
 	return proctorConfig
@@ -176,11 +185,11 @@ func Reset() {
 
 func Config() ProctorConfig {
 	once.Do(func() {
-		config = Load()
+		config = load()
 	})
 
 	if reset.Get() {
-		config = Load()
+		config = load()
 		reset.Set(false)
 	}
 

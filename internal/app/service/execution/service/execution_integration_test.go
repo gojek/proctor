@@ -98,7 +98,7 @@ func (suite *TestExecutionIntegrationSuite) TestStreamLogsSuccess() {
 	executedJobname, err := suite.kubernetesClient.ExecuteJobWithCommand(sampleImageName, envVarsForContainer, []string{"echo", "Bimo Horizon"})
 	assert.NoError(t, err)
 
-	waitTime := config.Config().KubePodsListWaitTime * time.Second
+	waitTime := config.Config().KubeLogProcessWaitTime * time.Second
 	logStream, err := suite.service.StreamJobLogs(executedJobname, waitTime)
 	assert.NoError(t, err)
 

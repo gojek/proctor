@@ -14,6 +14,7 @@ FTEST_DIR := test/procs
 CONFIG_DIR := test/config
 GOPROXY ?= https://proxy.golang.org
 GO111MODULE := on
+CONFIG_LOCATION := $(SRC_DIR)
 
 $(@info $(shell mkdir -p $(OUT_DIR) $(BIN_DIR) $(PLUGIN_DIR))
 
