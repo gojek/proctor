@@ -2,8 +2,8 @@ SHELL := /bin/bash
 
 #!make
 
-#include .env.test
-#export $(shell sed 's/=.*//' .env.test)
+include .env.test
+export $(shell sed 's/=.*//' .env.test)
 
 .EXPORT_ALL_VARIABLES:
 SRC_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
