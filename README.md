@@ -13,6 +13,9 @@ Bundle repetitive task as a automation and turn it into `procs` to make it easie
 
 Before we goes deep down into explanation about proctor, you may want to read about [Proctor Glossary](docs/glossary.md)
 
+## Feature list
+Section for full features list of proctor CLI is separated [here](./docs/features.md)
+
 ## Installation
 This section provide installation for unix environment.
 
