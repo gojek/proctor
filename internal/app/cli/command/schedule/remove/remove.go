@@ -14,6 +14,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 		Short:   "Remove scheduled job",
 		Long:    "This command helps to remove scheduled job",
 		Example: fmt.Sprintf("proctor schedule remove D958FCCC-F2B3-49D1-B83A-4E70A2A775A0"),
+		Args:    cobra.MinimumNArgs(1),
 
 		Run: func(cmd *cobra.Command, args []string) {
 			jobID := args[0]

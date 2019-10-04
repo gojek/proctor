@@ -17,6 +17,7 @@ func NewCmd(printer io.Printer, proctorDClient daemon.Client) *cobra.Command {
 		Short:   "Describe scheduled job",
 		Long:    "This command helps to describe scheduled job",
 		Example: fmt.Sprintf("proctor schedule describe 502376124721"),
+		Args: cobra.MinimumNArgs(1),
 
 		Run: func(cmd *cobra.Command, args []string) {
 			jobID, err := strconv.ParseUint(args[0], 10, 64)
