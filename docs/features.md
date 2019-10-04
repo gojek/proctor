@@ -72,11 +72,6 @@ Execute proc on server with specified params
 
 Other params depend on proc requirements
 
-### Flags
-| Flag          | Description                           |
-|:------------- |:------------------------------------- |
-| --filename -f | Insert proc parameters from yaml file |
-
 ### Example
 ```shell script
 foo@bar:~$ proctor execute echo-worker name=Mr.Proctor
@@ -269,27 +264,3 @@ Updated At                               2019-10-03 04:00:58.083798 +0000 +0000
 Execution completed.
 ```
 
-
-## proctor template \<proc\> \<yaml-target\>
-Render yaml template to use with [execute](#proctor-execute-proc-params) command
-
-### Params
-| Key              | Description                               | Required |
-|:---------------- |:----------------------------------------- |:--------:|
-| \<proc\>         | Proc name to render                       | yes      |
-| \<yaml-target\>  | Yaml to keep the result                   | yes      |
-
-### Example
-```shell script
-foo@bar:~$ proctor template echo-worker echo-worker.yaml
-
-Args
-name                               [Mandatory] name to echo
-
-To echo-worker, run:
-proctor execute echo-worker -f echo-worker.yaml
-
-foo@bar:~$ cat echo-worker.yaml
-# [Mandatory] name to echo
-name:
-```
