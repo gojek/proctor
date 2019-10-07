@@ -139,9 +139,6 @@ You can read [here](./docs/creating_procs.md) to learn more about creating procs
 * `PROCTOR_KUBE_JOB_RETRIES` is the number of retries for a kubernetes job (on failure)
 * `PROCTOR_DEFAULT_NAMESPACE` is the namespace under which jobs will be run in kubernetes cluster. By default, K8s has namespace "default". If you set another value, please create namespace in K8s before deploying `proctord`
 * `PROCTOR_KUBE_CONTEXT` is used the name of context you want to use when running out of cluster.
-* `PROCTOR_KUBE_CLUSTER_HOST_NAME` is address/ip address to api-server of kube cluster. It is used for fetching logs of a pod using https
-* `PROCTOR_KUBE_CA_CERT_ENCODED` is the CA cert file encoded in base64. This is used for establishing authority while talking to kubernetes api-server on a public https call
-* `PROCTOR_KUBE_BASIC_AUTH_ENCODED` is the base64 encoded authentication of kubernetes. Enocde `username:password` to base64 and set this config.
 * Before streaming logs of jobs, `PROCTOR_KUBE_POD_LIST_WAIT_TIME` is the time to wait until jobs and pods are in active/successful/failed state
 * `PROCTOR_POSTGRES_USER`, `PROCTOR_POSTGRES_PASSWORD`, `PROCTOR_POSTGRES_HOST` and `PROCTOR_POSTGRES_PORT` is the username and password to the postgres database you wish to connect to
 * Set `PROCTOR_POSTGRES_DATABASE` to `proctord_development` for development purpose
@@ -153,4 +150,7 @@ You can read [here](./docs/creating_procs.md) to learn more about creating procs
 * `PROCTOR_SCHEDULED_JOBS_FETCH_INTERVAL_IN_MINS` is the interval at which the scheduler fetches updated jobs from database
 * `PROCTOR_MAIL_USERNAME`, `PROCTOR_MAIL_PASSWORD`, `PROCTOR_MAIL_SERVER_HOST`, `PROCTOR_MAIL_SERVER_PORT` are the creds required to send notification to users on scheduled jobs execution
 * `PROCTOR_JOB_POD_ANNOTATIONS` is used to set any kubernetes pod specific annotations.
-* `PROCTOR_SENTRY_DSN` is used to set sentry DSN.
+* `PROCTOR_AUTH_ENABLED` is used to set whether Authentication is enabled or not.
+* `PROCTOR_AUTH_PLUGIN_BINARY` binary location of AUTH Plugin
+* `PROCTOR_AUTH_PLUGIN_EXPORTED` variable name exported by the Auth Plugin
+* `PROCTOR_REQUIRED_ADMIN_GROUP` list group required by user to access admin features for proctor such as post Metadata and Secrets
