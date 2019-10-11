@@ -20,6 +20,7 @@ import (
 	"proctor/internal/app/service/infra/config"
 	"proctor/internal/app/service/infra/logger"
 	serviceNotification "proctor/internal/app/service/notification/service"
+	"proctor/internal/pkg/constant"
 	"proctor/internal/pkg/model/execution"
 	"proctor/pkg/notification/event"
 )
@@ -155,10 +156,10 @@ func (httpHandler *executionHTTPHandler) GetStatus() http.HandlerFunc {
 
 		response.WriteHeader(http.StatusOK)
 
-		responseJson, err := json.Marshal(responseBody)
+		responseJSON, err := json.Marshal(responseBody)
 		logger.LogErrors(err, "marshal json from: ", responseBody)
 
-		_, _ = response.Write(responseJson)
+		_, _ = response.Write(responseJSON)
 
 	}
 }
@@ -179,6 +180,7 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 			_, _ = response.Write([]byte(status.MalformedRequest))
 			return
 		}
+		job.Args[constant.AuthorEmailKey] = userEmail
 
 		context, executionName, err := httpHandler.service.Execute(job.Name, userEmail, job.Args)
 
@@ -205,10 +207,10 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 
 		response.WriteHeader(http.StatusCreated)
 
-		responseJson, err := json.Marshal(responseBody)
+		responseJSON, err := json.Marshal(responseBody)
 		logger.LogErrors(err, "marshal json from: ", responseBody)
 
-		_, _ = response.Write(responseJson)
+		_, _ = response.Write(responseJSON)
 		return
 	}
 }
