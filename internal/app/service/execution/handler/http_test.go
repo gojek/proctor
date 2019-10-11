@@ -263,7 +263,6 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestSuccessfulJobExecutionPostHTTPHa
 		Name: "sample-job-name",
 		Args: map[string]string{
 			"argOne": "sample-arg",
-			"AUTHOR": userEmail,
 		},
 	}
 	context := &model.ExecutionContext{
@@ -326,7 +325,6 @@ func (suite *ExecutionHTTPHandlerTestSuite) TestGenericErrorJobExecutionPostHTTP
 		Name: "sample-job-name",
 		Args: map[string]string{
 			"argOne": "sample-arg",
-			"AUTHOR": userEmail,
 		},
 	}
 	context := &model.ExecutionContext{
