@@ -105,7 +105,7 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobFailed() {
 	suite.mockMetadataRepository.On("GetByName", jobName).Return(fakeMetadata, nil).Once()
 	suite.mockSecretRepository.On("GetByJobName", jobName).Return(map[string]string{}, nil).Once()
 	suite.mockRepository.On("Insert", mock.Anything).Return(0, nil).Once()
-	suite.mockKubernetesClient.On("ExecuteJobWithCommand", imageName, jobArgs, []string{}).Return("", errors.New("Execution Failed"))
+	suite.mockKubernetesClient.On("ExecuteJobWithCommand", imageName, mock.Anything, []string{}).Return("", errors.New("Execution Failed"))
 
 	context, _, err := suite.service.Execute(jobName, userEmail, jobArgs)
 	assert.Error(t, err, "error when executing image")
@@ -143,7 +143,7 @@ func (suite *TestExecutionServiceSuite) TestExecuteJobSuccess() {
 	suite.mockRepository.On("GetById", mock.Anything).Return(0, nil).Times(3)
 
 	executionName := "execution-name"
-	suite.mockKubernetesClient.On("ExecuteJobWithCommand", imageName, jobArgs, []string{}).Return(executionName, nil)
+	suite.mockKubernetesClient.On("ExecuteJobWithCommand", imageName, mock.Anything, []string{}).Return(executionName, nil)
 	suite.mockKubernetesClient.On("WaitForReadyJob", executionName, mock.Anything).Return(nil)
 	podDetail := &v1.Pod{}
 	suite.mockKubernetesClient.On("WaitForReadyPod", executionName, mock.Anything).Return(podDetail, nil)

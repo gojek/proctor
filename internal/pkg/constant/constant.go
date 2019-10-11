@@ -49,4 +49,3 @@ const AccessTokenHeaderKey = "Access-Token"
 const ClientVersionHeaderKey = "Client-Version"
 
 const WorkerEmail = "worker@proctor"
-const AuthorEmailKey = "AUTHOR"
