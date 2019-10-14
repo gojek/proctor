@@ -104,6 +104,16 @@ func (service *executionService) ExecuteWithCommand(jobName string, userEmail st
 
 	executionArgs := mergeArgs(args, secret)
 
+	contextArgsMap := map[string]string{
+		"EXECUTION_ID":   fmt.Sprint(context.ExecutionID),
+		"JOB_NAME":       context.JobName,
+		"EXECUTION_NAME": context.Name,
+		"USER_EMAIL":     context.UserEmail,
+		"IMAGE_TAG":      context.ImageTag,
+	}
+
+	executionArgs = mergeArgs(executionArgs, contextArgsMap)
+
 	context.Status = status.Created
 	executionName, err := service.kubernetesClient.ExecuteJobWithCommand(metadata.ImageName, executionArgs, commands)
 	logger.Info("Executed Job on Kubernetes got ", executionName, " execution jobName and ", err, "errors")

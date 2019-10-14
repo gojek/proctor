@@ -155,10 +155,10 @@ func (httpHandler *executionHTTPHandler) GetStatus() http.HandlerFunc {
 
 		response.WriteHeader(http.StatusOK)
 
-		responseJson, err := json.Marshal(responseBody)
+		responseJSON, err := json.Marshal(responseBody)
 		logger.LogErrors(err, "marshal json from: ", responseBody)
 
-		_, _ = response.Write(responseJson)
+		_, _ = response.Write(responseJSON)
 
 	}
 }
@@ -179,7 +179,6 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 			_, _ = response.Write([]byte(status.MalformedRequest))
 			return
 		}
-
 		context, executionName, err := httpHandler.service.Execute(job.Name, userEmail, job.Args)
 
 		logger.LogErrors(err, "execute job: ", job)
@@ -205,10 +204,10 @@ func (httpHandler *executionHTTPHandler) Post() http.HandlerFunc {
 
 		response.WriteHeader(http.StatusCreated)
 
-		responseJson, err := json.Marshal(responseBody)
+		responseJSON, err := json.Marshal(responseBody)
 		logger.LogErrors(err, "marshal json from: ", responseBody)
 
-		_, _ = response.Write(responseJson)
+		_, _ = response.Write(responseJSON)
 		return
 	}
 }

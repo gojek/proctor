@@ -1,10 +1,12 @@
 package model
 
 import (
+	"time"
+
 	sqlxTypes "github.com/jmoiron/sqlx/types"
+
 	"proctor/internal/app/service/execution/status"
 	dbTypes "proctor/internal/app/service/infra/db/types"
-	"time"
 )
 
 type ExecutionContext struct {
