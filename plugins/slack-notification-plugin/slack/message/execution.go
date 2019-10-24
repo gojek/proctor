@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"proctor/pkg/notification/event"
+	"sort"
 )
 
 type executionMessage struct {
@@ -26,7 +27,14 @@ func (messageObject *executionMessage) JSON() (string, error) {
 		Text: userEmail + " execute job with details:",
 	}
 	section.Fields = []textComponent{}
-	for key, value := range evt.Content() {
+	contents := evt.Content()
+	var keys []string
+	for key := range contents {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		value := contents[key]
 		keyComponent := textComponent{}
 		keyComponent.Type = "mrkdwn"
 		keyComponent.Text = "*" + key + "*"
