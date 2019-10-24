@@ -71,24 +71,6 @@ func NewRouter() (*mux.Router, error) {
 	authorizationMiddleware := securityMiddleware.NewAuthorizationMiddleware(_securityService, metadataStore)
 	adminAuthorizationMiddleware := securityMiddleware.NewAdminAuthorizationMiddleware(_securityService)
 
-	pingRoute := router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
-		_, _ = fmt.Fprintf(w, "pong")
-	})
-
-	docsRoute := router.HandleFunc("/docs", docs.APIDocHandler)
-	docsSubRoute := router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.Config().DocsPath))))
-	swaggerRoute := router.HandleFunc("/swagger.yml", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path.Join(config.Config().DocsPath, "swagger.yml"))
-	})
-
-	metricsRoute := router.Handle("/metrics", promhttp.Handler())
-
-	authenticationMiddleware.Exclude(pingRoute, docsRoute, docsSubRoute, swaggerRoute, metricsRoute)
-
-	router = middleware.InstrumentNewRelic(router)
-	router.Use(middleware.ValidateClientVersion)
-	router.Use(authenticationMiddleware.MiddlewareFunc)
-
 	authorizationMiddleware.Secure(router, "/execution", executionHandler.Post()).Methods("POST")
 	router.HandleFunc("/execution/{contextId}/status", executionHandler.GetStatus()).Methods("GET")
 	router.HandleFunc("/execution/logs", executionHandler.GetLogs()).Methods("GET")
@@ -102,6 +84,22 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc("/schedule", scheduleHandler.GetAll()).Methods("GET")
 	router.HandleFunc("/schedule/{scheduleID}", scheduleHandler.Get()).Methods("GET")
 	router.HandleFunc("/schedule/{scheduleID}", scheduleHandler.Delete()).Methods("DELETE")
+
+	router = middleware.InstrumentNewRelic(router)
+	router.Use(middleware.ValidateClientVersion)
+
+	pingRoute := router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
+		_, _ = fmt.Fprintf(w, "pong")
+	})
+	docsRoute := router.HandleFunc("/docs", docs.APIDocHandler)
+	docsSubRoute := router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.Config().DocsPath))))
+	swaggerRoute := router.HandleFunc("/swagger.yml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path.Join(config.Config().DocsPath, "swagger.yml"))
+	})
+	metricsRoute := router.Handle("/metrics", promhttp.Handler())
+
+	authenticationMiddleware.Exclude(pingRoute, docsRoute, docsSubRoute, swaggerRoute, metricsRoute)
+	router.Use(authenticationMiddleware.MiddlewareFunc)
 
 	return router, nil
 }
