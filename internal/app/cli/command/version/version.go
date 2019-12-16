@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const ClientVersion = "v2.0.0"
+const ClientVersion = "v2.0.1"
 
 func NewCmd(printer io.Printer, fetcher github.LatestReleaseFetcher) *cobra.Command {
 	return &cobra.Command{
@@ -18,7 +18,7 @@ func NewCmd(printer io.Printer, fetcher github.LatestReleaseFetcher) *cobra.Comm
 		Long:  `Example: proctor version`,
 		Run: func(cmd *cobra.Command, args []string) {
 			printer.Println(fmt.Sprintf("Proctor: A Developer Friendly Automation Orchestrator %s", ClientVersion), color.Reset)
-			release, e := fetcher.LatestRelease("gojektech", "proctor")
+			release, e := fetcher.LatestRelease("gopaytech", "proctor")
 			if e == nil && release != ClientVersion {
 				printer.Println(fmt.Sprintf("Your version of Proctor client is out of date! The latest version is %s You can update by either running brew upgrade proctor or downloading a release for your OS here: https://proctor/releases", release), color.Reset)
 			}
