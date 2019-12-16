@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const ClientVersion = "v2.0.2"
+const ClientVersion = "v2.0.3"
 
 func NewCmd(printer io.Printer, fetcher github.LatestReleaseFetcher) *cobra.Command {
 	return &cobra.Command{
