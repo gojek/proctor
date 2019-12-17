@@ -5,12 +5,19 @@ builds:
     id: "proctor-server"
     main: ./cmd/server/main.go
     binary: proctor-server
+    goos:
+      - darwin
+      - linux
     env:
       - CGO_ENABLED=0
   -
     id: "proctor-cli"
     main: ./cmd/cli/main.go
     binary: proctor2
+    goos:
+      - darwin
+      - linux
+      - windows
     env:
       - CGO_ENABLED=0
 archive:
