@@ -1,0 +1,21 @@
+dist: trusty
+sudo: required
+language: go
+go:
+  - "1.12"
+
+services:
+  - redis-server
+  - postgresql
+
+before_script:
+  - sudo service redis-server start
+
+stages:
+  - test
+
+jobs:
+  include:
+    - stage: test
+      script:
+        - make db.setup test
