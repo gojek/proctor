@@ -63,6 +63,7 @@ type ProctorConfig struct {
 	AppPort                          string
 	DefaultNamespace                 string
 	RedisAddress                     string
+	RedisPassword                    string
 	LogsStreamReadBufferSize         int
 	RedisMaxActiveConnections        int
 	LogsStreamWriteBufferSize        int
@@ -120,6 +121,7 @@ func load() ProctorConfig {
 		AppPort:                          GetStringDefault(fang, "app.port", "5001"),
 		DefaultNamespace:                 fang.GetString("default.namespace"),
 		RedisAddress:                     fang.GetString("redis.address"),
+		RedisPassword:                    fang.GetString("redis.password"),
 		RedisMaxActiveConnections:        fang.GetInt("redis.max.active.connections"),
 		LogsStreamReadBufferSize:         fang.GetInt("logs.stream.read.buffer.size"),
 		LogsStreamWriteBufferSize:        fang.GetInt("logs.stream.write.buffer.size"),

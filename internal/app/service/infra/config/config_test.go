@@ -49,6 +49,14 @@ func TestRedisAddress(t *testing.T) {
 	assert.Equal(t, value, load().RedisAddress)
 }
 
+func TestRedisPassword(t *testing.T) {
+	fake.Seed(0)
+	value := fake.FirstName()
+	_ = os.Setenv("PROCTOR_REDIS_PASSWORD", value)
+
+	assert.Equal(t, value, load().RedisPassword)
+}
+
 func TestRedisMaxActiveConnections(t *testing.T) {
 	fake.Seed(0)
 	number := fake.Number(10, 90)
