@@ -27,11 +27,13 @@ func NewClient() Client {
 }
 
 func newPool() (*redis.Pool, error) {
+	dialPassword := redis.DialPassword(config.Config().RedisPassword)
+	dialAddress := config.Config().RedisAddress
 	pool := &redis.Pool{
 		MaxIdle:     config.Config().RedisMaxActiveConnections / 2,
 		MaxActive:   config.Config().RedisMaxActiveConnections,
 		IdleTimeout: 5 * time.Second,
-		Dial:        func() (redis.Conn, error) { return redis.Dial("tcp", config.Config().RedisAddress) },
+		Dial:        func() (redis.Conn, error) { return redis.Dial("tcp", dialAddress, dialPassword) },
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			if time.Since(t) < time.Minute {
 				return nil

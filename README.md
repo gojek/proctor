@@ -130,6 +130,7 @@ You can read [here](./docs/creating_procs.md) to learn more about creating procs
 * `PROCTOR_APP_PORT` is port on which service will run
 * `PROCTOR_LOG_LEVEL` defines log levels of service. Available options are: `debug`,`info`,`warn`,`error`,`fatal`,`panic`
 * `PROCTOR_REDIS_ADDRESS` is hostname and port of redis store for jobs configuration and metadata
+* `PROCTOR_REDIS_PASSWORD` is password to access redis store for jobs configuration and metadata
 * `PROCTOR_REDIS_MAX_ACTIVE_CONNECTIONS` defines maximum active connections to redis. Maximum idle connections is half of this config
 * `PROCTOR_LOGS_STREAM_READ_BUFFER_SIZE` and `PROCTOR_LOGS_STREAM_WRITE_BUFFER_SIZE` is the buffer size for websocket connection while streaming logs
 * `PROCTOR_KUBE_CONFIG` needs to be set only if service is running outside a kubernetes cluster
