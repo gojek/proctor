@@ -23,7 +23,7 @@ func TestLatestVersionCmd(t *testing.T) {
 	mockPrinter := &io.MockPrinter{}
 	githubClient := &github.MockClient{}
 	versionCmd := NewCmd(mockPrinter, githubClient)
-	version := "v2.0.4"
+	version := "v2.0.5"
 
 	mockPrinter.On("Println", fmt.Sprintf("Proctor: A Developer Friendly Automation Orchestrator %s", ClientVersion), color.Reset).Once()
 	githubClient.On("LatestRelease", "gopaytech", "proctor").Return(version, nil)
