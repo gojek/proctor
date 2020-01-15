@@ -133,11 +133,34 @@ func (s *MetadataHandlerTestSuite) TestHandleBulkDisplay() {
 	}
 
 	ctx := context.WithValue(req.Context(), middleware.ContextUserDetailKey, userDetail)
+	ctx = context.WithValue(ctx, middleware.ContextAuthEnabled, true)
 	req = req.WithContext(ctx)
 	responseRecorder := httptest.NewRecorder()
 
 	var jobsMetadata []modelMetadata.Metadata
 	s.mockRepository.On("GetAllByGroups", groups).Return(jobsMetadata, nil).Once()
+
+	s.metadataHTTPHandler.GetAll()(responseRecorder, req)
+
+	s.mockRepository.AssertExpectations(t)
+
+	assert.Equal(t, http.StatusOK, responseRecorder.Code)
+
+	expectedJobDetails, err := json.Marshal(jobsMetadata)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedJobDetails, responseRecorder.Body.Bytes())
+}
+
+func (s *MetadataHandlerTestSuite) TestHandleBulkDisplayWithoutAuth() {
+	t := s.T()
+
+	req := httptest.NewRequest("GET", "/metadata", bytes.NewReader([]byte{}))
+	ctx := context.WithValue(req.Context(), middleware.ContextAuthEnabled, false)
+	req = req.WithContext(ctx)
+	responseRecorder := httptest.NewRecorder()
+
+	var jobsMetadata []modelMetadata.Metadata
+	s.mockRepository.On("GetAll").Return(jobsMetadata, nil).Once()
 
 	s.metadataHTTPHandler.GetAll()(responseRecorder, req)
 
@@ -163,6 +186,7 @@ func (s *MetadataHandlerTestSuite) TestHandleBulkDisplayStoreFailure() {
 	}
 
 	ctx := context.WithValue(req.Context(), middleware.ContextUserDetailKey, userDetail)
+	ctx = context.WithValue(ctx, middleware.ContextAuthEnabled, true)
 	req = req.WithContext(ctx)
 	responseRecorder := httptest.NewRecorder()
 

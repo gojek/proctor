@@ -56,20 +56,26 @@ func (handler *metadataHTTPHandler) Post() http.HandlerFunc {
 
 func (handler *metadataHTTPHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		var metadataSlice []modelMetadata.Metadata
+		var err error
+		authEnabled, ok := req.Context().Value(middleware.ContextAuthEnabled).(bool)
+		if ok && authEnabled {
+			userDetailContext := req.Context().Value(middleware.ContextUserDetailKey)
+			if userDetailContext == nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 
-		userDetailContext := req.Context().Value(middleware.ContextUserDetailKey)
-		if userDetailContext == nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+			userDetail, ok := userDetailContext.(*auth.UserDetail)
+			if !ok {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			metadataSlice, err = handler.repository.GetAllByGroups(userDetail.Groups)
+		} else {
+			metadataSlice, err = handler.repository.GetAll()
 		}
-
-		userDetail, ok := userDetailContext.(*auth.UserDetail)
-		if !ok {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		metadataSlice, err := handler.repository.GetAllByGroups(userDetail.Groups)
 		if err != nil {
 			logger.Error("Error fetching metadata", err.Error())
 
