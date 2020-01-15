@@ -19,6 +19,11 @@ func (m *MockMetadataRepository) GetAll() ([]modelMetadata.Metadata, error) {
 	return args.Get(0).([]modelMetadata.Metadata), args.Error(1)
 }
 
+func (m *MockMetadataRepository) GetAllByGroups(group []string) ([]modelMetadata.Metadata, error) {
+	args := m.Called(group)
+	return args.Get(0).([]modelMetadata.Metadata), args.Error(1)
+}
+
 func (m *MockMetadataRepository) GetByName(name string) (*modelMetadata.Metadata, error) {
 	args := m.Called(name)
 	return args.Get(0).(*modelMetadata.Metadata), args.Error(1)

@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"proctor/internal/app/service/infra/logger"
 	"proctor/internal/app/service/metadata/repository"
+	"proctor/internal/app/service/security/middleware"
 	"proctor/internal/pkg/constant"
 	modelMetadata "proctor/internal/pkg/model/metadata"
+	"proctor/pkg/auth"
 )
 
 type metadataHTTPHandler struct {
@@ -55,7 +57,19 @@ func (handler *metadataHTTPHandler) Post() http.HandlerFunc {
 func (handler *metadataHTTPHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 
-		metadataSlice, err := handler.repository.GetAll()
+		userDetailContext := req.Context().Value(middleware.ContextUserDetailKey)
+		if userDetailContext == nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		userDetail, ok := userDetailContext.(*auth.UserDetail)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		metadataSlice, err := handler.repository.GetAllByGroups(userDetail.Groups)
 		if err != nil {
 			logger.Error("Error fetching metadata", err.Error())
 

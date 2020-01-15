@@ -2,12 +2,15 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	metadataRepository "proctor/internal/app/service/metadata/repository"
+	"proctor/internal/app/service/security/middleware"
+	"proctor/pkg/auth"
 	"testing"
 
 	"proctor/internal/pkg/model/metadata/env"
@@ -121,10 +124,20 @@ func (s *MetadataHandlerTestSuite) TestHandleBulkDisplay() {
 	t := s.T()
 
 	req := httptest.NewRequest("GET", "/metadata", bytes.NewReader([]byte{}))
+	groups := []string{"admin", "migratior"}
+	userDetail := &auth.UserDetail{
+		Name:   "jasoet",
+		Email:  "jasoet@ambyar.com",
+		Active: true,
+		Groups: groups,
+	}
+
+	ctx := context.WithValue(req.Context(), middleware.ContextUserDetailKey, userDetail)
+	req = req.WithContext(ctx)
 	responseRecorder := httptest.NewRecorder()
 
-	jobsMetadata := []modelMetadata.Metadata{}
-	s.mockRepository.On("GetAll").Return(jobsMetadata, nil).Once()
+	var jobsMetadata []modelMetadata.Metadata
+	s.mockRepository.On("GetAllByGroups", groups).Return(jobsMetadata, nil).Once()
 
 	s.metadataHTTPHandler.GetAll()(responseRecorder, req)
 
@@ -141,10 +154,20 @@ func (s *MetadataHandlerTestSuite) TestHandleBulkDisplayStoreFailure() {
 	t := s.T()
 
 	req := httptest.NewRequest("GET", "/metadata", bytes.NewReader([]byte{}))
+	groups := []string{"admin", "migratior"}
+	userDetail := &auth.UserDetail{
+		Name:   "jasoet",
+		Email:  "jasoet@ambyar.com",
+		Active: true,
+		Groups: groups,
+	}
+
+	ctx := context.WithValue(req.Context(), middleware.ContextUserDetailKey, userDetail)
+	req = req.WithContext(ctx)
 	responseRecorder := httptest.NewRecorder()
 
 	jobsMetadata := []modelMetadata.Metadata{}
-	s.mockRepository.On("GetAll").Return(jobsMetadata, errors.New("error")).Once()
+	s.mockRepository.On("GetAllByGroups", groups).Return(jobsMetadata, errors.New("error")).Once()
 
 	s.metadataHTTPHandler.GetAll()(responseRecorder, req)
 

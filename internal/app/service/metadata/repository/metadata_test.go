@@ -113,6 +113,84 @@ func (s *MetadataRepositoryTestSuite) TestGetAllFailure() {
 	s.mockRedisClient.AssertExpectations(t)
 }
 
+func (s *MetadataRepositoryTestSuite) TestGetAllByGroups() {
+	t := s.T()
+
+	metadata1 := modelMetadata.Metadata{
+		Name:             "job1",
+		ImageName:        "job1-image-name",
+		Description:      "desc1",
+		Author:           "Test User<testuser@example.com",
+		Contributors:     "Test User<testuser@example.com",
+		Organization:     "Test Org",
+		AuthorizedGroups: []string{"group_one", "group_two", "group_three", "group_four"},
+	}
+
+	metadata2 := modelMetadata.Metadata{
+		Name:             "job2",
+		ImageName:        "job2-image-name",
+		Description:      "desc2",
+		Author:           "Test User 2<testuser2@example.com",
+		Contributors:     "Test User 2<testuser2@example.com",
+		Organization:     "Test Org2",
+		AuthorizedGroups: []string{"group_x", "group_y", "group_z", "group_a"},
+	}
+
+	metadata3 := modelMetadata.Metadata{
+		Name:         "job3",
+		ImageName:    "job3-image-name",
+		Description:  "desc3",
+		Author:       "Test User 3<testuser2@example.com",
+		Contributors: "Test User 3<testuser2@example.com",
+		Organization: "Test Org3",
+	}
+
+	s.mockRedisClient.On("KEYS", "*-metadata").Return(
+		[]string{"job1-metadata", "job2-metadata", "job3-metadata"}, nil).Times(5)
+
+	jsonMetadata1, err := json.Marshal(metadata1)
+	assert.NoError(t, err)
+	jsonMetadata2, err := json.Marshal(metadata2)
+	assert.NoError(t, err)
+	jsonMetadata3, err := json.Marshal(metadata3)
+	assert.NoError(t, err)
+	values := [][]byte{jsonMetadata1, jsonMetadata2, jsonMetadata3}
+
+	keys := []string{"job1-metadata", "job2-metadata", "job3-metadata"}
+	jobKeys := make([]interface{}, len(keys))
+	for i := range keys {
+		jobKeys[i] = keys[i]
+	}
+
+	s.mockRedisClient.On("MGET", jobKeys...).Return(values, nil).Times(5)
+
+	metadataSlice1, err := s.testMetadataStore.GetAllByGroups([]string{"group_two", "group_a"})
+	assert.NoError(t, err)
+
+	assert.EqualValues(t, []modelMetadata.Metadata{metadata1, metadata2, metadata3}, metadataSlice1)
+
+	metadataSlice2, err := s.testMetadataStore.GetAllByGroups([]string{"group_two"})
+	assert.NoError(t, err)
+
+	assert.EqualValues(t, []modelMetadata.Metadata{metadata1,metadata3}, metadataSlice2)
+
+	metadataSlice3, err := s.testMetadataStore.GetAllByGroups([]string{"group_a"})
+	assert.NoError(t, err)
+
+	assert.EqualValues(t, []modelMetadata.Metadata{metadata2,metadata3}, metadataSlice3)
+
+	metadataSlice4, err := s.testMetadataStore.GetAllByGroups([]string{"group_a", "group_x"})
+	assert.NoError(t, err)
+
+	assert.EqualValues(t, []modelMetadata.Metadata{metadata2,metadata3}, metadataSlice4)
+
+	metadataSlice5, err := s.testMetadataStore.GetAllByGroups([]string{"groupz", "group3"})
+	assert.NoError(t, err)
+
+	assert.EqualValues(t, []modelMetadata.Metadata{metadata3}, metadataSlice5)
+	s.mockRedisClient.AssertExpectations(t)
+}
+
 func (s *MetadataRepositoryTestSuite) TestGetAllMgetFailure() {
 	t := s.T()
 
