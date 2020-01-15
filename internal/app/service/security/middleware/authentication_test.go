@@ -26,6 +26,7 @@ func (context *testContext) setUp(t *testing.T) {
 	context.authMiddleware.service = context.securityService
 	context.authMiddleware.enabled = true
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, context.authMiddleware.enabled, r.Context().Value("AUTH_ENABLED"))
 	}
 	context.testHandler = fn
 }
@@ -59,6 +60,7 @@ func TestAuthenticationMiddleware_MiddlewareFuncSuccess(t *testing.T) {
 
 	authMiddleware := ctx.instance().authMiddleware
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, ctx.authMiddleware.enabled, r.Context().Value("AUTH_ENABLED"))
 		assert.Equal(t, userDetail, r.Context().Value("USER_DETAIL"))
 	}
 	testHandler := http.HandlerFunc(fn)
@@ -154,7 +156,10 @@ func TestAuthenticationMiddleware_MiddlewareFuncDisabled(t *testing.T) {
 
 	authMiddleware := ctx.instance().authMiddleware
 	authMiddleware.enabled = false
-	testHandler := ctx.instance().testHandler
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, authMiddleware.enabled, r.Context().Value("AUTH_ENABLED"))
+	}
+	testHandler := http.HandlerFunc(fn)
 	ts := httptest.NewServer(authMiddleware.MiddlewareFunc(testHandler))
 	defer ts.Close()
 

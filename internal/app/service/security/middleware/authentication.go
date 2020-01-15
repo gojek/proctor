@@ -20,12 +20,13 @@ type authenticationMiddleware struct {
 
 func (middleware *authenticationMiddleware) MiddlewareFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), ContextAuthEnabled, middleware.enabled)
 		if !middleware.enabled {
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 		if middleware.isRequestExcluded(r) {
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 		token := r.Header.Get(constant.AccessTokenHeaderKey)
@@ -40,7 +41,7 @@ func (middleware *authenticationMiddleware) MiddlewareFunc(next http.Handler) ht
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		ctx := context.WithValue(r.Context(), ContextUserDetailKey, userDetail)
+		ctx = context.WithValue(ctx, ContextUserDetailKey, userDetail)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

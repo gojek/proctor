@@ -6,6 +6,7 @@ import (
 )
 
 const ContextUserDetailKey string = "USER_DETAIL"
+const ContextAuthEnabled string = "AUTH_ENABLED"
 
 type Middleware interface {
 	MiddlewareFunc(http.Handler) http.Handler
