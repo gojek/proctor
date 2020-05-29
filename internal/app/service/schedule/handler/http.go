@@ -58,6 +58,7 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 			return
 		}
 
+		schedule.Cron = fmt.Sprintf("0 %s", schedule.Cron)
 		_, err = cron.Parse(schedule.Cron)
 		if err != nil {
 			logger.LogErrors(err, fmt.Sprintf("Cron format is invalid: %s ", schedule.Tags), schedule.JobName, schedule.Cron)
@@ -103,7 +104,6 @@ func (httpHandler *scheduleHTTPHandler) Post() http.HandlerFunc {
 			return
 		}
 
-		schedule.Cron = fmt.Sprintf("0 %s", schedule.Cron)
 		schedule.ID, err = httpHandler.repository.Insert(schedule)
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
