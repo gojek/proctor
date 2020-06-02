@@ -1,0 +1,10 @@
+.env
+scripts/proctor.rb
+_output/*
+
+*.swp
+*.swo
+.idea
+.DS_Store
+.vscode/
+dist/

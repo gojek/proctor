@@ -1,6 +1,6 @@
  Proctor - Contributing
 
-Proctor `github.com/gojektech/proctor` is an open-source project.
+Proctor `github.com/gojek/proctor` is an open-source project.
 It is licensed using the [Apache License 2.0][1].
 We appreciate pull requests; here are our guidelines:
 
@@ -36,7 +36,7 @@ Much Thanks! ❤❤❤
 GO-JEK Tech
 
 [1]: http://www.apache.org/licenses/LICENSE-2.0
-[2]: https://github.com/gojektech/proctor/issues
+[2]: https://github.com/gojek/proctor/issues
 [3]: https://golang.org/doc/effective_go.html
 [4]: http://gun.io/blog/how-to-github-fork-branch-and-pull-request
 [5]: https://chris.beams.io/posts/git-commit/
