@@ -1,17 +1,21 @@
 package server
 
 import (
-	"proctor/proctord/instrumentation"
-	"time"
-
 	"proctor/proctord/config"
+	"proctor/proctord/instrumentation"
 	"proctor/proctord/logger"
+	"proctor/proctord/redis"
+	"proctor/proctord/storage/postgres"
+	"time"
 
 	"github.com/tylerb/graceful"
 	"github.com/urfave/negroni"
 )
 
 func Start() error {
+	redisClient := redis.NewClient()
+	postgresClient := postgres.NewClient()
+
 	err := instrumentation.InitNewRelic()
 	if err != nil {
 		logger.Fatal(err)
@@ -19,7 +23,7 @@ func Start() error {
 	appPort := ":" + config.AppPort()
 
 	server := negroni.New(negroni.NewRecovery())
-	router, err := NewRouter()
+	router, err := NewRouter(postgresClient, redisClient)
 	if err != nil {
 		return err
 	}
