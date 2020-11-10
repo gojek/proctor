@@ -2,10 +2,13 @@ package server
 
 import (
 	"fmt"
+	"net/http"
+	"path"
 	"proctor/proctord/audit"
 	"proctor/proctord/config"
 	"proctor/proctord/docs"
 	http_client "proctor/proctord/http"
+	"proctor/proctord/instrumentation"
 	"proctor/proctord/jobs/execution"
 	"proctor/proctord/jobs/logs"
 	"proctor/proctord/jobs/metadata"
@@ -16,20 +19,12 @@ import (
 	"proctor/proctord/redis"
 	"proctor/proctord/storage"
 	"proctor/proctord/storage/postgres"
-	"net/http"
-	"path"
 
-	"proctor/proctord/instrumentation"
 	"github.com/gorilla/mux"
 )
 
-var postgresClient postgres.Client
-
-func NewRouter() (*mux.Router, error) {
+func NewRouter(postgresClient postgres.Client, redisClient redis.Client) (*mux.Router, error) {
 	router := mux.NewRouter()
-
-	redisClient := redis.NewClient()
-	postgresClient = postgres.NewClient()
 
 	store := storage.New(postgresClient)
 	metadataStore := metadata.NewStore(redisClient)
@@ -54,7 +49,6 @@ func NewRouter() (*mux.Router, error) {
 	router.HandleFunc("/ping", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "pong")
 	})
-
 
 	router.HandleFunc("/docs", docs.APIDocHandler)
 	router.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir(config.DocsPath()))))
