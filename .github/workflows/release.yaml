@@ -1,10 +1,11 @@
 name: GoCI
 on:
   push:
-    branches: [ master ]
+    branches:
+    tags:
   pull_request:
-    branches: [ master ]
-
+    branches:
+      - master
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -49,4 +50,5 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     steps:
       - name: Release
-        run: scripts/release.sh
+        run: ./scripts/release.sh
+
