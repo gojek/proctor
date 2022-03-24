@@ -157,7 +157,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideTimeoutError() {
 
 	procList, err := s.testClient.ListProcs()
 
-	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/metadata: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet \"http://proctor.example.com/jobs/metadata\": Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	assert.Equal(t, []proc_metadata.Metadata{}, procList)
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -190,7 +190,7 @@ func (s *ClientTestSuite) TestListProcsReturnClientSideConnectionError() {
 
 	procList, err := s.testClient.ListProcs()
 
-	assert.Equal(t, errors.New("Network Error!!!\nGet http://proctor.example.com/jobs/metadata: Unknown Error"), err)
+	assert.Equal(t, errors.New("Network Error!!!\nGet \"http://proctor.example.com/jobs/metadata\": Unknown Error"), err)
 	assert.Equal(t, []proc_metadata.Metadata{}, procList)
 	s.mockConfigLoader.AssertExpectations(t)
 }
@@ -501,7 +501,7 @@ func (s *ClientTestSuite) TestExecuteProcsReturnClientSideConnectionError() {
 	response, err := s.testClient.ExecuteProc("run-sample", map[string]string{"SAMPLE_ARG1": "sample-value"})
 
 	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("Network Error!!!\nPost http://proctor.example.com/jobs/execute: Unknown Error"), err)
+	assert.Equal(t, errors.New("Network Error!!!\nPost \"http://proctor.example.com/jobs/execute\": Unknown Error"), err)
 	s.mockConfigLoader.AssertExpectations(t)
 }
 
@@ -667,7 +667,7 @@ func (s *ClientTestSuite) TestGetDefinitiveProcExecutionStatusForHTTPRequestFail
 
 	procExecutionStatus, err := s.testClient.GetDefinitiveProcExecutionStatus("some-proc-name")
 
-	assert.Equal(t, errors.New("Connection Timeout!!!\nGet http://proctor.example.com/jobs/execute/some-proc-name/status: Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
+	assert.Equal(t, errors.New("Connection Timeout!!!\nGet \"http://proctor.example.com/jobs/execute/some-proc-name/status\": Unable to reach http://proctor.example.com/\nPlease check your Internet/VPN connection for connectivity to ProctorD."), err)
 	s.mockConfigLoader.AssertExpectations(t)
 	assert.Equal(t, "", procExecutionStatus)
 }
