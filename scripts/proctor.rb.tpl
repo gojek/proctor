@@ -6,8 +6,6 @@ class Proctor < Formula
   sha256 "{{ .SHA }}"
   head "https://github.com/gojek/proctor.git"
 
-  bottle :unneeded
-
   def install
     bin.install "proctor"
   end
