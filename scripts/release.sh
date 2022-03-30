@@ -14,5 +14,5 @@ git config user.name "Github Actions"
 git config user.email "<>"
 git add .
 git commit -m "[GH Actions] updating brew formula for release $GITHUB_REF_NAME"
-git push --force --quiet "https://$GITHUB_TOKEN:@github.com/gojektech/homebrew-tap.git"
+git push --force --quiet "https://$GITHUB_TOKEN:@github.com/gojek/homebrew-tap.git"
 
