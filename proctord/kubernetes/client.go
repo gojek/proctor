@@ -243,15 +243,25 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 
 func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {
 	logger.Debug("reading pod logs for: ", podName)
+	// req, err := http.NewRequest("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+podName+"/log?follow=true", nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// req.Header.Set("Authorization", "Basic "+config.KubeBasicAuthEncoded())
+	// resp, err := client.httpClient.Do(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return resp.Body, err
 
-	req, err := http.NewRequest("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+podName+"/log?follow=true", nil)
+	// Use the authenticated client instead of manually requesting the control plane
+	clt := client.clientSet.CoreV1()
+	req := clt.Pods(namespace).GetLogs(podName, &v1.PodLogOptions{
+		Follow: true,
+	})
+	logs, err := req.Stream()
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Basic "+config.KubeBasicAuthEncoded())
-	resp, err := client.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body, err
+	return logs, err
 }
