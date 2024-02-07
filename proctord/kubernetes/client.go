@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -129,7 +130,7 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 		Spec:       jobSpec,
 	}
 
-	_, err := kubernetesJobs.Create(&jobToRun)
+	_, err := kubernetesJobs.Create(context.Background(), &jobToRun, meta_v1.CreateOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -148,7 +149,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 	logger.Debug("list of pods")
 
 	for {
-		listOfPods, err := kubernetesPods.List(listOptions)
+		listOfPods, err := kubernetesPods.List(context.Background(), listOptions)
 		if err != nil {
 			return nil, fmt.Errorf("Error fetching kubernetes Pods list %v", err)
 		}
@@ -158,7 +159,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 			if podJob.Status.Phase == v1.PodRunning || podJob.Status.Phase == v1.PodSucceeded || podJob.Status.Phase == v1.PodFailed {
 				return client.getLogsStreamReaderFor(podJob.ObjectMeta.Name)
 			}
-			watchPod, err := kubernetesPods.Watch(listOptions)
+			watchPod, err := kubernetesPods.Watch(context.Background(), listOptions)
 			if err != nil {
 				return nil, fmt.Errorf("Error watching kubernetes Pods %v", err)
 			}
@@ -184,7 +185,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 			batchV1 := client.clientSet.BatchV1()
 			kubernetesJobs := batchV1.Jobs(namespace)
 
-			watchJob, err := kubernetesJobs.Watch(listOptions)
+			watchJob, err := kubernetesJobs.Watch(context.Background(), listOptions)
 			if err != nil {
 				return nil, fmt.Errorf("Error watching kubernetes Jobs %v", err)
 			}
@@ -217,7 +218,7 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 		LabelSelector: jobLabelSelector(jobExecutionID),
 	}
 
-	watchJob, err := kubernetesJobs.Watch(listOptions)
+	watchJob, err := kubernetesJobs.Watch(context.Background(), listOptions)
 	if err != nil {
 		return utility.JobFailed, err
 	}
@@ -251,7 +252,7 @@ func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, err
 	req := clt.Pods(namespace).GetLogs(podName, &v1.PodLogOptions{
 		Follow: true,
 	})
-	logs, err := req.Stream()
+	logs, err := req.Stream(context.Background())
 	if err != nil {
 		return nil, err
 	}
