@@ -9,12 +9,14 @@ import (
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
 	"proctor/proctord/utility"
+
 	uuid "github.com/satori/go.uuid"
 	batch_v1 "k8s.io/api/batch/v1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+
 	//Package needed for kubernetes cluster in google cloud
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
@@ -105,8 +107,8 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 	}
 
 	objectMeta := meta_v1.ObjectMeta{
-		Name:   uniqueJobName,
-		Labels: label,
+		Name:        uniqueJobName,
+		Labels:      label,
 		Annotations: config.JobPodAnnotations(),
 	}
 
@@ -243,16 +245,6 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 
 func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {
 	logger.Debug("reading pod logs for: ", podName)
-	// req, err := http.NewRequest("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+podName+"/log?follow=true", nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// req.Header.Set("Authorization", "Basic "+config.KubeBasicAuthEncoded())
-	// resp, err := client.httpClient.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return resp.Body, err
 
 	// Use the authenticated client instead of manually requesting the control plane
 	clt := client.clientSet.CoreV1()
