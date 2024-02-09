@@ -2,13 +2,12 @@ package kubernetes
 
 import (
 	"bufio"
+	"context"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
-	"proctor/proctord/config"
-	"proctor/proctord/utility"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -16,6 +15,8 @@ import (
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	batch_v1 "k8s.io/client-go/kubernetes/typed/batch/v1"
+	"proctor/proctord/config"
+	"proctor/proctord/utility"
 
 	batchV1 "k8s.io/api/batch/v1"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
@@ -86,7 +87,7 @@ func (suite *ClientTestSuite) TestJobExecution() {
 		LabelSelector: jobLabelSelector(executedJobname),
 	}
 	namespace := config.DefaultNamespace()
-	listOfJobs, err := suite.fakeClientSet.BatchV1().Jobs(namespace).List(listOptions)
+	listOfJobs, err := suite.fakeClientSet.BatchV1().Jobs(namespace).List(context.Background(), listOptions)
 	assert.NoError(t, err)
 	executedJob := listOfJobs.Items[0]
 
@@ -98,7 +99,7 @@ func (suite *ClientTestSuite) TestJobExecution() {
 	expectedLabel := jobLabel(executedJobname)
 	assert.Equal(t, expectedLabel, executedJob.ObjectMeta.Labels)
 	assert.Equal(t, expectedLabel, executedJob.Spec.Template.ObjectMeta.Labels)
-	assert.Equal(t, map[string]string{"key.one":"true"}, executedJob.Spec.Template.Annotations)
+	assert.Equal(t, map[string]string{"key.one": "true"}, executedJob.Spec.Template.Annotations)
 
 	assert.Equal(t, config.KubeJobActiveDeadlineSeconds(), executedJob.Spec.ActiveDeadlineSeconds)
 	assert.Equal(t, config.KubeJobRetries(), executedJob.Spec.BackoffLimit)
@@ -120,10 +121,6 @@ func (suite *ClientTestSuite) TestStreamLogsSuccess() {
 	httpmock.ActivateNonDefault(suite.fakeHttpClient)
 	defer httpmock.DeactivateAndReset()
 
-	namespace := config.DefaultNamespace()
-	httpmock.RegisterResponder("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+suite.podName+"/log?follow=true",
-		httpmock.NewStringResponder(200, "logs are streaming"))
-
 	logStream, err := suite.testClientStreaming.StreamJobLogs(suite.jobName)
 	assert.NoError(t, err)
 
@@ -134,7 +131,7 @@ func (suite *ClientTestSuite) TestStreamLogsSuccess() {
 	jobLogSingleLine, _, err := bufioReader.ReadLine()
 	assert.NoError(t, err)
 
-	assert.Equal(t, "logs are streaming", string(jobLogSingleLine[:]))
+	assert.Equal(t, "fake logs", string(jobLogSingleLine[:]))
 
 }
 

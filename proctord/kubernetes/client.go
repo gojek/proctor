@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,12 +10,14 @@ import (
 	"proctor/proctord/config"
 	"proctor/proctord/logger"
 	"proctor/proctord/utility"
+
 	uuid "github.com/satori/go.uuid"
 	batch_v1 "k8s.io/api/batch/v1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+
 	//Package needed for kubernetes cluster in google cloud
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
@@ -105,8 +108,8 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 	}
 
 	objectMeta := meta_v1.ObjectMeta{
-		Name:   uniqueJobName,
-		Labels: label,
+		Name:        uniqueJobName,
+		Labels:      label,
 		Annotations: config.JobPodAnnotations(),
 	}
 
@@ -127,7 +130,7 @@ func (client *client) ExecuteJob(imageName string, envMap map[string]string) (st
 		Spec:       jobSpec,
 	}
 
-	_, err := kubernetesJobs.Create(&jobToRun)
+	_, err := kubernetesJobs.Create(context.Background(), &jobToRun, meta_v1.CreateOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -146,7 +149,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 	logger.Debug("list of pods")
 
 	for {
-		listOfPods, err := kubernetesPods.List(listOptions)
+		listOfPods, err := kubernetesPods.List(context.Background(), listOptions)
 		if err != nil {
 			return nil, fmt.Errorf("Error fetching kubernetes Pods list %v", err)
 		}
@@ -156,7 +159,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 			if podJob.Status.Phase == v1.PodRunning || podJob.Status.Phase == v1.PodSucceeded || podJob.Status.Phase == v1.PodFailed {
 				return client.getLogsStreamReaderFor(podJob.ObjectMeta.Name)
 			}
-			watchPod, err := kubernetesPods.Watch(listOptions)
+			watchPod, err := kubernetesPods.Watch(context.Background(), listOptions)
 			if err != nil {
 				return nil, fmt.Errorf("Error watching kubernetes Pods %v", err)
 			}
@@ -182,7 +185,7 @@ func (client *client) StreamJobLogs(jobName string) (io.ReadCloser, error) {
 			batchV1 := client.clientSet.BatchV1()
 			kubernetesJobs := batchV1.Jobs(namespace)
 
-			watchJob, err := kubernetesJobs.Watch(listOptions)
+			watchJob, err := kubernetesJobs.Watch(context.Background(), listOptions)
 			if err != nil {
 				return nil, fmt.Errorf("Error watching kubernetes Jobs %v", err)
 			}
@@ -215,7 +218,7 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 		LabelSelector: jobLabelSelector(jobExecutionID),
 	}
 
-	watchJob, err := kubernetesJobs.Watch(listOptions)
+	watchJob, err := kubernetesJobs.Watch(context.Background(), listOptions)
 	if err != nil {
 		return utility.JobFailed, err
 	}
@@ -244,14 +247,14 @@ func (client *client) JobExecutionStatus(jobExecutionID string) (string, error) 
 func (client *client) getLogsStreamReaderFor(podName string) (io.ReadCloser, error) {
 	logger.Debug("reading pod logs for: ", podName)
 
-	req, err := http.NewRequest("GET", "https://"+config.KubeClusterHostName()+"/api/v1/namespaces/"+namespace+"/pods/"+podName+"/log?follow=true", nil)
+	// Use the authenticated client instead of manually requesting the control plane
+	clt := client.clientSet.CoreV1()
+	req := clt.Pods(namespace).GetLogs(podName, &v1.PodLogOptions{
+		Follow: true,
+	})
+	logs, err := req.Stream(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Basic "+config.KubeBasicAuthEncoded())
-	resp, err := client.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Body, err
+	return logs, err
 }
